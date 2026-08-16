@@ -27,6 +27,51 @@ A word appears. You answer, step by step:
 Every answer is graded immediately with a one-line explanation, and the chips
 under the word keep a running summary of the analysis so far.
 
+## Help while you are stuck
+
+Every question carries a **?** button. It opens the tells for that exact
+decision before you answer — how the vowels give away a passive (ḍammah at the
+front, fatḥah before the last letter in the muḍāriʿ), how the māḍī vowel narrows
+the six gates down, which added letter belongs to which form, how to spot a
+lafīf from an ajwaf. Get one wrong and the feedback also offers a link into the
+matching page of the reference.
+
+## The reference
+
+A **📖 Reference** button on the home screen and in the top bar of every
+question, opening over the drill without losing your place. Seven tabs:
+
+- **The six gates** — each bāb with its vowel pattern, how to recognise it, what
+  kind of verbs live there, and example verbs.
+- **Forms II–X** — for every form: the shape of the māḍī, muḍāriʿ, maṣdar, ism
+  al-fāʿil, ism al-mafʿūl and amr; how to spot it; and **what it does to the
+  meaning** — Form II makes a verb transitive or intensive, Form IV is
+  causative, Form V takes the effect back onto the subject, Form X is seeking,
+  and so on, each with worked examples (عَلِمَ he knew → عَلَّمَ he taught →
+  تَعَلَّمَ he learned → اِسْتَعْلَمَ he sought information).
+- **Rubāʿī** — faʿlala and its three augmented patterns.
+- **Noun patterns** — fāʿil, mafʿūl, ṣifah mushabbahah, tafḍīl, ẓarf, ālah, and
+  the fixed maṣdar of every mazīd bāb.
+- **Ṣaḥīḥ & muʿtall** — every category with what actually changes in the verb.
+- **The 14 forms** — ṣarf kabīr: the full person/gender/number endings for the
+  māḍī, muḍāriʿ and amr on the فَعَلَ pattern.
+- **Quick spotting guide** — the tells worth memorising, gathered on one page.
+
+## Drilling one thing at a time
+
+"Drill one thing only" on the home screen turns a session into fast reps of a
+single question across many words: bāb identification, active/passive,
+ṣaḥīḥ/muʿtall category, kind of noun, ṣarf ṣaghīr placement, root, or
+translation. Twenty words, one question each.
+
+## Spaced repetition
+
+Every word sits in a Leitner box. Analyse a word with no mistakes and it moves
+up a box (1, 2, 4, 8, 16, 32 days); slip on any question and it drops back and
+returns sooner. The **Due for review** deck is whatever the boxes say you are
+closest to forgetting, most overdue first — that is the deck to open daily once
+the vocabulary starts building up.
+
 ## Running it
 
 It is plain HTML, CSS and JavaScript — no build step, no dependencies.
@@ -111,13 +156,16 @@ node tools/validate.js
 
 It verifies that every word points at a real paradigm and a real cell, that no
 word claims a cell marked `'—'`, that every question it generates has an answer
-inside its option list, and that root letter counts match thulāthī/rubāʿī.
+inside its option list, that root letter counts match thulāthī/rubāʿī, that
+every question has a **?** hint behind it, and that each focus mode still has
+enough words to drill.
 
 ## Files
 
 | file | what it holds |
 | --- | --- |
 | `src/taxonomy.js` | the chart itself — every category, its Arabic term, English, and a one-line explanation |
+| `src/reference.js` | the "?" hints and the browsable reference (gates, forms, patterns, spotting guide) |
 | `src/paradigms.js` | the ṣarf ṣaghīr tables and the structural facts of each root |
 | `src/words.js` | the word bank |
 | `src/engine.js` | turns a word into its question sequence, grades answers, keeps score |

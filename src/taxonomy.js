@@ -163,6 +163,7 @@
 
   /* Deck filters offered on the home screen. */
   const decks = [
+    { id: 'due', name: 'Due for review', desc: 'Spaced repetition — what you are closest to forgetting.' },
     { id: 'all', name: 'Everything', desc: 'The whole bank, shuffled.' },
     { id: 'verbs', name: 'Verbs only', desc: 'Every kind of fiʿl.' },
     { id: 'nouns', name: 'Nouns only', desc: 'Derived and non-derived asmāʾ.' },

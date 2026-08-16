@@ -15,6 +15,18 @@
   let session = null;
   let answered = false; // has the current step been answered?
 
+  /* single-question drills */
+  const FOCUS_MODES = [
+    { id: null, name: 'Full analysis' },
+    { id: 'baab', name: 'Bāb / form' },
+    { id: 'voice', name: 'Active / passive' },
+    { id: 'subtype', name: 'Ṣaḥīḥ / muʿtall type' },
+    { id: 'ismType', name: 'Kind of noun' },
+    { id: 'sarf', name: 'Ṣarf ṣaghīr' },
+    { id: 'root', name: 'Root' },
+    { id: 'translation', name: 'Translation' }
+  ];
+
   /* ------------------------------------------------------------------ */
   /* small helpers                                                       */
   /* ------------------------------------------------------------------ */
@@ -65,6 +77,7 @@
     const deckGrid = el('div', { class: 'deck-grid' });
     T.decks.forEach((d) => {
       const count = E.deckWords(d.id).length;
+      const countLabel = d.id === 'due' ? count + ' due now' : count + ' words';
       const card = el('button', {
         class: 'deck' + (settings.deckId === d.id ? ' selected' : ''),
         type: 'button',
@@ -76,7 +89,7 @@
       }, [
         el('span', { class: 'deck-name', text: d.name }),
         el('span', { class: 'deck-desc', text: d.desc }),
-        el('span', { class: 'deck-count', text: count + ' words' })
+        el('span', { class: 'deck-count', text: countLabel })
       ]);
       deckGrid.appendChild(card);
     });
@@ -130,13 +143,26 @@
       })
     ]);
 
+    /* focus mode — one question type, many words, fast reps */
+    const focusRow = el('div', { class: 'chip-row' });
+    FOCUS_MODES.forEach((f) => {
+      focusRow.appendChild(el('button', {
+        class: 'chip' + (settings.focus === f.id ? ' on' : ''), type: 'button', text: f.name,
+        onclick: () => { settings.focus = f.id; MP.store.saveSettings(settings); renderHome(); }
+      }));
+    });
+
     wrap.appendChild(el('section', { class: 'panel' }, [
       el('h2', { class: 'panel-title', text: 'Session' }), lenRow, toggles,
-      el('h2', { class: 'panel-title', text: 'What to ask' }), groupRow
+      el('h2', { class: 'panel-title', text: 'Drill one thing only' }),
+      el('p', { class: 'muted small', text: 'Fast reps on a single question, across many words. Everything else is skipped.' }),
+      focusRow,
+      el('h2', { class: 'panel-title', text: 'What to ask' + (settings.focus ? ' (ignored while drilling one thing)' : '') }), groupRow
     ]));
 
     wrap.appendChild(el('div', { class: 'cta-row' }, [
-      el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: startSession })
+      el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: startSession }),
+      el('button', { class: 'btn big', type: 'button', text: '📖 Reference & bāb summary', onclick: () => openReference('gates') })
     ]));
 
     /* progress so far */
@@ -161,6 +187,7 @@
       wrap.appendChild(el('section', { class: 'panel' }, [
         el('h2', { class: 'panel-title', text: 'Your progress' }),
         el('p', { class: 'stat-line', text: stats.answered + ' answers, ' + pct + '% correct, across ' + Object.keys(stats.words).length + ' words.' }),
+        el('p', { class: 'muted small', text: scheduleLine(stats) }),
         worst.length ? el('p', { class: 'muted small', text: 'Weakest areas:' }) : el('span', {}),
         bars,
         el('button', {
@@ -177,6 +204,20 @@
     }
 
     setScreen(wrap);
+  }
+
+  /* one line describing the state of the review queue */
+  function scheduleLine(stats) {
+    const now = Date.now();
+    const scheduled = Object.keys(stats.words)
+      .map((k) => stats.words[k].due)
+      .filter((d) => d && d > now)
+      .sort((a, b) => a - b);
+    const due = E.deckWords('due').length;
+    if (!scheduled.length) return due + ' words are ready to study.';
+    const hours = Math.round((scheduled[0] - now) / (60 * 60 * 1000));
+    const when = hours < 24 ? 'in ' + Math.max(1, hours) + 'h' : 'in ' + Math.round(hours / 24) + ' day(s)';
+    return due + ' due now · ' + scheduled.length + ' resting, next one comes back ' + when + '.';
   }
 
   function stepName(id) {
@@ -219,7 +260,8 @@
     wrap.appendChild(el('div', { class: 'topbar' }, [
       el('button', { class: 'btn ghost small', type: 'button', text: '← Home', onclick: renderHome }),
       el('span', { class: 'counter', text: 'Word ' + (session.index + 1) + ' of ' + session.words.length }),
-      el('span', { class: 'counter', text: 'Step ' + (doneSteps + 1) + ' / ' + session.steps.length })
+      el('span', { class: 'counter', text: 'Step ' + (doneSteps + 1) + ' / ' + session.steps.length }),
+      el('button', { class: 'btn ghost small', type: 'button', text: '📖 Reference', onclick: () => openReference(sectionForStep(step)) })
     ]));
 
     const pct = Math.round((doneSteps / session.steps.length) * 100);
@@ -231,11 +273,20 @@
       el('div', { class: 'answered-so-far' }, answeredChips())
     ]));
 
-    /* the question */
-    wrap.appendChild(el('div', { class: 'question' }, [
-      el('h2', { class: 'q-en', text: step.q }),
-      step.qAr ? ar(step.qAr, 'q-ar') : el('span', {})
-    ]));
+    /* the question, with its ? help */
+    const hint = E.hintFor(step);
+    const qBlock = el('div', { class: 'question' }, [
+      el('div', { class: 'q-line' }, [
+        el('h2', { class: 'q-en', text: step.q }),
+        hint ? el('button', {
+          class: 'help-btn', type: 'button', title: 'How do I tell?', 'aria-label': 'Help',
+          text: '?', onclick: () => toggleHint(hint)
+        }) : el('span', {})
+      ]),
+      step.qAr ? ar(step.qAr, 'q-ar') : el('span', {}),
+      el('div', { class: 'hint-panel', id: 'hint-panel' })
+    ]);
+    wrap.appendChild(qBlock);
 
     if (step.kind === 'choice') wrap.appendChild(renderChoice(step));
     else if (step.kind === 'text') wrap.appendChild(renderText(step));
@@ -466,7 +517,19 @@
     const step = E.currentStep(session);
     if (hint) fb.appendChild(el('div', { class: 'fb-hint', text: hint }));
     if (word.note && (step.id === 'baab' || step.id === 'subtype' || step.id === 'mood' || step.id === 'tense')) {
-      fb.appendChild(el('div', { class: 'fb-hint word-note', text: word.note }));
+      fb.appendChild(el('div', { class: 'fb-hint word-note' }, [arabicAware(word.note)]));
+    }
+    /* got it wrong? offer the page of the reference that covers it */
+    if (!correct) {
+      const secId = sectionForStep(step);
+      const sec = MP.reference.sections.find((s) => s.id === secId);
+      if (sec) {
+        fb.appendChild(el('button', {
+          class: 'btn ghost small ref-link', type: 'button',
+          text: '📖 Read up on it: ' + sec.name,
+          onclick: () => openReference(secId)
+        }));
+      }
     }
     showNext();
   }
@@ -505,6 +568,164 @@
       const idx = parseInt(e.key, 10) - 1;
       if (opts[idx]) opts[idx].click();
     }
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* hints and the reference overlay                                     */
+  /* ------------------------------------------------------------------ */
+
+  function toggleHint(hint) {
+    const panel = $('#hint-panel');
+    if (!panel) return;
+    if (panel.classList.contains('open')) {
+      panel.classList.remove('open');
+      panel.innerHTML = '';
+      return;
+    }
+    panel.classList.add('open');
+    panel.innerHTML = '';
+    panel.appendChild(el('div', { class: 'hint-title', text: hint.title }));
+    const ul = el('ul', { class: 'hint-list' });
+    hint.bullets.forEach((b) => ul.appendChild(el('li', { class: 'hint-item' }, [arabicAware(b)])));
+    panel.appendChild(ul);
+  }
+
+  /* Wraps runs of Arabic inside an English sentence so they get the Arabic
+     font and the right direction, without breaking the sentence flow. */
+  function arabicAware(raw) {
+    /* Arabic commas inside a mixed sentence drag neighbouring words into the
+       same bidi run and scramble the reading order — use a Latin one. */
+    const text = String(raw).replace(/،/g, ',');
+    const frag = document.createDocumentFragment();
+    const re = /([؀-ۿ][؀-ۿ\sً-ْ]*)/g;
+    let last = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      frag.appendChild(el('span', { class: 'ar inline-ar', dir: 'rtl', lang: 'ar', text: m[1].trim() }));
+      last = m.index + m[1].length;
+      if (/\s$/.test(m[1])) frag.appendChild(document.createTextNode(' '));
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+  }
+
+  /* which reference section is most useful for the question on screen */
+  function sectionForStep(step) {
+    const map = {
+      baabThulathiMujarrad: 'gates',
+      baabThulathiMazeed: 'forms',
+      baabRubaiMujarrad: 'rubai',
+      baabRubaiMazeed: 'rubai',
+      sahihType: 'weak',
+      mutalType: 'weak',
+      ismType: 'nouns'
+    };
+    if (!step) return 'gates';
+    if (map[step.groupId]) return map[step.groupId];
+    if (step.id === 'person' || step.id === 'gender' || step.id === 'number' || step.id === 'tense') return 'sighah';
+    if (step.id === 'sarf' || step.id === 'root') return 'nouns';
+    return 'spotting';
+  }
+
+  let refSection = 'gates';
+
+  function openReference(sectionId) {
+    refSection = sectionId || refSection;
+    let overlay = $('#reference');
+    if (!overlay) {
+      overlay = el('div', { class: 'overlay', id: 'reference' });
+      document.body.appendChild(overlay);
+    }
+    document.body.classList.add('locked');
+    renderReference();
+  }
+
+  function closeReference() {
+    const overlay = $('#reference');
+    if (overlay) overlay.remove();
+    document.body.classList.remove('locked');
+  }
+
+  function renderReference() {
+    const overlay = $('#reference');
+    if (!overlay) return;
+    const section = MP.reference.sections.find((s) => s.id === refSection) || MP.reference.sections[0];
+
+    overlay.innerHTML = '';
+    const head = el('div', { class: 'ref-head' }, [
+      el('h2', { class: 'ref-title', text: 'Reference' }),
+      el('button', { class: 'btn ghost small', type: 'button', text: 'Close ✕', onclick: closeReference })
+    ]);
+
+    const tabs = el('div', { class: 'ref-tabs' });
+    MP.reference.sections.forEach((s) => {
+      tabs.appendChild(el('button', {
+        class: 'chip' + (s.id === section.id ? ' on' : ''), type: 'button', text: s.name,
+        onclick: () => { refSection = s.id; renderReference(); }
+      }));
+    });
+
+    const body = el('div', { class: 'ref-body' });
+    body.appendChild(el('p', { class: 'ref-intro' }, [arabicAware(section.intro)]));
+
+    section.cards.forEach((c) => {
+      const card = el('div', { class: 'ref-card' });
+      card.appendChild(el('div', { class: 'ref-card-head' }, [
+        ar(c.ar, 'ref-card-ar'),
+        el('span', { class: 'ref-card-titles' }, [
+          el('span', { class: 'ref-card-title', text: c.title }),
+          el('span', { class: 'ref-card-tag', text: c.tag })
+        ])
+      ]));
+
+      if (c.rows && c.rows.length) {
+        const rows = el('div', { class: 'ref-rows' });
+        c.rows.forEach((r) => {
+          rows.appendChild(el('div', { class: 'ref-row' }, [
+            el('span', { class: 'ref-row-label' }, [arabicAware(r[0])]),
+            el('span', { class: 'ref-row-value' }, [arabicAware(r[1])])
+          ]));
+        });
+        card.appendChild(rows);
+      }
+
+      if (c.spot && c.spot.length) {
+        card.appendChild(el('h4', { class: 'ref-sub', text: 'How to spot it' }));
+        const ul = el('ul', { class: 'hint-list' });
+        c.spot.forEach((b) => ul.appendChild(el('li', { class: 'hint-item' }, [arabicAware(b)])));
+        card.appendChild(ul);
+      }
+
+      if (c.means && c.means.length) {
+        card.appendChild(el('h4', { class: 'ref-sub', text: 'What it does to the meaning' }));
+        const ul = el('ul', { class: 'hint-list' });
+        c.means.forEach((b) => ul.appendChild(el('li', { class: 'hint-item' }, [arabicAware(b)])));
+        card.appendChild(ul);
+      }
+
+      if (c.examples && c.examples.length) {
+        const ex = el('div', { class: 'ref-examples' });
+        c.examples.forEach((e) => {
+          ex.appendChild(el('div', { class: 'ref-example' }, [
+            ar(e.ar, 'ref-example-ar'),
+            el('span', { class: 'ref-example-en', text: e.en })
+          ]));
+        });
+        card.appendChild(ex);
+      }
+
+      body.appendChild(card);
+    });
+
+    overlay.appendChild(head);
+    overlay.appendChild(tabs);
+    overlay.appendChild(body);
+    overlay.scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && $('#reference')) closeReference();
   });
 
   /* ------------------------------------------------------------------ */

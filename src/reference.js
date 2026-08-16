@@ -1,0 +1,856 @@
+/*
+ * reference.js — two bodies of teaching content:
+ *
+ *   MP.hints     the "?" panel on each question: how to spot the answer
+ *                yourself, before you guess.
+ *   MP.reference the browsable summary — the six gates, Forms II–X, the
+ *                rubāʿī, noun patterns, weak-verb categories, and the
+ *                conjugation markers.
+ */
+(function (global) {
+  'use strict';
+
+  const MP = (global.MP = global.MP || {});
+
+  /* ================================================================== */
+  /* hints shown behind the ? on each question                          */
+  /* ================================================================== */
+
+  const hints = {
+    wordType: {
+      title: 'Ism, fiʿl or ḥarf?',
+      bullets: [
+        'Signs of an ism: tanwīn (ـٌ ـٍ ـً), الـ, a kasrah of jarr, or a ḥarf al-jarr in front of it. It can be described and made dual or plural.',
+        'Signs of a fiʿl: it starts with أ ن ي ت in the muḍāriʿ, ends in ـْتُ ـْتَ ـْنَا in the māḍī, or takes قَدْ / سَوْفَ / لَمْ / لَنْ.',
+        'A ḥarf takes none of those signs and gives no meaning standing alone — مِنْ، فِي، هَلْ، إِنَّ.'
+      ]
+    },
+
+    tense: {
+      title: 'Which tense?',
+      bullets: [
+        'Māḍī: nothing added at the front; the pronoun endings sit at the back — فَعَلَ، فَعَلُوا، فَعَلْتُ.',
+        'Muḍāriʿ: always begins with one of أ ن ي ت (remembered as أَنَيْتُ) — أَفْعَلُ، نَفْعَلُ، يَفْعَلُ، تَفْعَلُ.',
+        'Amr: a command with no tense letter at the front; it ends in a sukūn or drops a letter — اُنْصُرْ، قُلْ، اِرْمِ.',
+        'Careful: لَا تَنْصُرْ looks like a command but it is a muḍāriʿ made majzūm by لَا — it is a nahy, not an amr.'
+      ]
+    },
+
+    mood: {
+      title: 'Reading the iʿrāb of a muḍāriʿ',
+      bullets: [
+        'Marfūʿ (default): ḍammah on the last letter — يَنْصُرُ — or the نَ still attached in يَنْصُرُونَ / تَنْصُرِينَ / يَنْصُرَانِ.',
+        'Manṣūb: fatḥah on the last letter, and that نَ is gone — after أَنْ، لَنْ، كَيْ، حَتَّى، لِـ.',
+        'Majzūm: sukūn on the last letter (or the weak letter dropped), نَ gone — after لَمْ، لَمَّا، لَا الناهية، لِـ الأمر، إِنْ.',
+        'Muʾakkad: carries nūn al-tawkīd — heavy ـَنَّ or light ـَنْ — لَيَنْصُرَنَّ.'
+      ]
+    },
+
+    voice: {
+      title: 'Maʿlūm or majhūl — read the vowels',
+      bullets: [
+        'Māḍī majhūl: ḍammah on the first letter, kasrah on the letter before last — نَصَرَ becomes نُصِرَ، كَتَبَ becomes كُتِبَ.',
+        'Muḍāriʿ majhūl: ḍammah on the tense letter, fatḥah on the letter before last — يَنْصُرُ becomes يُنْصَرُ، يَكْتُبُ becomes يُكْتَبُ.',
+        'So in the muḍāriʿ the giveaway pair is ḍammah at the front + fatḥah at the back. يُعَلِّمُ (kasrah) is active; يُعَلَّمُ (fatḥah) is passive.',
+        'A ḍammah at the front alone proves nothing — every mazīd verb of Forms II, III and IV has it in the active too.',
+        'A lāzim (intransitive) verb has no majhūl at all, because there is no مفعول به to raise.'
+      ]
+    },
+
+    polarity: {
+      title: 'Is it negated?',
+      bullets: [
+        'Look for a particle in front: مَا، لَمْ، لَمَّا، لَنْ، لَا، لَيْسَ.',
+        'لَمْ negates the past through a majzūm muḍāriʿ; لَنْ negates the future through a manṣūb one; مَا negates a plain māḍī.',
+        'لَا with a majzūm verb is a prohibition (nahy); لَا with a marfūʿ verb is a plain negation.'
+      ]
+    },
+
+    person: {
+      title: 'Who is doing it?',
+      bullets: [
+        'Muḍāriʿ prefixes: أ = I, نـ = we, يـ = he/they, تـ = you (or "she").',
+        'Māḍī endings: ـْتُ = I, ـْنَا = we, ـْتَ ـْتِ ـْتُمْ = you, and nothing / ـُوا / ـَتْ = the absent one.',
+        'تـ is the trap: تَنْصُرُ can be "you (m.) help" or "she helps" — context decides.'
+      ]
+    },
+
+    gender: {
+      title: 'Masculine or feminine?',
+      bullets: [
+        'Māḍī feminine marker: تْ — نَصَرَتْ، نَصَرَتَا، and نَ for the plural نَصَرْنَ.',
+        'Muḍāriʿ feminine: تـ for the singular absent (تَنْصُرُ = she helps), ـِينَ for "you (f.)", and نَ for the feminine plural يَنْصُرْنَ.',
+        'The 1st person shows no gender at all — أَنْصُرُ، نَصَرْتُ are the same for a man or a woman.'
+      ]
+    },
+
+    number: {
+      title: 'One, two or many?',
+      bullets: [
+        'Dual: an alif — فَعَلَا، فَعَلَتَا، يَفْعَلَانِ.',
+        'Masculine plural: wāw — فَعَلُوا، يَفْعَلُونَ.',
+        'Feminine plural: nūn al-niswah — فَعَلْنَ، يَفْعَلْنَ.',
+        'Do not confuse the نَ of يَفْعَلُونَ (a marker of rafʿ, dropped in naṣb and jazm) with the نَ of يَفْعَلْنَ (a pronoun, never dropped).'
+      ]
+    },
+
+    ismType: {
+      title: 'Which kind of noun?',
+      bullets: [
+        'فَاعِل → ism al-fāʿil, the doer (كَاتِب). From a mazīd bāb it is مُـ + the muḍāriʿ stem with a kasrah before the last letter (مُعَلِّم، مُسْتَغْفِر).',
+        'مَفْعُول → ism al-mafʿūl (مَكْتُوب). From a mazīd bāb it is the same as the fāʿil but with a fatḥah before the last letter (مُعَلَّم، مُكْرَم).',
+        'مَـ with a fatḥah on the mīm → a place or time (مَكْتَب، مَجْلِس). مِـ with a kasrah → a tool (مِفْتَاح، مِضْرَب).',
+        'أَفْعَل → ism al-tafḍīl (أَكْبَر), unless it is a colour or defect, in which case it is a ṣifah mushabbahah (أَحْمَر).',
+        'فَعِيل / فَعِل / فَعْلَان → a settled quality, ṣifah mushabbahah (كَرِيم، فَرِح، عَطْشَان).',
+        'A maṣdar names the bare action with no doer — نَصْر، تَعْلِيم، اِسْتِغْفَار.',
+        'If it fits none of these and comes from no verb, it is jāmid — رَجُل، بَيْت، شَمْس.'
+      ]
+    },
+
+    letters: {
+      title: 'Counting the root letters',
+      bullets: [
+        'Strip anything added, then count what is left: three letters = thulāthī, four = rubāʿī.',
+        'The added letters all come from سَأَلْتُمُونِيهَا — any letter outside that set must be part of the root.',
+        'A shaddah counts as two letters: مَدَّ is م + د + د, and عَلَّمَ is ع + ل + ل + م where one ل is the addition.',
+        'Warning: تَرْجَمَ has four root letters (ت ر ج م) even though تـ is usually an addition. Check the meaning, not just the shape.'
+      ]
+    },
+
+    augmentation: {
+      title: 'Mujarrad or mazīd fīh?',
+      bullets: [
+        'Put the word back into the māḍī and count. Exactly three letters, no shaddah, no prefix = thulāthī mujarrad.',
+        'Anything longer carries additions: a hamzah at the front (أَفْعَلَ), a تـ at the front (تَفَعَّلَ), a shaddah (فَعَّلَ), an alif after the first letter (فَاعَلَ), اِنـ, اِـتـ, اِسْتـ.',
+        'A quick tell in the muḍāriʿ: a ḍammah on the tense letter (يُـ) means the verb is mazīd — Forms II, III, IV or a rubāʿī. Mujarrad always has a fatḥah there (يَـ).',
+        'A hamzat waṣl at the front (the alif you skip when joining words) means Form VII, VIII, IX or X.'
+      ]
+    },
+
+    baabThulathiMujarrad: {
+      title: 'Which of the six gates?',
+      bullets: [
+        'The māḍī vowel on the middle letter narrows it down immediately:',
+        'ḍammah on the ʿayn (فَعُلَ) → it can only be karuma. Always intransitive, always a settled quality.',
+        'kasrah on the ʿayn (فَعِلَ) → ʿalima, or the rare ḥasiba. Assume ʿalima unless you know the verb is one of the small ḥasiba set (حَسِبَ، وَرِثَ، وَثِقَ، نَعِمَ).',
+        'fatḥah on the ʿayn (فَعَلَ) → naṣara, ḍaraba or fataḥa, and only the muḍāriʿ vowel separates them.',
+        'A throat letter (ء ه ع ح غ خ) as the middle or last root letter pulls the verb towards fataḥa — فَتَحَ، ذَهَبَ، مَنَعَ، سَأَلَ.',
+        'Meaning helps too: bodily states and senses cluster in ʿalima; qualities in karuma; plain transitive actions in naṣara and ḍaraba.'
+      ]
+    },
+
+    baabThulathiMazeed: {
+      title: 'Reading the added letters',
+      bullets: [
+        'Shaddah on the middle letter → Form II فَعَّلَ (عَلَّمَ). Usually makes the verb transitive, or intensifies it.',
+        'Alif after the first letter → Form III فَاعَلَ (جَاهَدَ). Doing the action with or against someone else.',
+        'Hamzah at the front of the māḍī, gone in the muḍāriʿ (أَكْرَمَ / يُكْرِمُ) → Form IV. Causative.',
+        'تـ at the front + shaddah → Form V تَفَعَّلَ (تَعَلَّمَ). The effect of Form II landing back on the subject.',
+        'تـ at the front + alif → Form VI تَفَاعَلَ (تَعَاوَنَ). Two or more parties acting on each other.',
+        'نـ after a hamzat waṣl → Form VII اِنْفَعَلَ (اِنْكَسَرَ). The effect of Form I happening to the subject.',
+        'تـ tucked in after the first root letter → Form VIII اِفْتَعَلَ (اِجْتَمَعَ). Do not confuse it with Form V, where the تـ is out at the front.',
+        'Shaddah on the last letter after a hamzat waṣl → Form IX اِفْعَلَّ (اِحْمَرَّ). Colours and defects only.',
+        'اِسْتـ at the front → Form X اِسْتَفْعَلَ (اِسْتَغْفَرَ). Seeking, asking for, or considering something to be so.'
+      ]
+    },
+
+    baabRubaiMujarrad: {
+      title: 'Rubāʿī mujarrad',
+      bullets: [
+        'Four root letters and nothing added: فَعْلَلَ يُفَعْلِلُ فَعْلَلَةً — دَحْرَجَ، تَرْجَمَ، وَسْوَسَ، زَلْزَلَ.',
+        'Its muḍāriʿ takes a ḍammah on the tense letter (يُدَحْرِجُ) even though the verb is mujarrad — the one place that tell fails.'
+      ]
+    },
+
+    baabRubaiMazeed: {
+      title: 'Rubāʿī mazīd fīh',
+      bullets: [
+        'تـ at the front → تَفَعْلَلَ (تَدَحْرَجَ): the effect of فَعْلَلَ landing on the subject.',
+        'نـ after the third letter → اِفْعَنْلَلَ (اِحْرَنْجَمَ).',
+        'Last letter doubled after a hamzat waṣl → اِفْعَلَلَّ (اِقْشَعَرَّ).'
+      ]
+    },
+
+    soundness: {
+      title: 'Ṣaḥīḥ or muʿtall?',
+      bullets: [
+        'Look at the three (or four) root letters only — not the added ones.',
+        'If any root letter is و or ي (the ḥurūf al-ʿillah), the verb is muʿtall.',
+        'An alif in the middle of a māḍī is almost always a و or ي in disguise: قَالَ is ق و ل، بَاعَ is ب ي ع. Check the muḍāriʿ — يَقُولُ shows the wāw, يَبِيعُ shows the yāʾ.',
+        'A hamzah is not a ḥarf ʿillah — أَخَذَ is ṣaḥīḥ (mahmūz), not muʿtall.'
+      ]
+    },
+
+    sahihType: {
+      title: 'Which kind of ṣaḥīḥ?',
+      bullets: [
+        'Muḍāʿaf: the second and third root letters are the same, written with a shaddah — مَدَّ (م د د)، رَدَّ (ر د د).',
+        'Mahmūz: one of the root letters is a hamzah — أَخَذَ، سَأَلَ، قَرَأَ.',
+        'Sālim: none of the above, and no weak letter either — the plain, well-behaved case.'
+      ]
+    },
+
+    mutalType: {
+      title: 'Which kind of muʿtall?',
+      bullets: [
+        'Mithāl: the weak letter is first — وَعَدَ، يَسَرَ. It tends to vanish in the muḍāriʿ: وَعَدَ becomes يَعِدُ.',
+        'Ajwaf: the weak letter is in the middle — قَالَ (ق و ل)، بَاعَ (ب ي ع)، خَافَ (خ و ف). "Hollow" because the middle collapses into an alif.',
+        'Nāqiṣ: the weak letter is last — دَعَا (د ع و)، رَمَى (ر م ي)، نَسِيَ (ن س ي).',
+        'Lafīf mafrūq: first and last are weak, sound letter in between — وَقَى (و ق ي).',
+        'Lafīf maqrūn: the last two are weak and side by side — طَوَى (ط و ي)، نَوَى (ن و ي).'
+      ]
+    },
+
+    mahmuzPosition: {
+      title: 'Where is the hamzah?',
+      bullets: [
+        'Name the three root letters and see which position the hamzah occupies.',
+        'Mahmūz al-fāʾ: first — أَخَذَ، أَكَلَ، أَمَرَ. These three drop the hamzah in the amr: خُذْ، كُلْ، مُرْ.',
+        'Mahmūz al-ʿayn: middle — سَأَلَ، رَأَسَ.',
+        'Mahmūz al-lām: last — قَرَأَ، بَدَأَ، مَلَأَ.'
+      ]
+    },
+
+    root: {
+      title: 'Finding the root',
+      bullets: [
+        'Strip the prefixes and endings first — يـ، تـ، نـ، أ at the front; ـُونَ، ـِينَ، ـَانِ، ـْتُ، ـُوا at the back.',
+        'Then remove the added letters, which all come from سَأَلْتُمُونِيهَا. What remains is the root.',
+        'Undo the changes weak letters cause: an alif in the middle goes back to و or ي, and a dropped first letter in a mithāl comes back (يَعِدُ → و ع د).',
+        'State the root as the bare māḍī of the mujarrad, with no vowels: ن ص ر، ق و ل، د ح ر ج.'
+      ]
+    },
+
+    sarf: {
+      title: 'Placing the word in the table',
+      bullets: [
+        'Work out what the word IS first: a verb in the past, a verb in the present, a doer, a thing done to, a place, a tool, a command.',
+        'Then find the cell with that description — the Arabic term is written beside every row.',
+        'مَـ with a fatḥah = place or time; مِـ with a kasrah = tool; مَفْعُول = the one acted upon; فَاعِل = the doer.',
+        'The passive rows are the ones whose first letter carries a ḍammah — نُصِرَ، يُنْصَرُ.'
+      ]
+    },
+
+    translation: {
+      title: 'Working out the meaning',
+      bullets: [
+        'Take the root sense, then apply what the bāb does to it. ع ل م is "knowing": عَلِمَ he knew, عَلَّمَ he taught, تَعَلَّمَ he learned, أَعْلَمَ he informed, اِسْتَعْلَمَ he sought information.',
+        'The pattern carries as much meaning as the root does — that is the whole point of learning the abwāb.',
+        'If the meaning will not come, say the ṣarf ṣaghīr of the root aloud; the cell usually pulls the word back.'
+      ]
+    }
+  };
+
+  /* ================================================================== */
+  /* the browsable reference                                            */
+  /* ================================================================== */
+
+  const sections = [
+    /* ------------------------------------------------------------- */
+    {
+      id: 'gates',
+      name: 'The six gates',
+      intro: 'Every thulāthī mujarrad verb belongs to one of these six abwāb. The bāb is decided by two vowels: the one on the middle letter of the māḍī, and the one on the middle letter of the muḍāriʿ. Learn the pair and you can build the whole ṣarf ṣaghīr yourself.',
+      cards: [
+        {
+          ar: 'نَصَرَ يَنْصُرُ',
+          title: 'Bāb 1 — naṣara',
+          tag: 'fatḥah → ḍammah',
+          rows: [['Maṣdar (commonest)', 'فَعْلًا — نَصْرًا'], ['Ism al-fāʿil', 'نَاصِرٌ'], ['Ism al-mafʿūl', 'مَنْصُورٌ']],
+          spot: ['Fatḥah on the ʿayn of the māḍī, ḍammah on the ʿayn of the muḍāriʿ.', 'Nothing in the letters gives it away — this bāb has to be learned verb by verb.'],
+          means: ['Mostly transitive, plain physical or worldly actions.'],
+          examples: [
+            { ar: 'نَصَرَ يَنْصُرُ', en: 'to help' },
+            { ar: 'كَتَبَ يَكْتُبُ', en: 'to write' },
+            { ar: 'دَخَلَ يَدْخُلُ', en: 'to enter' },
+            { ar: 'خَرَجَ يَخْرُجُ', en: 'to go out' }
+          ]
+        },
+        {
+          ar: 'ضَرَبَ يَضْرِبُ',
+          title: 'Bāb 2 — ḍaraba',
+          tag: 'fatḥah → kasrah',
+          rows: [['Maṣdar (commonest)', 'فَعْلًا — ضَرْبًا'], ['Ism al-fāʿil', 'ضَارِبٌ'], ['Ism al-mafʿūl', 'مَضْرُوبٌ']],
+          spot: ['Fatḥah on the ʿayn of the māḍī, kasrah on the ʿayn of the muḍāriʿ.', 'Almost every mithāl wāwī verb (وَعَدَ، وَصَلَ، وَزَنَ) sits here, and drops its و in the muḍāriʿ.'],
+          means: ['Mostly transitive; a very large bāb.'],
+          examples: [
+            { ar: 'ضَرَبَ يَضْرِبُ', en: 'to strike' },
+            { ar: 'جَلَسَ يَجْلِسُ', en: 'to sit' },
+            { ar: 'عَرَفَ يَعْرِفُ', en: 'to know, recognise' },
+            { ar: 'وَعَدَ يَعِدُ', en: 'to promise' }
+          ]
+        },
+        {
+          ar: 'فَتَحَ يَفْتَحُ',
+          title: 'Bāb 3 — fataḥa',
+          tag: 'fatḥah → fatḥah',
+          rows: [['Maṣdar (commonest)', 'فَعْلًا — فَتْحًا'], ['Ism al-fāʿil', 'فَاتِحٌ'], ['Ism al-mafʿūl', 'مَفْتُوحٌ']],
+          spot: ['Fatḥah in both.', 'It needs a throat letter — ء ه ع ح غ خ — as the middle or the last root letter. That is the one bāb you can often predict from the letters alone.'],
+          means: ['Mostly transitive.'],
+          examples: [
+            { ar: 'فَتَحَ يَفْتَحُ', en: 'to open' },
+            { ar: 'ذَهَبَ يَذْهَبُ', en: 'to go' },
+            { ar: 'مَنَعَ يَمْنَعُ', en: 'to prevent' },
+            { ar: 'قَرَأَ يَقْرَأُ', en: 'to read, recite' }
+          ]
+        },
+        {
+          ar: 'عَلِمَ يَعْلَمُ',
+          title: 'Bāb 4 — ʿalima',
+          tag: 'kasrah → fatḥah',
+          rows: [['Maṣdar (commonest)', 'عِلْمًا، فَرَحًا'], ['Ism al-fāʿil', 'عَالِمٌ'], ['Ism al-mafʿūl', 'مَعْلُومٌ']],
+          spot: ['Kasrah on the ʿayn of the māḍī, fatḥah in the muḍāriʿ.', 'If the māḍī has a kasrah, this is the bāb to assume — ḥasiba is a short, closed list.'],
+          means: ['Senses, inner states and passing conditions — knowing, hearing, drinking, rejoicing, grieving.', 'Some are transitive (عَلِمَ، سَمِعَ), many are not (فَرِحَ، حَزِنَ).'],
+          examples: [
+            { ar: 'عَلِمَ يَعْلَمُ', en: 'to know' },
+            { ar: 'سَمِعَ يَسْمَعُ', en: 'to hear' },
+            { ar: 'شَرِبَ يَشْرَبُ', en: 'to drink' },
+            { ar: 'فَرِحَ يَفْرَحُ', en: 'to rejoice' }
+          ]
+        },
+        {
+          ar: 'كَرُمَ يَكْرُمُ',
+          title: 'Bāb 5 — karuma',
+          tag: 'ḍammah → ḍammah',
+          rows: [['Maṣdar (commonest)', 'كَرَمًا، كَرَامَةً، حُسْنًا'], ['Its adjective', 'a ṣifah mushabbahah — كَرِيمٌ، حَسَنٌ'], ['Ism al-mafʿūl', 'none — it is intransitive']],
+          spot: ['A ḍammah on the ʿayn of the māḍī can only be this bāb — no ambiguity at all.'],
+          means: ['Innate, settled qualities: being noble, being beautiful, being big.', 'Always lāzim, so it has no passive and no ism al-mafʿūl.'],
+          examples: [
+            { ar: 'كَرُمَ يَكْرُمُ', en: 'to be noble' },
+            { ar: 'حَسُنَ يَحْسُنُ', en: 'to be beautiful' },
+            { ar: 'كَبُرَ يَكْبُرُ', en: 'to be big' },
+            { ar: 'شَرُفَ يَشْرُفُ', en: 'to be honourable' }
+          ]
+        },
+        {
+          ar: 'حَسِبَ يَحْسِبُ',
+          title: 'Bāb 6 — ḥasiba',
+          tag: 'kasrah → kasrah',
+          rows: [['Maṣdar (commonest)', 'حِسْبَانًا'], ['Ism al-fāʿil', 'حَاسِبٌ'], ['Ism al-mafʿūl', 'مَحْسُوبٌ']],
+          spot: ['Kasrah in both — the rarest bāb, and a closed list worth memorising outright.', 'Most of its verbs are mithāl wāwī: وَرِثَ، وَثِقَ، وَرِمَ.'],
+          means: ['No single theme — learn the handful of verbs and you have the bāb.'],
+          examples: [
+            { ar: 'حَسِبَ يَحْسِبُ', en: 'to reckon, to think' },
+            { ar: 'وَرِثَ يَرِثُ', en: 'to inherit' },
+            { ar: 'وَثِقَ يَثِقُ', en: 'to trust' },
+            { ar: 'نَعِمَ يَنْعِمُ', en: 'to live in ease' }
+          ]
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'forms',
+      name: 'Forms II–X',
+      intro: 'A mazīd fīh verb is the root plus one or more added letters, and each set of additions carries its own meaning. Learn what each form does and you can often guess a new verb from a root you already know.',
+      cards: [
+        {
+          ar: 'فَعَّلَ يُفَعِّلُ',
+          title: 'Form II — al-tafʿīl',
+          tag: 'the ʿayn is doubled',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'فَعَّلَ / يُفَعِّلُ'],
+            ['Maṣdar', 'تَفْعِيلًا'],
+            ['Fāʿil / mafʿūl', 'مُفَعِّلٌ / مُفَعَّلٌ'],
+            ['Amr', 'فَعِّلْ']
+          ],
+          spot: ['A shaddah on the middle root letter, and a ḍammah on the tense letter of the muḍāriʿ.', 'Its maṣdar تَفْعِيل is unmistakable.'],
+          means: [
+            'Making a verb transitive (taʿdiyah): عَلِمَ he knew → عَلَّمَ he taught someone.',
+            'Intensity or repetition (takthīr): كَسَرَ he broke → كَسَّرَ he smashed to pieces; طَافَ he circled → طَوَّفَ he went round and round.',
+            'Declaring someone to be something: كَفَّرَ he called him a disbeliever; صَدَّقَ he declared him truthful.'
+          ],
+          examples: [
+            { ar: 'عَلَّمَ يُعَلِّمُ تَعْلِيمًا', en: 'to teach' },
+            { ar: 'نَزَّلَ يُنَزِّلُ تَنْزِيلًا', en: 'to send down' },
+            { ar: 'كَبَّرَ يُكَبِّرُ تَكْبِيرًا', en: 'to magnify' }
+          ]
+        },
+        {
+          ar: 'فَاعَلَ يُفَاعِلُ',
+          title: 'Form III — al-mufāʿalah',
+          tag: 'an alif after the first letter',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'فَاعَلَ / يُفَاعِلُ'],
+            ['Maṣdar', 'مُفَاعَلَةً وَفِعَالًا'],
+            ['Fāʿil / mafʿūl', 'مُفَاعِلٌ / مُفَاعَلٌ'],
+            ['Amr', 'فَاعِلْ']
+          ],
+          spot: ['A long alif straight after the first root letter, with a ḍammah on the tense letter of the muḍāriʿ.', 'Do not confuse مُفَاعِل (Form III doer) with فَاعِل (Form I doer).'],
+          means: [
+            'Doing the action with or against another party (mushārakah): قَاتَلَ he fought someone; كَاتَبَ he corresponded with someone.',
+            'Directing the action at someone: نَادَى he called out to him.',
+            'Sometimes simply a transitive verb with no partner implied: سَافَرَ he travelled.'
+          ],
+          examples: [
+            { ar: 'جَاهَدَ يُجَاهِدُ جِهَادًا', en: 'to strive, struggle against' },
+            { ar: 'قَاتَلَ يُقَاتِلُ قِتَالًا', en: 'to fight' },
+            { ar: 'سَاعَدَ يُسَاعِدُ مُسَاعَدَةً', en: 'to help' }
+          ]
+        },
+        {
+          ar: 'أَفْعَلَ يُفْعِلُ',
+          title: 'Form IV — al-ifʿāl',
+          tag: 'a hamzah at the front',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'أَفْعَلَ / يُفْعِلُ'],
+            ['Maṣdar', 'إِفْعَالًا'],
+            ['Fāʿil / mafʿūl', 'مُفْعِلٌ / مُفْعَلٌ'],
+            ['Amr', 'أَفْعِلْ']
+          ],
+          spot: ['A cutting hamzah on the māḍī (أَكْرَمَ) which disappears in the muḍāriʿ (يُكْرِمُ), leaving a sukūn on the first root letter.', 'That أَفْعَلَ / يُفْعِلُ pairing is the surest sign — Form I never looks like this.'],
+          means: [
+            'Causative (taʿdiyah), the commonest use: خَرَجَ he went out → أَخْرَجَ he took (something) out; عَلِمَ he knew → أَعْلَمَ he informed.',
+            'Entering a time or a place: أَصْبَحَ he entered the morning; أَشْأَمَ he went to Syria.',
+            'Finding something to have a quality: أَحْمَدْتُهُ I found him praiseworthy.'
+          ],
+          examples: [
+            { ar: 'أَسْلَمَ يُسْلِمُ إِسْلَامًا', en: 'to submit, become Muslim' },
+            { ar: 'أَكْرَمَ يُكْرِمُ إِكْرَامًا', en: 'to honour' },
+            { ar: 'أَرْسَلَ يُرْسِلُ إِرْسَالًا', en: 'to send' }
+          ]
+        },
+        {
+          ar: 'تَفَعَّلَ يَتَفَعَّلُ',
+          title: 'Form V — al-tafaʿʿul',
+          tag: 'تـ in front of Form II',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'تَفَعَّلَ / يَتَفَعَّلُ'],
+            ['Maṣdar', 'تَفَعُّلًا'],
+            ['Fāʿil / mafʿūl', 'مُتَفَعِّلٌ / مُتَفَعَّلٌ'],
+            ['Amr', 'تَفَعَّلْ']
+          ],
+          spot: ['تـ at the very front plus a shaddah on the middle letter.', 'Its muḍāriʿ keeps a fatḥah on the tense letter (يَتَعَلَّمُ), unlike Forms II–IV.'],
+          means: [
+            'Muṭāwaʿah of Form II — the effect of Form II settling on the subject: عَلَّمَهُ he taught him → تَعَلَّمَ he learned; كَسَّرَهُ he smashed it → تَكَسَّرَ it broke up.',
+            'Taking something on with effort (takalluf): تَصَبَّرَ he forced himself to be patient.',
+            'Doing something bit by bit: تَجَرَّعَ he swallowed it in gulps.'
+          ],
+          examples: [
+            { ar: 'تَعَلَّمَ يَتَعَلَّمُ تَعَلُّمًا', en: 'to learn' },
+            { ar: 'تَقَبَّلَ يَتَقَبَّلُ تَقَبُّلًا', en: 'to accept' },
+            { ar: 'تَذَكَّرَ يَتَذَكَّرُ تَذَكُّرًا', en: 'to remember' }
+          ]
+        },
+        {
+          ar: 'تَفَاعَلَ يَتَفَاعَلُ',
+          title: 'Form VI — al-tafāʿul',
+          tag: 'تـ in front of Form III',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'تَفَاعَلَ / يَتَفَاعَلُ'],
+            ['Maṣdar', 'تَفَاعُلًا'],
+            ['Fāʿil', 'مُتَفَاعِلٌ'],
+            ['Amr', 'تَفَاعَلْ']
+          ],
+          spot: ['تـ at the front and an alif after the first root letter.'],
+          means: [
+            'A mutual action between two or more parties (mushārakah): تَقَاتَلَ they fought each other; تَعَاوَنَ they cooperated.',
+            'Pretending: تَمَارَضَ he pretended to be ill; تَنَاوَمَ he feigned sleep.',
+            'Something happening by degrees: تَزَايَدَ it increased steadily.'
+          ],
+          examples: [
+            { ar: 'تَعَاوَنَ يَتَعَاوَنُ تَعَاوُنًا', en: 'to cooperate' },
+            { ar: 'تَقَاتَلَ يَتَقَاتَلُ تَقَاتُلًا', en: 'to fight one another' },
+            { ar: 'تَبَارَكَ يَتَبَارَكُ', en: 'to be blessed' }
+          ]
+        },
+        {
+          ar: 'اِنْفَعَلَ يَنْفَعِلُ',
+          title: 'Form VII — al-infiʿāl',
+          tag: 'نـ after a hamzat waṣl',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'اِنْفَعَلَ / يَنْفَعِلُ'],
+            ['Maṣdar', 'اِنْفِعَالًا'],
+            ['Fāʿil', 'مُنْفَعِلٌ'],
+            ['Amr', 'اِنْفَعِلْ']
+          ],
+          spot: ['A نـ right after the connecting hamzah at the front.', 'It never comes from roots beginning with ن ل ر م و ي — the sound would collapse.'],
+          means: [
+            'Muṭāwaʿah of Form I — the effect of the simple verb happening to the subject: كَسَرَهُ he broke it → اِنْكَسَرَ it broke.',
+            'Always intransitive, so it has no passive and no ism al-mafʿūl.'
+          ],
+          examples: [
+            { ar: 'اِنْكَسَرَ يَنْكَسِرُ اِنْكِسَارًا', en: 'to be broken' },
+            { ar: 'اِنْقَطَعَ يَنْقَطِعُ اِنْقِطَاعًا', en: 'to be cut off' },
+            { ar: 'اِنْفَتَحَ يَنْفَتِحُ اِنْفِتَاحًا', en: 'to be opened' }
+          ]
+        },
+        {
+          ar: 'اِفْتَعَلَ يَفْتَعِلُ',
+          title: 'Form VIII — al-iftiʿāl',
+          tag: 'تـ tucked in after the first letter',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'اِفْتَعَلَ / يَفْتَعِلُ'],
+            ['Maṣdar', 'اِفْتِعَالًا'],
+            ['Fāʿil / mafʿūl', 'مُفْتَعِلٌ / مُفْتَعَلٌ'],
+            ['Amr', 'اِفْتَعِلْ']
+          ],
+          spot: ['The تـ sits inside the word, after the first root letter — that is what separates it from Form V, where the تـ is at the front.', 'The تـ can change to suit its neighbour: اِصْطَبَرَ (from ص ب ر), اِزْدَحَمَ (from ز ح م), اِدَّعَى (from د ع و).'],
+          means: [
+            'Muṭāwaʿah of Form I: جَمَعَهُ he gathered it → اِجْتَمَعَ they came together.',
+            'Doing something for one\'s own benefit: كَسَبَ he earned → اِكْتَسَبَ he earned for himself.',
+            'Effort and application: اِجْتَهَدَ he exerted himself.'
+          ],
+          examples: [
+            { ar: 'اِجْتَمَعَ يَجْتَمِعُ اِجْتِمَاعًا', en: 'to gather together' },
+            { ar: 'اِجْتَهَدَ يَجْتَهِدُ اِجْتِهَادًا', en: 'to strive, exert oneself' },
+            { ar: 'اِسْتَمَعَ يَسْتَمِعُ اِسْتِمَاعًا', en: 'to listen attentively' }
+          ]
+        },
+        {
+          ar: 'اِفْعَلَّ يَفْعَلُّ',
+          title: 'Form IX — al-ifʿilāl',
+          tag: 'the last letter doubled',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'اِفْعَلَّ / يَفْعَلُّ'],
+            ['Maṣdar', 'اِفْعِلَالًا'],
+            ['Fāʿil', 'مُفْعَلٌّ'],
+            ['Amr', 'اِفْعَلَّ / اِفْعَلِلْ']
+          ],
+          spot: ['Hamzat waṣl at the front and a shaddah on the final root letter.'],
+          means: [
+            'Reserved for colours and physical defects: اِحْمَرَّ it turned red; اِسْوَدَّ it turned black; اِعْوَجَّ it became crooked.',
+            'Always intransitive.'
+          ],
+          examples: [
+            { ar: 'اِحْمَرَّ يَحْمَرُّ اِحْمِرَارًا', en: 'to turn red' },
+            { ar: 'اِسْوَدَّ يَسْوَدُّ اِسْوِدَادًا', en: 'to turn black' },
+            { ar: 'اِعْوَجَّ يَعْوَجُّ اِعْوِجَاجًا', en: 'to become crooked' }
+          ]
+        },
+        {
+          ar: 'اِسْتَفْعَلَ يَسْتَفْعِلُ',
+          title: 'Form X — al-istifʿāl',
+          tag: 'اِسْتـ at the front',
+          rows: [
+            ['Māḍī / muḍāriʿ', 'اِسْتَفْعَلَ / يَسْتَفْعِلُ'],
+            ['Maṣdar', 'اِسْتِفْعَالًا'],
+            ['Fāʿil / mafʿūl', 'مُسْتَفْعِلٌ / مُسْتَفْعَلٌ'],
+            ['Amr', 'اِسْتَفْعِلْ']
+          ],
+          spot: ['اِسْتـ at the front — the most visible of all the forms.'],
+          means: [
+            'Seeking or asking for the action (ṭalab), the commonest use: اِسْتَغْفَرَ he sought forgiveness; اِسْتَأْذَنَ he asked permission.',
+            'Considering something to be so: اِسْتَحْسَنَهُ he deemed it good; اِسْتَكْبَرَ he thought himself great.',
+            'Turning into something: اِسْتَحْجَرَ الطِّينُ the clay turned to stone.'
+          ],
+          examples: [
+            { ar: 'اِسْتَغْفَرَ يَسْتَغْفِرُ اِسْتِغْفَارًا', en: 'to seek forgiveness' },
+            { ar: 'اِسْتَخْرَجَ يَسْتَخْرِجُ اِسْتِخْرَاجًا', en: 'to extract' },
+            { ar: 'اِسْتَعَانَ يَسْتَعِينُ اِسْتِعَانَةً', en: 'to seek help' }
+          ]
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'rubai',
+      name: 'Rubāʿī',
+      intro: 'Verbs with four root letters. One bare pattern, three augmented ones.',
+      cards: [
+        {
+          ar: 'فَعْلَلَ يُفَعْلِلُ',
+          title: 'Rubāʿī mujarrad — faʿlala',
+          tag: 'four root letters, nothing added',
+          rows: [['Maṣdar', 'فَعْلَلَةً وَفِعْلَالًا'], ['Fāʿil / mafʿūl', 'مُفَعْلِلٌ / مُفَعْلَلٌ'], ['Amr', 'فَعْلِلْ']],
+          spot: ['Four letters that are all part of the root.', 'Its muḍāriʿ takes a ḍammah on the tense letter (يُدَحْرِجُ) even though it is mujarrad — the one exception to that rule of thumb.'],
+          means: ['Often onomatopoeic or repetitive: وَسْوَسَ to whisper, زَلْزَلَ to shake.'],
+          examples: [
+            { ar: 'دَحْرَجَ يُدَحْرِجُ دَحْرَجَةً', en: 'to roll something along' },
+            { ar: 'تَرْجَمَ يُتَرْجِمُ تَرْجَمَةً', en: 'to translate' },
+            { ar: 'زَلْزَلَ يُزَلْزِلُ زَلْزَلَةً', en: 'to shake violently' }
+          ]
+        },
+        {
+          ar: 'تَفَعْلَلَ يَتَفَعْلَلُ',
+          title: 'Tafaʿlala',
+          tag: 'تـ added at the front',
+          rows: [['Maṣdar', 'تَفَعْلُلًا'], ['Fāʿil', 'مُتَفَعْلِلٌ']],
+          spot: ['تـ in front of a four-letter root.'],
+          means: ['Muṭāwaʿah — the effect of faʿlala landing on the subject: دَحْرَجَهُ he rolled it → تَدَحْرَجَ it rolled along.'],
+          examples: [{ ar: 'تَدَحْرَجَ يَتَدَحْرَجُ تَدَحْرُجًا', en: 'to roll along' }]
+        },
+        {
+          ar: 'اِفْعَنْلَلَ يَفْعَنْلِلُ',
+          title: 'Ifʿanlala',
+          tag: 'نـ infixed',
+          rows: [['Maṣdar', 'اِفْعِنْلَالًا']],
+          spot: ['A نـ inserted after the third letter, behind a hamzat waṣl.'],
+          means: ['Rare; gathering and crowding.'],
+          examples: [{ ar: 'اِحْرَنْجَمَ يَحْرَنْجِمُ', en: 'to crowd together' }]
+        },
+        {
+          ar: 'اِفْعَلَلَّ يَفْعَلِلُّ',
+          title: 'Ifʿalalla',
+          tag: 'last letter doubled',
+          rows: [['Maṣdar', 'اِفْعِلْلَالًا']],
+          spot: ['Hamzat waṣl at the front and a shaddah at the end.'],
+          means: ['Intense physical states.'],
+          examples: [{ ar: 'اِقْشَعَرَّ يَقْشَعِرُّ اِقْشِعْرَارًا', en: 'to shudder, get goosebumps' }]
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'nouns',
+      name: 'Noun patterns',
+      intro: 'The derived nouns on the second page of the chart. Each has a shape you can recognise on sight.',
+      cards: [
+        {
+          ar: 'اِسْم الفَاعِل',
+          title: 'Ism al-fāʿil — the doer',
+          tag: 'فَاعِل',
+          rows: [['From thulāthī mujarrad', 'فَاعِل — كَاتِبٌ، نَاصِرٌ'], ['From any mazīd bāb', 'مُـ + muḍāriʿ stem, kasrah before the last letter — مُعَلِّمٌ، مُسْلِمٌ، مُسْتَغْفِرٌ']],
+          spot: ['Take the muḍāriʿ, swap the tense letter for مُـ, and put a kasrah before the last letter. يُعَلِّمُ → مُعَلِّمٌ.'],
+          means: ['The one performing the action: a writer, a helper, a teacher.'],
+          examples: [{ ar: 'كَاتِبٌ', en: 'a writer' }, { ar: 'مُجَاهِدٌ', en: 'one who strives' }, { ar: 'مُسْتَغْفِرٌ', en: 'one seeking forgiveness' }]
+        },
+        {
+          ar: 'اِسْم المَفْعُول',
+          title: 'Ism al-mafʿūl — the one acted upon',
+          tag: 'مَفْعُول',
+          rows: [['From thulāthī mujarrad', 'مَفْعُول — مَكْتُوبٌ، مَنْصُورٌ'], ['From any mazīd bāb', 'the same as the fāʿil but with a fatḥah before the last letter — مُعَلَّمٌ، مُكْرَمٌ، مُسْتَخْرَجٌ']],
+          spot: ['In the mazīd forms the doer and the done-to differ by a single vowel: kasrah = doer, fatḥah = done-to. مُعَلِّم the teacher, مُعَلَّم the taught.'],
+          means: ['The thing the action falls upon.'],
+          examples: [{ ar: 'مَكْتُوبٌ', en: 'written' }, { ar: 'مُعَلَّمٌ', en: 'one who is taught' }]
+        },
+        {
+          ar: 'الصِّفَة المُشَبَّهَة',
+          title: 'Ṣifah mushabbahah — a settled quality',
+          tag: 'فَعِيل، فَعِل، أَفْعَل، فَعْلَان',
+          rows: [['Common patterns', 'كَرِيمٌ، حَسَنٌ، فَرِحٌ، أَحْمَرُ، عَطْشَانُ']],
+          spot: ['It looks like a description rather than an action, and it usually comes from an intransitive verb — especially bāb karuma.'],
+          means: ['A permanent or long-standing quality, not something passing. كَرِيم is generous by nature; نَاصِر is helping right now.'],
+          examples: [{ ar: 'كَرِيمٌ', en: 'noble, generous' }, { ar: 'أَحْمَرُ', en: 'red' }, { ar: 'عَطْشَانُ', en: 'thirsty' }]
+        },
+        {
+          ar: 'اِسْم التَّفْضِيل',
+          title: 'Ism al-tafḍīl — the elative',
+          tag: 'أَفْعَل',
+          rows: [['Masculine', 'أَفْعَل — أَكْبَرُ، أَحْسَنُ'], ['Feminine', 'فُعْلَى — كُبْرَى، حُسْنَى']],
+          spot: ['أَفْعَل on a noun, not a verb. If it is a colour or a defect (أَحْمَر، أَعْرَج) it is a ṣifah mushabbahah instead.'],
+          means: ['More X, or the most X.'],
+          examples: [{ ar: 'أَكْبَرُ', en: 'greater, greatest' }, { ar: 'أَحْسَنُ', en: 'better, best' }]
+        },
+        {
+          ar: 'اِسْم الظَّرْف',
+          title: 'Ism al-ẓarf — place or time',
+          tag: 'مَفْعَل / مَفْعِل',
+          rows: [['If the muḍāriʿ has ḍammah or fatḥah', 'مَفْعَل — مَكْتَبٌ، مَذْهَبٌ'], ['If the muḍāriʿ has kasrah', 'مَفْعِل — مَجْلِسٌ، مَوْعِدٌ'], ['Also', 'مَفْعَلَة — مَدْرَسَةٌ']],
+          spot: ['مَـ with a fatḥah on the mīm. Match the vowel of the muḍāriʿ: يَجْلِسُ gives مَجْلِس, يَكْتُبُ gives مَكْتَب.'],
+          means: ['Where or when the action happens.'],
+          examples: [{ ar: 'مَكْتَبٌ', en: 'a desk, an office' }, { ar: 'مَجْلِسٌ', en: 'a sitting place, a council' }]
+        },
+        {
+          ar: 'اِسْم الآلَة',
+          title: 'Ism al-ālah — the tool',
+          tag: 'مِفْعَل، مِفْعَال، مِفْعَلَة',
+          rows: [['Patterns', 'مِفْعَل — مِضْرَبٌ · مِفْعَال — مِفْتَاحٌ · مِفْعَلَة — مِكْنَسَةٌ']],
+          spot: ['A kasrah on the mīm is the whole difference: مِفْتَاح is the key (tool), مَفْتَح would be the place.'],
+          means: ['The instrument the action is done with.'],
+          examples: [{ ar: 'مِفْتَاحٌ', en: 'a key' }, { ar: 'مِضْرَبٌ', en: 'a bat, a racket' }, { ar: 'مِكْنَسَةٌ', en: 'a broom' }]
+        },
+        {
+          ar: 'المَصْدَر',
+          title: 'Maṣdar — the bare action',
+          tag: 'fixed for mazīd, learned for mujarrad',
+          rows: [
+            ['Form II', 'تَفْعِيل'], ['Form III', 'مُفَاعَلَة / فِعَال'], ['Form IV', 'إِفْعَال'],
+            ['Form V', 'تَفَعُّل'], ['Form VI', 'تَفَاعُل'], ['Form VII', 'اِنْفِعَال'],
+            ['Form VIII', 'اِفْتِعَال'], ['Form IX', 'اِفْعِلَال'], ['Form X', 'اِسْتِفْعَال']
+          ],
+          spot: ['Every mazīd bāb has one fixed maṣdar pattern — worth memorising as a block, because it identifies the bāb instantly.', 'The mujarrad maṣdars have no single rule (نَصْر، جُلُوس، عِلْم، كَرَامَة) and must be learned with the verb.'],
+          means: ['The action named as a thing: helping, teaching, seeking forgiveness.'],
+          examples: [{ ar: 'تَعْلِيمًا', en: 'teaching' }, { ar: 'اِسْتِغْفَارًا', en: 'seeking forgiveness' }]
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'weak',
+      name: 'Ṣaḥīḥ & muʿtall',
+      intro: 'How the root letters behave. Sound roots keep their shape; weak roots (containing و or ي) shift, drop letters and merge — knowing which category you are in tells you what to expect.',
+      cards: [
+        {
+          ar: 'سَالِم',
+          title: 'Sālim — perfectly sound',
+          tag: 'no weak letter, no hamzah, no doubling',
+          rows: [['Example', 'نَصَرَ، كَتَبَ، جَلَسَ']],
+          spot: ['Three distinct, sound letters. Everything behaves exactly as the pattern says.'],
+          means: ['The reference case — learn its ṣarf ṣaghīr first and every other category is described as a deviation from it.'],
+          examples: [{ ar: 'نَصَرَ يَنْصُرُ', en: 'to help' }]
+        },
+        {
+          ar: 'مُضَاعَف',
+          title: 'Muḍāʿaf — doubled',
+          tag: 'ʿayn and lām are the same letter',
+          rows: [['Example', 'مَدَّ (م د د)، رَدَّ (ر د د)']],
+          spot: ['A shaddah where you would expect two identical letters. مَدَّ is really مَدَدَ.'],
+          means: ['The two letters merge whenever they can; they separate again when a sukūn would fall on the second (اُمْدُدْ، مَدَدْتُ).'],
+          examples: [{ ar: 'مَدَّ يَمُدُّ', en: 'to stretch out' }, { ar: 'رَدَّ يَرُدُّ', en: 'to return' }]
+        },
+        {
+          ar: 'مَهْمُوز',
+          title: 'Mahmūz — hamzated',
+          tag: 'one root letter is a hamzah',
+          rows: [['Fāʾ', 'أَخَذَ، أَكَلَ، أَمَرَ'], ['ʿAyn', 'سَأَلَ، رَأَسَ'], ['Lām', 'قَرَأَ، بَدَأَ']],
+          spot: ['Find the hamzah among the three root letters and name its position.', 'A hamzah is a sound letter — mahmūz verbs are ṣaḥīḥ, not muʿtall.'],
+          means: ['The hamzah changes seat (أ ؤ ئ) depending on the vowels around it, and أَخَذَ، أَكَلَ، أَمَرَ drop it altogether in the amr: خُذْ، كُلْ، مُرْ.'],
+          examples: [{ ar: 'أَخَذَ يَأْخُذُ', en: 'to take' }, { ar: 'سَأَلَ يَسْأَلُ', en: 'to ask' }, { ar: 'قَرَأَ يَقْرَأُ', en: 'to read' }]
+        },
+        {
+          ar: 'مِثَال',
+          title: 'Mithāl — weak first letter',
+          tag: 'و or ي as the fāʾ',
+          rows: [['Example', 'وَعَدَ يَعِدُ، وَصَلَ يَصِلُ، يَسَرَ يَيْسِرُ']],
+          spot: ['The māḍī begins with و (or ي) and the muḍāriʿ has lost it.'],
+          means: ['A mithāl wāwī in bāb ḍaraba drops its و in the muḍāriʿ and the amr: وَعَدَ → يَعِدُ → عِدْ. It comes back in the passive: يُوعَدُ.'],
+          examples: [{ ar: 'وَعَدَ يَعِدُ', en: 'to promise' }, { ar: 'وَصَلَ يَصِلُ', en: 'to arrive' }]
+        },
+        {
+          ar: 'أَجْوَف',
+          title: 'Ajwaf — weak middle letter',
+          tag: 'و or ي as the ʿayn',
+          rows: [['Wāwī', 'قَالَ يَقُولُ (ق و ل)'], ['Yāʾī', 'بَاعَ يَبِيعُ (ب ي ع)'], ['Bāb ʿalima', 'خَافَ يَخَافُ (خ و ف)']],
+          spot: ['A long alif in the middle of the māḍī. The muḍāriʿ reveals which weak letter is hiding: يَقُولُ shows و, يَبِيعُ shows ي.'],
+          means: ['The middle letter drops whenever a sukūn would land on it: قُلْ، لَمْ يَقُلْ، قُلْتُ. The passive māḍī takes a kasrah: قِيلَ، بِيعَ.'],
+          examples: [{ ar: 'قَالَ يَقُولُ', en: 'to say' }, { ar: 'بَاعَ يَبِيعُ', en: 'to sell' }, { ar: 'خَافَ يَخَافُ', en: 'to fear' }]
+        },
+        {
+          ar: 'نَاقِص',
+          title: 'Nāqiṣ — weak last letter',
+          tag: 'و or ي as the lām',
+          rows: [['Wāwī', 'دَعَا يَدْعُو (د ع و)'], ['Yāʾī', 'رَمَى يَرْمِي (ر م ي)'], ['Bāb ʿalima', 'نَسِيَ يَنْسَى (ن س ي)']],
+          spot: ['The word ends in ا، ى، و or ي rather than a hard consonant.', 'The māḍī ending tells you which: دَعَا (wāwī) ends in alif, رَمَى (yāʾī) ends in alif maqṣūrah.'],
+          means: ['The final weak letter drops in the amr and in jazm: اُدْعُ، لَمْ يَدْعُ، اِرْمِ، لَمْ يَرْمِ.'],
+          examples: [{ ar: 'دَعَا يَدْعُو', en: 'to call' }, { ar: 'رَمَى يَرْمِي', en: 'to throw' }]
+        },
+        {
+          ar: 'لَفِيف',
+          title: 'Lafīf — two weak letters',
+          tag: 'mafrūq and maqrūn',
+          rows: [['Mafrūq (separated)', 'وَقَى يَقِي (و ق ي)'], ['Maqrūn (joined)', 'طَوَى يَطْوِي (ط و ي)']],
+          spot: ['Two of the three root letters are weak. If a sound letter sits between them it is mafrūq; if they are side by side it is maqrūn.'],
+          means: ['Mafrūq behaves like a mithāl at the front and a nāqiṣ at the back — both weak letters can fall away at once, leaving قِ as the whole imperative.', 'Maqrūn behaves like a nāqiṣ only; the middle weak letter stays put.'],
+          examples: [{ ar: 'وَقَى يَقِي', en: 'to protect' }, { ar: 'طَوَى يَطْوِي', en: 'to fold' }]
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'sighah',
+      name: 'The 14 forms',
+      intro: 'Ṣarf kabīr: every verb runs through fourteen persons. Learn the endings once on فَعَلَ and you can read them on any verb. The pronoun is written beside each one.',
+      cards: [
+        {
+          ar: 'الماضي',
+          title: 'Māḍī — the perfect',
+          tag: 'endings only, nothing at the front',
+          rows: [
+            ['هُوَ — he', 'فَعَلَ'], ['هُمَا — they two (m.)', 'فَعَلَا'], ['هُمْ — they (m.)', 'فَعَلُوا'],
+            ['هِيَ — she', 'فَعَلَتْ'], ['هُمَا — they two (f.)', 'فَعَلَتَا'], ['هُنَّ — they (f.)', 'فَعَلْنَ'],
+            ['أَنْتَ — you (m.)', 'فَعَلْتَ'], ['أَنْتُمَا — you two', 'فَعَلْتُمَا'], ['أَنْتُمْ — you (m. pl.)', 'فَعَلْتُمْ'],
+            ['أَنْتِ — you (f.)', 'فَعَلْتِ'], ['أَنْتُمَا — you two (f.)', 'فَعَلْتُمَا'], ['أَنْتُنَّ — you (f. pl.)', 'فَعَلْتُنَّ'],
+            ['أَنَا — I', 'فَعَلْتُ'], ['نَحْنُ — we', 'فَعَلْنَا']
+          ],
+          spot: ['Everything hangs off the back of the word.', 'ـْتُ is "I", ـْنَا is "we", ـْتَ / ـْتِ are "you", ـَتْ is "she".', 'Watch the pair فَعَلْنَ (they, f.) and فَعَلْنَا (we) — one letter apart.']
+        },
+        {
+          ar: 'المضارع',
+          title: 'Muḍāriʿ — the imperfect',
+          tag: 'a letter in front, sometimes an ending too',
+          rows: [
+            ['هُوَ — he', 'يَفْعَلُ'], ['هُمَا — they two (m.)', 'يَفْعَلَانِ'], ['هُمْ — they (m.)', 'يَفْعَلُونَ'],
+            ['هِيَ — she', 'تَفْعَلُ'], ['هُمَا — they two (f.)', 'تَفْعَلَانِ'], ['هُنَّ — they (f.)', 'يَفْعَلْنَ'],
+            ['أَنْتَ — you (m.)', 'تَفْعَلُ'], ['أَنْتُمَا — you two', 'تَفْعَلَانِ'], ['أَنْتُمْ — you (m. pl.)', 'تَفْعَلُونَ'],
+            ['أَنْتِ — you (f.)', 'تَفْعَلِينَ'], ['أَنْتُمَا — you two (f.)', 'تَفْعَلَانِ'], ['أَنْتُنَّ — you (f. pl.)', 'تَفْعَلْنَ'],
+            ['أَنَا — I', 'أَفْعَلُ'], ['نَحْنُ — we', 'نَفْعَلُ']
+          ],
+          spot: ['The four tense letters أ ن ي ت (أَنَيْتُ) sit at the front.', 'تَفْعَلُ is both "she" and "you (m.)"; تَفْعَلَانِ covers three different pronouns. Context decides.', 'The نَ of يَفْعَلُونَ falls away in naṣb and jazm (لَنْ يَفْعَلُوا); the نَ of يَفْعَلْنَ never does, because it is the pronoun itself.']
+        },
+        {
+          ar: 'الأمر',
+          title: 'Amr — the imperative',
+          tag: 'six forms, 2nd person only',
+          rows: [
+            ['أَنْتَ — you (m.)', 'اِفْعَلْ'], ['أَنْتُمَا — you two', 'اِفْعَلَا'], ['أَنْتُمْ — you (m. pl.)', 'اِفْعَلُوا'],
+            ['أَنْتِ — you (f.)', 'اِفْعَلِي'], ['أَنْتُمَا — you two (f.)', 'اِفْعَلَا'], ['أَنْتُنَّ — you (f. pl.)', 'اِفْعَلْنَ']
+          ],
+          spot: ['Take the majzūm muḍāriʿ, drop the تـ, and add a hamzat waṣl at the front if what remains starts with a sukūn: تَنْصُرْ → اُنْصُرْ.', 'The hamzah takes a ḍammah when the muḍāriʿ has a ḍammah (اُنْصُرْ) and a kasrah otherwise (اِضْرِبْ، اِفْتَحْ).', 'A prohibition is different: لَا + majzūm muḍāriʿ — لَا تَنْصُرْ.']
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'spotting',
+      name: 'Quick spotting guide',
+      intro: 'The tells worth committing to memory, gathered in one place.',
+      cards: [
+        {
+          ar: 'مَعْلُوم / مَجْهُول',
+          title: 'Active or passive',
+          tag: 'read two vowels',
+          rows: [
+            ['Māḍī active', 'نَصَرَ — fatḥah at the front'],
+            ['Māḍī passive', 'نُصِرَ — ḍammah at the front, kasrah before the last letter'],
+            ['Muḍāriʿ active', 'يَنْصُرُ — fatḥah on the tense letter'],
+            ['Muḍāriʿ passive', 'يُنْصَرُ — ḍammah on the tense letter, fatḥah before the last letter'],
+            ['Mazīd active', 'يُعَلِّمُ، يُكْرِمُ — ḍammah at the front but kasrah at the back'],
+            ['Mazīd passive', 'يُعَلَّمُ، يُكْرَمُ — ḍammah at the front and fatḥah at the back']
+          ],
+          spot: ['In the muḍāriʿ, the vowel before the last letter decides it: kasrah = active, fatḥah = passive.', 'A ḍammah at the front on its own proves nothing — Forms II, III and IV have one in the active too.']
+        },
+        {
+          ar: 'مُجَرَّد / مَزِيد',
+          title: 'Bare or augmented',
+          tag: 'letters of ziyādah',
+          rows: [
+            ['The added letters', 'all come from سَأَلْتُمُونِيهَا'],
+            ['Front hamzah', 'Form IV — أَفْعَلَ'],
+            ['Front تـ', 'Form V or VI — تَفَعَّلَ، تَفَاعَلَ'],
+            ['Inner تـ', 'Form VIII — اِفْتَعَلَ'],
+            ['Front نـ', 'Form VII — اِنْفَعَلَ'],
+            ['اِسْتـ', 'Form X — اِسْتَفْعَلَ'],
+            ['Shaddah on the ʿayn', 'Form II — فَعَّلَ'],
+            ['Shaddah on the lām', 'Form IX — اِفْعَلَّ']
+          ],
+          spot: ['Any letter outside سَأَلْتُمُونِيهَا has to be a root letter.', 'A ḍammah on the tense letter of the muḍāriʿ (يُـ) means mazīd — except in the rubāʿī mujarrad يُدَحْرِجُ.']
+        },
+        {
+          ar: 'الأبواب الستة',
+          title: 'Naming the gate',
+          tag: 'start from the māḍī vowel',
+          rows: [
+            ['ḍammah on the ʿayn — فَعُلَ', 'karuma, guaranteed'],
+            ['kasrah on the ʿayn — فَعِلَ', 'ʿalima, or the rare ḥasiba'],
+            ['fatḥah on the ʿayn — فَعَلَ', 'naṣara, ḍaraba or fataḥa — you need the muḍāriʿ'],
+            ['throat letter in the root', 'leans towards fataḥa'],
+            ['a settled quality', 'leans towards karuma'],
+            ['a sense or an inner state', 'leans towards ʿalima']
+          ],
+          spot: ['Three of the six are fixed by the māḍī alone. The other three need the muḍāriʿ vowel, which is why dictionaries always give both.']
+        },
+        {
+          ar: 'اِسْم / فِعْل / حَرْف',
+          title: 'Word type at a glance',
+          tag: 'the signs',
+          rows: [
+            ['Signs of an ism', 'tanwīn, الـ, a ḥarf al-jarr in front, being described, being made dual or plural'],
+            ['Signs of a fiʿl', 'قَدْ، سَوْفَ، لَمْ، لَنْ, the tense letters أ ن ي ت, and the endings ـْتُ ـْتَ ـْنَا'],
+            ['Signs of a ḥarf', 'none of the above — it accepts no marker at all']
+          ],
+          spot: ['If a word takes tanwīn it can never be a verb; if it takes لَمْ it can never be a noun.']
+        }
+      ]
+    }
+  ];
+
+  MP.hints = hints;
+  MP.reference = { sections: sections };
+})(typeof window !== 'undefined' ? window : globalThis);

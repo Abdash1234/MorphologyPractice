@@ -11,6 +11,7 @@
 require('../src/taxonomy.js');
 require('../src/paradigms.js');
 require('../src/words.js');
+require('../src/reference.js');
 require('../src/store.js');
 require('../src/engine.js');
 
@@ -101,6 +102,37 @@ MP.words.forEach((w) => {
     }
     if (s.kind === 'text' && !s.check(s.answer)) fail(`word ${w.id}: root check rejects its own answer`);
     if (s.kind === 'sarf' && s.paradigm[s.answer] === MP.NOT_USED) fail(`word ${w.id}: ṣarf answer points at an unused cell`);
+  });
+});
+
+/* ---- every question the app can ask must have a "?" hint behind it ---- */
+const stepsSeen = new Set();
+MP.words.forEach((w) => {
+  E.buildSteps(w, MP.store.DEFAULT_SETTINGS).forEach((s) => {
+    stepsSeen.add(s.id + '|' + (s.groupId || ''));
+    if (!E.hintFor(s)) fail(`no hint for step "${s.id}" (group ${s.groupId || '—'})`);
+  });
+});
+
+/* ---- focus modes must each produce a usable session ---- */
+['baab', 'voice', 'subtype', 'ismType', 'sarf', 'root', 'translation'].forEach((focus) => {
+  const settings = Object.assign({}, MP.store.DEFAULT_SETTINGS, { focus });
+  const n = MP.words.filter((w) => E.buildSteps(w, settings).length === 1).length;
+  if (n < 5) fail(`focus mode "${focus}" only matches ${n} words`);
+});
+
+/* ---- reference content ---- */
+MP.reference.sections.forEach((sec) => {
+  if (!sec.id || !sec.name || !sec.intro) fail(`reference section ${sec.id}: missing id/name/intro`);
+  if (!sec.cards.length) fail(`reference section ${sec.id}: no cards`);
+  sec.cards.forEach((c) => {
+    if (!c.ar || !c.title || !c.tag) fail(`reference card "${c.title || c.ar}": missing ar/title/tag`);
+    (c.rows || []).forEach((r) => {
+      if (!Array.isArray(r) || r.length !== 2) fail(`reference card "${c.title}": malformed row`);
+    });
+    (c.examples || []).forEach((x) => {
+      if (!x.ar || !x.en) fail(`reference card "${c.title}": example missing ar/en`);
+    });
   });
 });
 

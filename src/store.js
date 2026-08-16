@@ -12,6 +12,7 @@
   const DEFAULT_SETTINGS = {
     deckId: 'all',
     length: 10,
+    focus: null,
     showTranslit: true,
     showHarakat: true,
     weakestFirst: true,
@@ -95,13 +96,34 @@
     save(stats);
   }
 
+  /* Leitner boxes: a clean sweep of a word moves it up a box, any mistake
+     knocks it back one. The interval is how long before it is due again. */
+  const BOX_DAYS = [0, 1, 2, 4, 8, 16, 32];
+  const DAY = 24 * 60 * 60 * 1000;
+
   function recordWordSeen(wordId, cleanSweep) {
     const stats = load();
-    const w = (stats.words[wordId] = stats.words[wordId] || { seen: 0, correct: 0, wrong: 0, last: 0 });
+    const w = (stats.words[wordId] = stats.words[wordId] || { seen: 0, correct: 0, wrong: 0, last: 0, box: 0 });
     w.seen++;
     w.last = Date.now();
-    if (cleanSweep) w.clean = (w.clean || 0) + 1;
+    if (cleanSweep) {
+      w.clean = (w.clean || 0) + 1;
+      w.box = Math.min(BOX_DAYS.length - 1, (w.box || 0) + 1);
+    } else {
+      w.box = Math.max(0, (w.box || 0) - 1);
+    }
+    w.due = Date.now() + BOX_DAYS[w.box] * DAY;
     save(stats);
+  }
+
+  /* how many words are waiting for review right now */
+  function dueCount(allWords) {
+    const stats = load().words;
+    const now = Date.now();
+    return allWords.filter((w) => {
+      const s = stats[w.id];
+      return !s || !s.due || s.due <= now;
+    }).length;
   }
 
   function recordSession() {
@@ -123,6 +145,8 @@
     recordStep,
     recordWordSeen,
     recordSession,
+    dueCount,
+    BOX_DAYS,
     reset,
     DEFAULT_SETTINGS,
     storageAvailable: hasLS

@@ -123,7 +123,9 @@
 
   function buildSteps(word, settings) {
     const p = paradigmOf(word);
-    const on = (g) => settings.groups[g] !== false;
+    /* in focus mode every stage is built, then all but the focused one is
+       dropped at the end — so a switched-off group cannot hide it */
+    const on = (g) => (settings.focus ? true : settings.groups[g] !== false);
     const steps = [];
 
     /* --- identity --- */
@@ -255,7 +257,14 @@
       });
     }
 
+    if (settings.focus) return steps.filter((s) => s.id === settings.focus);
     return steps;
+  }
+
+  /* The hint panel behind the "?" — bāb and sub-type questions key off the
+     option group, everything else off the step id. */
+  function hintFor(step) {
+    return (MP.hints && (MP.hints[step.groupId] || MP.hints[step.id])) || null;
   }
 
   /* Options shown for a choice step, in chart order (never shuffled — the
@@ -268,7 +277,19 @@
   /* sessions                                                            */
   /* ------------------------------------------------------------------ */
 
+  /* The review deck is not a fixed list — it is whatever the Leitner boxes
+     say is due right now, plus anything never studied. */
+  function dueWords() {
+    const stats = MP.store.load().words;
+    const now = Date.now();
+    return MP.words.filter((w) => {
+      const s = stats[w.id];
+      return !s || !s.due || s.due <= now;
+    });
+  }
+
   function deckWords(deckId) {
+    if (deckId === 'due') return dueWords();
     return MP.words.filter((w) => tagsOf(w).indexOf(deckId) !== -1);
   }
 
@@ -276,12 +297,19 @@
     const settings = opts.settings;
     let pool = deckWords(opts.deckId || 'all');
 
+    /* in focus mode, keep only the words that actually have that question */
+    if (settings.focus) pool = pool.filter((w) => buildSteps(w, settings).length > 0);
+
     if (opts.only && opts.only.length) {
       pool = MP.words.filter((w) => opts.only.indexOf(w.id) !== -1);
     } else {
       pool = shuffle(pool);
-      if (settings.weakestFirst) {
-        const stats = MP.store.load().words;
+      const stats = MP.store.load().words;
+      if (opts.deckId === 'due') {
+        /* most overdue first; never-studied words sit in the middle */
+        const dueAt = (w) => (stats[w.id] && stats[w.id].due) || Date.now();
+        pool.sort((a, b) => dueAt(a) - dueAt(b));
+      } else if (settings.weakestFirst) {
         pool.sort((a, b) => scoreOf(stats, a) - scoreOf(stats, b));
       }
       const len = settings.length;
@@ -363,6 +391,7 @@
     buildSteps,
     buildSession,
     optionsFor,
+    hintFor,
     deckWords,
     currentWord,
     currentStep,
