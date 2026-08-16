@@ -14,8 +14,10 @@ require('../src/words.js');
 require('../src/reference.js');
 require('../src/conjugation.js');
 require('../src/sentences.js');
+require('../src/generator.js');
 require('../src/store.js');
 require('../src/engine.js');
+require('../src/custom.js');
 
 const MP = globalThis.MP;
 const T = MP.taxonomy;
@@ -186,6 +188,87 @@ C.conjugatable().forEach((pid) => {
   });
 });
 
+/* ---- the pattern generator must reproduce the hand-written paradigms ---- */
+const genCells = ['madi', 'mudari', 'madiMajhul', 'mudariMajhul', 'ismFail', 'ismMaful', 'amr', 'nahi'];
+let genChecked = 0;
+Object.keys(MP.paradigms).forEach((id) => {
+  const p = MP.paradigms[id];
+  const draft = MP.generator.draftParadigm(p.root.split(' '), p.baabId, p.meaning);
+  if (!draft) {
+    fail(`generator has no pattern for bāb "${p.baabId}" (${id})`);
+    return;
+  }
+  /* the classification is derived from the letters, so it must always agree */
+  const info = MP.generator.analyseRoot(p.root.split(' '));
+  if (info.soundness !== p.soundness || info.subtype !== p.subtype) {
+    fail(`generator classifies ${id} (${p.root}) as ${info.soundness}/${info.subtype}, data says ${p.soundness}/${p.subtype}`);
+  }
+  /* the forms themselves are only predictable for a sound root */
+  if (p.subtype !== 'salim') return;
+  genChecked++;
+  genCells.forEach((c) => {
+    if (p[c] === MP.NOT_USED || draft[c] === MP.NOT_USED) return;
+    if (draft[c].normalize('NFC') !== p[c].normalize('NFC')) {
+      fail(`generator ${id}: ${c} → "${draft[c]}" but the bank has "${p[c]}"`);
+    }
+  });
+  if (p.augmentation === 'mazeed' && p.masdar.indexOf(' ') === -1) {
+    if (draft.masdar.normalize('NFC') !== p.masdar.normalize('NFC')) {
+      fail(`generator ${id}: maṣdar → "${draft.masdar}" but the bank has "${p.masdar}"`);
+    }
+  }
+});
+
+/* ---- the in-app editor: a generated root and a word off it must survive ---- */
+(function checkEditorRoundTrip() {
+  const draft = MP.generator.draftParadigm(['ف', 'ه', 'م'], 'alima', 'to understand');
+  delete draft.warnings;
+  delete draft.generated;
+  const saved = MP.custom.saveParadigm(draft);
+  if (!saved.ok) {
+    fail('editor: a generated root fails its own checks — ' + saved.errors.join('; '));
+    return;
+  }
+  const word = {
+    w: MP.paradigms[saved.id].ismFail, en: 'one who understands', type: 'ism',
+    ismType: 'ismFail', gender: 'mudhakkar', number: 'mufrad', p: saved.id, slot: 'ismFail'
+  };
+  const savedWord = MP.custom.saveWord(word, { ar: 'هَذَا رَجُلٌ فَاهِمٌ.', en: 'This is a man who understands.' });
+  if (!savedWord.ok) {
+    fail('editor: a valid word fails its own checks — ' + savedWord.errors.join('; '));
+    return;
+  }
+  const live = MP.words.find((w) => w.id === savedWord.id);
+  if (!live) fail('editor: a saved word is not merged into the bank');
+  else {
+    const steps = E.buildSteps(live, MP.store.DEFAULT_SETTINGS);
+    if (!steps.length) fail('editor: a saved word generates no questions');
+    steps.forEach((s) => {
+      if (!E.hintFor(s)) fail(`editor: saved word has a step with no hint ("${s.id}")`);
+      if (s.kind === 'choice' && !E.optionsFor(s).some((o) => o.id === s.answer)) {
+        fail(`editor: saved word step "${s.id}" has an answer outside its options`);
+      }
+      if (s.kind === 'text' && !s.check(s.answer)) fail('editor: saved word rejects its own answer');
+    });
+    if (E.tagsOf(live).indexOf('mine') === -1) fail('editor: saved word is not tagged into the "mine" deck');
+  }
+  /* a deliberately broken word must be refused */
+  const bad = MP.custom.checkWord({ w: '', en: '', type: 'fil' });
+  if (!bad.length) fail('editor: checkWord accepts an empty word');
+
+  /* and the export must import back to the same thing */
+  const json = MP.custom.exportJSON();
+  const before = MP.custom.count();
+  MP.custom.save({ paradigms: {}, words: [], sentences: {} });
+  const back = MP.custom.importJSON(json, 'merge');
+  const after = MP.custom.count();
+  if (!back.ok) fail('editor: exported JSON will not import — ' + back.errors.join('; '));
+  if (after.words !== before.words || after.roots !== before.roots) {
+    fail(`editor: export/import lost data (${before.words}w/${before.roots}r → ${after.words}w/${after.roots}r)`);
+  }
+  MP.custom.save({ paradigms: {}, words: [], sentences: {} });  // leave no trace
+})();
+
 /* ---- reference content ---- */
 MP.reference.sections.forEach((sec) => {
   if (!sec.id || !sec.name || !sec.intro) fail(`reference section ${sec.id}: missing id/name/intro`);
@@ -207,6 +290,7 @@ MP.reference.sections.forEach((sec) => {
 
 /* ---- decks ---- */
 T.decks.forEach((d) => {
+  if (d.id === 'mine') return;   // filled only by the in-app editor
   const n = E.deckWords(d.id).length;
   if (!n) fail(`deck "${d.id}" is empty`);
   else if (n < 5) warn(`deck "${d.id}" only has ${n} words`);
@@ -235,6 +319,7 @@ MP.words.forEach((w) => {
 console.log(`words: ${MP.words.length}   paradigms: ${Object.keys(MP.paradigms).length}`);
 console.log('sub-type coverage:', subtypes);
 if (missingBaabs.length) console.log('abwāb with no example word:', missingBaabs.join(', '));
+console.log('generator checked against ' + genChecked + ' sound paradigms');
 console.log('sentences: ' + Object.keys(MP.sentences).length + ' (' + covered + ' words covered)   conjugation tables: ' + C.conjugatable().length);
 console.log('decks:', T.decks.map((d) => `${d.id}=${E.deckWords(d.id).length}`).join('  '));
 

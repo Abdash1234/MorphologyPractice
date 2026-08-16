@@ -92,6 +92,7 @@
     if (word.type === 'fil') tags.push('verbs');
     if (word.type === 'ism') tags.push('nouns');
     if (word.starter) tags.push('starter');
+    if (word.custom) tags.push('mine');
     if (p) {
       if (p.letters === 'thulathi' && p.augmentation === 'mujarrad') tags.push('mujarrad');
       if (p.augmentation === 'mazeed' || p.letters === 'rubai') tags.push('mazeed');

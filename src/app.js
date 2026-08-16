@@ -107,6 +107,7 @@
     const deckGrid = el('div', { class: 'deck-grid' });
     T.decks.forEach((d) => {
       const count = E.deckWords(d.id).length;
+      if (d.id === 'mine' && !count) return;   // nothing added yet
       const countLabel = d.id === 'due' ? count + ' due now' : count + ' words';
       const card = el('button', {
         class: 'deck' + (settings.deckId === d.id ? ' selected' : ''),
@@ -196,7 +197,8 @@
 
     wrap.appendChild(el('div', { class: 'cta-row' }, [
       el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: startSession }),
-      el('button', { class: 'btn big', type: 'button', text: '📖 Reference & bāb summary', onclick: () => openReference('gates') })
+      el('button', { class: 'btn big', type: 'button', text: '📖 Reference & bāb summary', onclick: () => openReference('gates') }),
+      el('button', { class: 'btn big', type: 'button', text: '✏️ My words', onclick: renderEditor })
     ]));
 
     /* progress so far */
@@ -1014,5 +1016,12 @@
 
   /* ------------------------------------------------------------------ */
 
-  document.addEventListener('DOMContentLoaded', renderHome);
+  function renderEditor() {
+    MP.editor.render(app(), renderHome);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    MP.custom.apply();   // fold in anything the user has added
+    renderHome();
+  });
 })(typeof window !== 'undefined' ? window : globalThis);

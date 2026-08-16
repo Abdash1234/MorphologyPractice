@@ -146,9 +146,37 @@ Keyboard: `1`–`9` pick an option, `Enter` moves on.
 - **393 production questions** — every usable cell of every ṣarf ṣaghīr — and
   **1,258 conjugation questions** across the tables.
 
-## Adding your own words
+## Adding words from inside the app
 
-Vocabulary lives in three files.
+Tap **✏️ My words** on the home screen. Nothing here needs a text editor or a
+laptop — it works the same on a phone.
+
+**Add a root.** Type the root letters and pick the bāb, and the whole ṣarf
+ṣaghīr is generated from the pattern — all eleven cells — along with the
+ṣaḥīḥ/muʿtall classification worked out from the letters themselves. Every cell
+stays editable before you save. If the root is weak, doubled or hamzated the
+form warns you: the pattern is mechanically right but the stem will shift
+(قَوَلَ is really قَالَ), so those cells need your correction.
+
+**Add a word.** Pick the root, pick which cell of its ṣarf ṣaghīr the word is,
+and the Arabic and the grammar fill themselves in — you supply the translation
+and, if you like, a sentence. Words that are not from a root (jāmid nouns,
+ḥurūf) just skip the root picker. Everything is checked before it saves, using
+the same rules the offline validator applies.
+
+Once saved, your word is a full member of the bank: it appears in the analysis
+walk, the production and conjugation drills, the sentence gap-fill, the spaced
+repetition schedule, and a **My words** deck of its own.
+
+**Backup.** Your additions live in this browser's local storage, so the editor
+has an export box: copy the JSON to move it to another device, or send it on to
+have it merged into the repository itself. Paste JSON back in and press Import
+to restore it.
+
+## Adding words to the repository
+
+For bulk additions, the source files are still the fastest route. Vocabulary
+lives in three files.
 
 **`src/paradigms.js`** — one entry per root + bāb, holding the eleven cells of
 its ṣarf ṣaghīr. Use `'—'` for a cell the verb does not have (an intransitive
@@ -206,7 +234,9 @@ inside its option list, that root letter counts match thulāthī/rubāʿī, that
 every question has a **?** hint behind it, that each focus mode still has
 enough words to drill, that every sentence has exactly one gap, that every
 conjugation table has 14/14/6 forms agreeing with its paradigm, and that every
-question in every mode accepts its own answer.
+question in every mode accepts its own answer. It also re-derives all 28 sound
+paradigms with the pattern generator and checks them against the hand-written
+data, so a change to the generator cannot quietly go wrong.
 
 ## Files
 
@@ -216,6 +246,9 @@ question in every mode accepts its own answer.
 | `src/reference.js` | the "?" hints and the browsable reference (gates, forms, patterns, spotting guide) |
 | `src/conjugation.js` | the ṣarf kabīr: generated tables for regular verbs, hand-written ones for the rest |
 | `src/sentences.js` | one sentence per word, for the gap-fill drill |
+| `src/generator.js` | builds a ṣarf ṣaghīr from a root + bāb, and classifies a root from its letters |
+| `src/custom.js` | storage, checking, import/export for words you add in the app |
+| `src/editor.js` | the "My words" screen |
 | `src/paradigms.js` | the ṣarf ṣaghīr tables and the structural facts of each root |
 | `src/words.js` | the word bank |
 | `src/engine.js` | turns a word into its question sequence, grades answers, keeps score |

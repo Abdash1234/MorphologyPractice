@@ -171,7 +171,8 @@
     { id: 'mazeed', name: 'Mazīd fīh', desc: 'Forms II–X and the rubāʿī.' },
     { id: 'sahih', name: 'Ṣaḥīḥ', desc: 'Sālim, muḍāʿaf and mahmūz.' },
     { id: 'mutal', name: 'Muʿtall', desc: 'Mithāl, ajwaf, nāqiṣ, lafīf.' },
-    { id: 'starter', name: 'Starter set', desc: 'The common core — begin here.' }
+    { id: 'starter', name: 'Starter set', desc: 'The common core — begin here.' },
+    { id: 'mine', name: 'My words', desc: 'Only the words you added yourself.' }
   ];
 
   function option(groupId, optionId) {
