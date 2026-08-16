@@ -10,7 +10,7 @@
  */
 'use strict';
 
-const VERSION = '20260816-46329fb';
+const VERSION = '20260816-51a8a5f';
 const CACHE = 'sarf-' + VERSION;
 
 const PRECACHE = [

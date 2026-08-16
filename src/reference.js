@@ -42,7 +42,8 @@
         'Marfūʿ (default): ḍammah on the last letter — يَنْصُرُ — or the نَ still attached in يَنْصُرُونَ / تَنْصُرِينَ / يَنْصُرَانِ.',
         'Manṣūb: fatḥah on the last letter, and that نَ is gone — after أَنْ، لَنْ، كَيْ، حَتَّى، لِـ.',
         'Majzūm: sukūn on the last letter (or the weak letter dropped), نَ gone — after لَمْ، لَمَّا، لَا الناهية، لِـ الأمر، إِنْ.',
-        'Muʾakkad: carries nūn al-tawkīd — heavy ـَنَّ or light ـَنْ — لَيَنْصُرَنَّ.'
+        'Muʾakkad: carries nūn al-tawkīd — heavy ـَنَّ or light ـَنْ — لَيَنْصُرَنَّ.',
+        'Shortcut for the five verbs (يَنْصُرَانِ، تَنْصُرَانِ، يَنْصُرُونَ، تَنْصُرُونَ، تَنْصُرِينَ): the nūn still there means marfūʿ, the nūn gone means manṣūb or majzūm — لَنْ يَنْصُرُوا، لَمْ يَنْصُرُوا.'
       ]
     },
 
@@ -69,17 +70,19 @@
     person: {
       title: 'Who is doing it?',
       bullets: [
-        'Muḍāriʿ prefixes: أ = I, نـ = we, يـ = he/they, تـ = you (or "she").',
-        'Māḍī endings: ـْتُ = I, ـْنَا = we, ـْتَ ـْتِ ـْتُمْ = you, and nothing / ـُوا / ـَتْ = the absent one.',
-        'تـ is the trap: تَنْصُرُ can be "you (m.) help" or "she helps" — context decides.'
+        'Muḍāriʿ prefixes — remember them as أَنَيْتُ: أ = I, نـ = we, يـ = he/they, تـ = you (or "she").',
+        'Māḍī endings, said aloud: "-tu" ـْتُ = I, "-naa" ـْنَا = we, "-ta / -ti / -tum / -tunna" ـْتَ ـْتِ ـْتُمْ ـْتُنَّ = you, and nothing at all / "-uu" ـُوا / "-at" ـَتْ = the absent one.',
+        'تـ is the trap: تَنْصُرُ can be "you (m.) help" or "she helps" — only context decides.'
       ]
     },
 
     gender: {
       title: 'Masculine or feminine?',
       bullets: [
-        'Māḍī feminine marker: تْ — نَصَرَتْ، نَصَرَتَا، and نَ for the plural نَصَرْنَ.',
-        'Muḍāriʿ feminine: تـ for the singular absent (تَنْصُرُ = she helps), ـِينَ for "you (f.)", and نَ for the feminine plural يَنْصُرْنَ.',
+        'Listen to the ending. "-at" ـَتْ is she in the māḍī: نَصَرَتْ. "-na" ـْنَ is the feminine plural: نَصَرْنَ، يَنْصُرْنَ.',
+        '"-eena" ـِينَ on a verb is "you (f. sing.)": تَنْصُرِينَ. On a noun it is a masculine plural instead — مُسْلِمِينَ — so check whether you are holding a verb or a noun first.',
+        '"-oona" ـُونَ is masculine plural, verb or noun: يَنْصُرُونَ، مُسْلِمُونَ.',
+        'Muḍāriʿ تـ also marks the feminine singular absent: تَنْصُرُ = she helps.',
         'The 1st person shows no gender at all — أَنْصُرُ، نَصَرْتُ are the same for a man or a woman.'
       ]
     },
@@ -87,10 +90,13 @@
     number: {
       title: 'One, two or many?',
       bullets: [
-        'Dual: an alif — فَعَلَا، فَعَلَتَا، يَفْعَلَانِ.',
-        'Masculine plural: wāw — فَعَلُوا، يَفْعَلُونَ.',
-        'Feminine plural: nūn al-niswah — فَعَلْنَ، يَفْعَلْنَ.',
-        'Do not confuse the نَ of يَفْعَلُونَ (a marker of rafʿ, dropped in naṣb and jazm) with the نَ of يَفْعَلْنَ (a pronoun, never dropped).'
+        'Say the ending out loud — it names the number for you:',
+        '"-aa" ـَا and "-aani" ـَانِ → dual: نَصَرَا، يَنْصُرَانِ، مُسْلِمَانِ. ("-ayni" ـَيْنِ is the same dual noun in naṣb or jarr: مُسْلِمَيْنِ.)',
+        '"-uu" ـُوا (wāw with a silent alif) and "-oona" ـُونَ → masculine plural: نَصَرُوا، يَنْصُرُونَ، مُسْلِمُونَ.',
+        '"-eena" ـِينَ → masculine plural on a noun in naṣb/jarr (مُسْلِمِينَ), but "you (f. singular)" on a verb (تَنْصُرِينَ).',
+        '"-na" ـْنَ → feminine plural, nūn al-niswah: نَصَرْنَ، يَنْصُرْنَ.',
+        'Do not confuse the نَ of يَنْصُرُونَ (a sign of rafʿ, dropped in naṣb and jazm) with the نَ of يَنْصُرْنَ (a pronoun, never dropped).',
+        'One more trap: a final wāw with no alif is not a plural — يَدْعُو is "he calls".'
       ]
     },
 
@@ -299,6 +305,145 @@
   /* ================================================================== */
 
   const sections = [
+    /* ------------------------------------------------------------- */
+    {
+      id: 'tricks',
+      name: 'Tips & tricks',
+      intro: 'The give-aways, gathered in one place. Most of identifying a word is recognising a handful of sounds and shapes: say the ending out loud, look at the front of the word, and read two vowels. Learn this page and the questions start answering themselves.',
+      cards: [
+        {
+          ar: 'أَوَاخِر الكَلِمَات',
+          title: 'The endings — say them out loud',
+          tag: 'the last syllable names person, gender and number',
+          rows: [
+            ['"-aa" ـَا', 'dual, in the māḍī — نَصَرَا، نَصَرَتَا'],
+            ['"-aani" ـَانِ', 'dual and marfūʿ — يَنْصُرَانِ، مُسْلِمَانِ'],
+            ['"-ayni" ـَيْنِ', 'the same dual noun, but manṣūb or majrūr — مُسْلِمَيْنِ'],
+            ['"-uu" ـُوا', 'masculine plural in the māḍī or the amr — نَصَرُوا، اُنْصُرُوا'],
+            ['"-oona" ـُونَ', 'masculine plural, marfūʿ — يَنْصُرُونَ، مُسْلِمُونَ'],
+            ['"-eena" ـِينَ', 'on a verb: you (f. sing.) — تَنْصُرِينَ · on a noun: masculine plural, manṣūb/majrūr — مُسْلِمِينَ'],
+            ['"-na" ـْنَ', 'feminine plural, nūn al-niswah — نَصَرْنَ، يَنْصُرْنَ'],
+            ['"-at" ـَتْ', 'she, in the māḍī — نَصَرَتْ'],
+            ['"-tu" ـْتُ · "-naa" ـْنَا', 'I · we — نَصَرْتُ، نَصَرْنَا'],
+            ['"-ta / -ti" ـْتَ ـْتِ', 'you, masculine · feminine — نَصَرْتَ، نَصَرْتِ'],
+            ['"-tum / -tunna" ـْتُمْ ـْتُنَّ', 'you, masculine plural · feminine plural — نَصَرْتُمْ، نَصَرْتُنَّ']
+          ],
+          spot: [
+            'Read the ending first and the front of the word second: between them they fix the person, the gender and the number without you having to think about the meaning at all.',
+            'A wāw with a silent alif after it (ـُوا) is a plural. A wāw with nothing after it is not: يَدْعُو is "he calls".',
+            'The same ـِينَ does two different jobs, so settle ism-or-fiʿl before you use it.'
+          ]
+        },
+        {
+          ar: 'الأَفْعَال الخَمْسَة',
+          title: 'The five verbs — the nūn tells you the iʿrāb',
+          tag: 'aani · oona · eena',
+          rows: [
+            ['The five', 'يَنْصُرَانِ · تَنْصُرَانِ · يَنْصُرُونَ · تَنْصُرُونَ · تَنْصُرِينَ'],
+            ['Nūn still there', 'marfūʿ — يَنْصُرُونَ'],
+            ['Nūn gone', 'manṣūb or majzūm — لَنْ يَنْصُرُوا، لَمْ يَنْصُرُوا']
+          ],
+          spot: [
+            'Any muḍāriʿ ending in "-aani", "-oona" or "-eena" is one of the five verbs, and its iʿrāb is decided by whether that nūn survives — not by a vowel you have to squint at.',
+            'The nūn of يَنْصُرْنَ is a different beast: it is the pronoun itself, so it never drops however much naṣb or jazm you throw at it.'
+          ]
+        },
+        {
+          ar: 'أَنَيْتُ',
+          title: 'The front of the word',
+          tag: 'prefixes and what they promise',
+          rows: [
+            ['أ', 'I — أَنْصُرُ'],
+            ['نـ', 'we — نَنْصُرُ'],
+            ['يـ', 'he, or they — يَنْصُرُ، يَنْصُرُونَ'],
+            ['تـ', 'she, or any "you" — تَنْصُرُ، تَنْصُرِينَ'],
+            ['fatḥah on that prefix (يَـ)', 'the verb is mujarrad — يَنْصُرُ'],
+            ['ḍammah on that prefix (يُـ)', 'the verb is mazīd — يُعَلِّمُ، يُكْرِمُ (or a rubāʿī: يُدَحْرِجُ)']
+          ],
+          spot: ['The four tense letters are remembered as the word أَنَيْتُ. Nothing else can start a muḍāriʿ.']
+        },
+        {
+          ar: 'حَرَكَتَانِ فَقَط',
+          title: 'Two vowels decide the voice',
+          tag: 'maʿlūm or majhūl',
+          rows: [
+            ['Māḍī active', 'نَصَرَ — fatḥah at the front'],
+            ['Māḍī passive', 'نُصِرَ — ḍammah at the front, kasrah before the last letter'],
+            ['Muḍāriʿ active', 'يَنْصُرُ · يُعَلِّمُ — kasrah or ḍammah before the last letter'],
+            ['Muḍāriʿ passive', 'يُنْصَرُ · يُعَلَّمُ — fatḥah before the last letter']
+          ],
+          spot: [
+            'In the muḍāriʿ it comes down to the vowel before the last letter: kasrah = doing, fatḥah = done to.',
+            'A ḍammah at the front proves nothing on its own — every Form II, III and IV verb has one in the active too.'
+          ]
+        },
+        {
+          ar: 'مُـ · مَـ · مِـ',
+          title: 'A mīm at the front',
+          tag: 'which kind of noun',
+          rows: [
+            ['مُـ with a ḍammah', 'a doer or a done-to from a mazīd bāb — مُعَلِّمٌ (kasrah = doer) · مُعَلَّمٌ (fatḥah = done-to)'],
+            ['مَـ with a fatḥah', 'a place or a time — مَكْتَبٌ، مَجْلِسٌ · or a mafʿūl from thulāthī — مَنْصُورٌ'],
+            ['مِـ with a kasrah', 'a tool — مِفْتَاحٌ، مِضْرَبٌ']
+          ],
+          spot: ['مَفْتَح would be the place you open; مِفْتَاح is the key. One vowel on the mīm is the whole difference.']
+        },
+        {
+          ar: 'أَلِف الوَصْل',
+          title: 'An alif at the front',
+          tag: 'which form it belongs to',
+          rows: [
+            ['أَ that you always pronounce', 'Form IV — أَكْرَمَ (and it vanishes in the muḍāriʿ: يُكْرِمُ)'],
+            ['اِ you skip when joining words', 'hamzat waṣl — Forms VII, VIII, IX, X, and every thulāthī amr: اُنْصُرْ، اِضْرِبْ'],
+            ['اِنْـ', 'Form VII — اِنْكَسَرَ'], ['اِـتـ', 'Form VIII — اِجْتَمَعَ'],
+            ['اِسْتـ', 'Form X — اِسْتَغْفَرَ']
+          ],
+          spot: ['If the alif disappears when the word is joined to what comes before it, it is waṣl, and the verb is VII, VIII, IX, X or an imperative.']
+        },
+        {
+          ar: 'سَأَلْتُمُونِيهَا',
+          title: 'The mnemonics worth memorising',
+          tag: 'four short words that carry a lot',
+          rows: [
+            ['سَأَلْتُمُونِيهَا', 'every letter that can be added to a root. Anything outside it must be a root letter.'],
+            ['أَنَيْتُ', 'the four letters a muḍāriʿ can begin with.'],
+            ['خُذْ · كُلْ · مُرْ', 'the three verbs that drop their hamzah in the amr (أَخَذَ، أَكَلَ، أَمَرَ).'],
+            ['ء ه ع ح غ خ', 'the throat letters — their presence pulls a verb towards bāb fataḥa.']
+          ],
+          spot: ['Learning these four is worth more than learning fifty words: they let you take apart a word you have never seen.']
+        },
+        {
+          ar: 'المُشْتَبِهَات',
+          title: 'The traps — one shape, two jobs',
+          tag: 'where people lose marks',
+          rows: [
+            ['تَنْصُرُ', 'she helps, or you (m.) help'],
+            ['ـِينَ', 'you (f.) on a verb, masculine plural on a noun'],
+            ['نـ at the front', 'we (نَنْصُرُ), or Form VII (يَنْكَسِرُ)'],
+            ['تـ at the front', '2nd person, or Form V/VI (تَعَلَّمَ), or a root letter (تَرْجَمَ)'],
+            ['تـ inside', 'Form VIII (اِجْتَمَعَ) — not Form V, where it is out at the front'],
+            ['ـُو vs ـُوا', 'يَدْعُو is "he calls"; نَصَرُوا is "they helped"'],
+            ['نَ of ـُونَ vs نَ of ـْنَ', 'the first is a sign of rafʿ and drops; the second is a pronoun and never does']
+          ],
+          spot: ['When two readings are possible, the sentence around the word decides — but knowing that the ambiguity exists is what stops you guessing confidently and wrongly.']
+        },
+        {
+          ar: 'الأَبْوَاب',
+          title: 'Naming the bāb quickly',
+          tag: 'start from the māḍī vowel',
+          rows: [
+            ['ḍammah on the ʿayn — فَعُلَ', 'karuma. No other option.'],
+            ['kasrah on the ʿayn — فَعِلَ', 'ʿalima, or the rare ḥasiba.'],
+            ['fatḥah on the ʿayn — فَعَلَ', 'naṣara, ḍaraba or fataḥa — you need the muḍāriʿ vowel.'],
+            ['a throat letter in the root', 'leans towards fataḥa — فَتَحَ، ذَهَبَ، مَنَعَ'],
+            ['a settled quality', 'leans towards karuma — كَرُمَ، حَسُنَ'],
+            ['a sense or an inner state', 'leans towards ʿalima — سَمِعَ، فَرِحَ']
+          ],
+          spot: ['Three of the six are settled by the māḍī alone. That is why a dictionary always gives you both parts.']
+        }
+      ]
+    },
+
     /* ------------------------------------------------------------- */
     {
       id: 'gates',

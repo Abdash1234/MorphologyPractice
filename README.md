@@ -63,8 +63,15 @@ matching page of the reference.
 ## The reference
 
 A **📖 Reference** button on the home screen and in the top bar of every
-question, opening over the drill without losing your place. Eight tabs:
+question, opening over the drill without losing your place, and a **🎯 Tips &
+tricks** button that opens it straight at the tricks page. Nine tabs:
 
+- **Tips & tricks** — the give-aways in one place: the endings said out loud
+  ("-aani" is a dual, "-oona" a masculine plural, "-eena" is "you (f.)" on a
+  verb but a masculine plural on a noun, "-uu" ـُوا and "-at" ـَتْ in the māḍī),
+  the five verbs and what their nūn tells you about the iʿrāb, what a mīm or an
+  alif at the front means, the four mnemonics worth memorising, and the traps
+  where one shape does two jobs.
 - **The six gates** — each bāb with its vowel pattern, how to recognise it, what
   kind of verbs live there, and example verbs.
 - **Forms II–X** — for every form: the shape of the māḍī, muḍāriʿ, maṣdar, ism

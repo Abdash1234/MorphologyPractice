@@ -200,6 +200,7 @@
     wrap.appendChild(el('div', { class: 'cta-row' }, [
       el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: startSession }),
       el('button', { class: 'btn big', type: 'button', text: '📖 Reference & bāb summary', onclick: () => openReference('gates') }),
+      el('button', { class: 'btn big', type: 'button', text: '🎯 Tips & tricks', onclick: () => openReference('tricks') }),
       el('button', { class: 'btn big', type: 'button', text: '✏️ My words', onclick: renderEditor })
     ]));
 
@@ -914,7 +915,10 @@
     };
     if (!step) return 'gates';
     if (map[step.groupId]) return map[step.groupId];
-    if (step.id === 'person' || step.id === 'gender' || step.id === 'number' || step.id === 'tense') return 'sighah';
+    /* person, gender, number and iʿrāb all come down to the endings, which is
+       exactly what the tricks page is for */
+    if (['person', 'gender', 'number', 'mood'].indexOf(step.id) !== -1) return 'tricks';
+    if (step.id === 'tense') return 'sighah';
     if (step.id === 'sarf' || step.id === 'root') return 'nouns';
     return 'spotting';
   }
