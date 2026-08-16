@@ -1,0 +1,18 @@
+# Cloudflare Pages project configuration.
+#
+# The site is static, so there is no build step: the repository root is what
+# gets served, and functions/ becomes the API on the same origin.
+#
+# Before the first deploy:
+#   npx wrangler d1 create sarf          # paste the id below
+#   npx wrangler d1 execute sarf --remote --file=schema.sql
+#   npx wrangler pages secret put PASSPHRASE_HASH    # from tools/make-passphrase.mjs
+
+name = "sarf"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sarf"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"

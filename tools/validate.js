@@ -6,7 +6,10 @@
  * that every answer id exists in the option group it is asked from, and that
  * every question the app can generate is answerable.
  */
-'use strict';
+import { createRequire } from 'node:module';
+
+/* the src/ files are plain browser scripts that attach to globalThis */
+const require = createRequire(import.meta.url);
 
 require('../src/taxonomy.js');
 require('../src/paradigms.js');

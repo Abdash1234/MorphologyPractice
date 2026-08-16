@@ -49,6 +49,7 @@
   }
 
   function save(stats) {
+    stats.updatedAt = Date.now();
     if (hasLS) {
       try {
         global.localStorage.setItem(STATS_KEY, JSON.stringify(stats));
@@ -69,6 +70,11 @@
   }
 
   function saveSettings(s) {
+    /* the progress document carries the settings, so a settings change has to
+       move its clock too or sync will keep the older ones */
+    const stats = load();
+    stats.updatedAt = Date.now();
+    save(stats);
     if (hasLS) {
       try {
         global.localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
@@ -132,6 +138,42 @@
     save(stats);
   }
 
+  /* ---- the shape sync pushes and pulls ---- */
+
+  function exportProgress() {
+    const stats = load();
+    return {
+      words: stats.words,
+      steps: stats.steps,
+      answered: stats.answered,
+      correct: stats.correct,
+      sessions: stats.sessions,
+      settings: loadSettings(),
+      updatedAt: stats.updatedAt || 0
+    };
+  }
+
+  /* Adopt the merged document the server returned. */
+  function importProgress(doc) {
+    if (!doc || typeof doc !== 'object') return;
+    save({
+      words: doc.words || {},
+      steps: doc.steps || {},
+      answered: doc.answered || 0,
+      correct: doc.correct || 0,
+      sessions: doc.sessions || 0,
+      updatedAt: doc.updatedAt || Date.now()
+    });
+    if (doc.settings && typeof doc.settings === 'object') {
+      if (hasLS) {
+        try {
+          global.localStorage.setItem(SETTINGS_KEY, JSON.stringify(doc.settings));
+        } catch (e) { /* ignore */ }
+      }
+      memory.settings = doc.settings;
+    }
+  }
+
   function reset() {
     if (hasLS) global.localStorage.removeItem(STATS_KEY);
     memory.stats = null;
@@ -146,6 +188,8 @@
     recordWordSeen,
     recordSession,
     dueCount,
+    exportProgress,
+    importProgress,
     BOX_DAYS,
     reset,
     DEFAULT_SETTINGS,

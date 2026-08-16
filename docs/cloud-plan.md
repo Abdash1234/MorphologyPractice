@@ -43,7 +43,29 @@ Before each deploy: `node tools/bump-version.js && node tools/validate.js`.
 
 ---
 
-## Phase 1 — accounts and sync
+## Phase 1 — accounts and sync (built)
+
+**Status: written and tested locally, waiting on a Cloudflare account to go
+live.** The API runs as Pages Functions on the same origin as the app, so there
+is no CORS and no second service to deploy.
+
+### Turning it on
+
+```sh
+npx wrangler d1 create sarf                       # paste the id into wrangler.toml
+npm run db:remote                                 # apply schema.sql
+node tools/make-passphrase.mjs "a long passphrase" # prints the hash
+npx wrangler pages secret put PASSPHRASE_HASH     # paste it in
+npm run deploy
+```
+
+Then open the app, put the passphrase into the **Sync** panel on the home
+screen, and do the same on the second device.
+
+Locally: `npm run db:local`, put `PASSPHRASE_HASH=…` in `.dev.vars`
+(git-ignored), then `npm run dev:api` and `npm run test:api`.
+
+### What was built
 
 ### Shape
 

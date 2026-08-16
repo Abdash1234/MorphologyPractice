@@ -18,7 +18,7 @@
   let memory = null; // fallback when localStorage is blocked
 
   function blank() {
-    return { paradigms: {}, words: [], sentences: {} };
+    return { paradigms: {}, words: [], sentences: {}, tombstones: {}, updatedAt: 0 };
   }
 
   function load() {
@@ -38,6 +38,8 @@
   }
 
   function save(data) {
+    data.tombstones = data.tombstones || {};
+    data.updatedAt = Date.now();
     memory = data;
     try {
       global.localStorage.setItem(KEY, JSON.stringify(data));
@@ -145,7 +147,8 @@
     if (errors.length) return { ok: false, errors: errors };
     const data = load();
     const id = existingId || nextId('paradigm', p.root.replace(/\s+/g, '') + '-' + p.baabId);
-    data.paradigms[id] = p;
+    data.paradigms[id] = Object.assign({}, p, { updatedAt: Date.now() });
+    delete data.tombstones[id];
     save(data);
     return { ok: true, id: id };
   }
@@ -155,7 +158,8 @@
     if (errors.length) return { ok: false, errors: errors };
     const data = load();
     const id = existingId || nextId('word', w.tr || w.en);
-    const record = Object.assign({}, w, { id: id });
+    const record = Object.assign({}, w, { id: id, updatedAt: Date.now() });
+    delete data.tombstones[id];
     const at = data.words.findIndex((x) => x.id === id);
     if (at === -1) data.words.push(record);
     else data.words[at] = record;
@@ -168,7 +172,7 @@
         const hit = ar.split(/\s+/).find((tok) => MP.engine.normalizeArabic(tok).indexOf(bare) !== -1);
         if (hit) ar = ar.replace(hit, '{}');
       }
-      if (ar.indexOf('{}') !== -1) data.sentences[id] = { ar: ar, en: sentence.en.trim() };
+      if (ar.indexOf('{}') !== -1) data.sentences[id] = { ar: ar, en: sentence.en.trim(), updatedAt: Date.now() };
     } else {
       delete data.sentences[id];
     }
@@ -180,18 +184,31 @@
     const data = load();
     data.words = data.words.filter((w) => w.id !== id);
     delete data.sentences[id];
+    data.tombstones[id] = Date.now();
     save(data);
   }
 
   function removeParadigm(id) {
     const data = load();
+    const now = Date.now();
     delete data.paradigms[id];
+    data.tombstones[id] = now;
     /* words hanging off it would break, so they go too */
     const orphans = data.words.filter((w) => w.p === id).map((w) => w.id);
     data.words = data.words.filter((w) => w.p !== id);
-    orphans.forEach((wid) => delete data.sentences[wid]);
+    orphans.forEach((wid) => {
+      delete data.sentences[wid];
+      data.tombstones[wid] = now;
+    });
     save(data);
     return orphans.length;
+  }
+
+  /* Adopt a document handed back by the server after a merge. */
+  function replaceAll(doc) {
+    const data = Object.assign(blank(), doc || {});
+    data.words = Array.isArray(data.words) ? data.words : [];
+    save(data);
   }
 
   /* ------------------------------------------------------------------ */
@@ -260,6 +277,7 @@
     removeParadigm,
     exportJSON,
     importJSON,
+    replaceAll,
     count
   };
 })(typeof window !== 'undefined' ? window : globalThis);

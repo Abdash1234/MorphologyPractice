@@ -135,17 +135,37 @@ Cloudflare Pages, no build step:
   command: *(none)*. Output directory: `/`.
 - **Or:** `npx wrangler pages deploy .`
 
-Before deploying, stamp the release and check the data:
+Before deploying, stamp the release and run the checks:
 
 ```sh
-node tools/bump-version.js   # version + precache list for the service worker
-node tools/validate.js       # the whole data check
+npm run release   # stamps the service worker, then validates the data
+npm test          # the sync merge rules
 ```
 
 `_headers` sets a strict content-security policy and keeps the origin from
 caching the shell, so deploys land immediately.
 
-Cloud sync between devices is designed but not built yet — see
+### Cloud sync between devices
+
+Optional, and off until you turn it on. The API runs as Cloudflare Pages
+Functions on the same origin as the app, with a D1 database behind it:
+
+```sh
+npx wrangler d1 create sarf                        # paste the id into wrangler.toml
+npm run db:remote                                  # apply schema.sql
+node tools/make-passphrase.mjs "a long passphrase"  # prints a hash
+npx wrangler pages secret put PASSPHRASE_HASH      # paste the hash in
+npm run deploy
+```
+
+Then enter the passphrase in the **Sync** panel on the home screen of each
+device. Your progress (boxes, due dates, accuracy) and your own words travel
+between them; the app carries on working offline and catches up later.
+
+Locally: `npm run db:local`, a `PASSPHRASE_HASH=…` line in `.dev.vars`, then
+`npm run dev:api` and `npm run test:api`.
+
+The design, the merge rules and what comes next are in
 [docs/cloud-plan.md](docs/cloud-plan.md).
 
 ## Session options
@@ -287,3 +307,10 @@ data, so a change to the generator cannot quietly go wrong.
 | `tools/validate.js` | data integrity check |
 | `tools/bump-version.js` | stamps a release into the service worker |
 | `docs/cloud-plan.md` | the agreed design for accounts and cross-device sync |
+| `shared/merge.js` | how two devices' progress and words are reconciled |
+| `shared/api.js` | server-side helpers: hashing, tokens, document reads/writes |
+| `functions/api/*` | the API — sign-in, sync, devices |
+| `src/sync.js` | the client half of sync |
+| `schema.sql` | the D1 tables |
+| `tools/test-merge.mjs` | tests for the merge rules |
+| `tools/test-api.mjs` | end-to-end tests against a running server |

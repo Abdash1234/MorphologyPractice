@@ -10,7 +10,7 @@
  */
 'use strict';
 
-const VERSION = '20260816-3be117e';
+const VERSION = '20260816-46329fb';
 const CACHE = 'sarf-' + VERSION;
 
 const PRECACHE = [
@@ -28,6 +28,7 @@ const PRECACHE = [
   './src/custom.js',
   './src/store.js',
   './src/engine.js',
+  './src/sync.js',
   './src/editor.js',
   './src/app.js',
   './src/pwa.js',
@@ -65,6 +66,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;   // leave anything external alone
+
+  /* The API must never be cached: a cached 401 would lock you out, and cached
+     sync data would be worse than no sync at all. Straight to the network. */
+  if (url.pathname.startsWith('/api/')) return;
 
   /* Navigations: try the network so a deploy is picked up, fall back to the
      cached shell when offline. */

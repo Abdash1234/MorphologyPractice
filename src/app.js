@@ -14,6 +14,7 @@
   let settings = MP.store.loadSettings();
   let session = null;
   let answered = false; // has the current step been answered?
+  let touched = false;  // has the user done anything since the screen was drawn?
 
   /* the four ways to practise */
   const MODES = [
@@ -66,6 +67,7 @@
   }
 
   function setScreen(node) {
+    touched = false;
     const root = app();
     root.innerHTML = '';
     root.appendChild(node);
@@ -235,6 +237,8 @@
       ]));
     }
 
+    wrap.appendChild(renderCloudPanel());
+
     if (!MP.store.storageAvailable) {
       wrap.appendChild(el('p', { class: 'muted small', text: 'Note: this browser is blocking local storage, so progress will not be kept between visits.' }));
     }
@@ -254,6 +258,114 @@
     const hours = Math.round((scheduled[0] - now) / (60 * 60 * 1000));
     const when = hours < 24 ? 'in ' + Math.max(1, hours) + 'h' : 'in ' + Math.round(hours / 24) + ' day(s)';
     return due + ' due now · ' + scheduled.length + ' resting, next one comes back ' + when + '.';
+  }
+
+  /* ---- cloud sync ---- */
+
+  function timeAgo(ts) {
+    if (!ts) return 'never';
+    const mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + ' min ago';
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    return Math.round(hours / 24) + ' day(s) ago';
+  }
+
+  function renderCloudPanel() {
+    const panel = el('section', { class: 'panel cloud' }, [
+      el('h2', { class: 'panel-title', text: 'Sync' })
+    ]);
+    const st = MP.sync.status();
+
+    if (!MP.sync.available()) {
+      panel.appendChild(el('p', { class: 'muted small', text: 'Sync needs the app to be served over the web. Opened straight from a file it stays local-only — which is fine, everything still works.' }));
+      return panel;
+    }
+
+    const status = el('p', { class: 'stat-line', text: '' });
+    const body = el('div', {});
+
+    function paint() {
+      const s = MP.sync.status();
+      status.textContent = s.signedIn
+        ? 'Signed in as "' + s.label + '" · last synced ' + timeAgo(s.lastSync)
+        : 'Not signed in — this device keeps everything to itself.';
+      body.innerHTML = '';
+
+      if (s.lastError) body.appendChild(el('p', { class: 'form-error', text: s.lastError }));
+
+      if (!s.signedIn) {
+        const pass = el('input', { class: 'input', type: 'password', placeholder: 'your passphrase', autocomplete: 'current-password' });
+        const label = el('input', { class: 'input', type: 'text', placeholder: 'name this device (optional)' });
+        const go = el('button', { class: 'btn primary', type: 'button', text: 'Sign in' });
+        go.addEventListener('click', () => {
+          go.disabled = true;
+          go.textContent = 'Signing in…';
+          MP.sync.signIn(pass.value, label.value)
+            .then(() => { renderHome(); })
+            .catch(() => { go.disabled = false; go.textContent = 'Sign in'; paint(); });
+        });
+        pass.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
+        body.appendChild(el('div', { class: 'grid-2' }, [
+          field('Passphrase', pass),
+          field('Device name', label)
+        ]));
+        body.appendChild(el('div', { class: 'cta-row' }, [go]));
+        return;
+      }
+
+      const syncBtn = el('button', {
+        class: 'btn primary', type: 'button', text: s.syncing ? 'Syncing…' : 'Sync now',
+        onclick: () => {
+          syncBtn.disabled = true;
+          syncBtn.textContent = 'Syncing…';
+          MP.sync.syncNow().then(() => renderHome()).catch(() => { syncBtn.disabled = false; paint(); });
+        }
+      });
+
+      const deviceList = el('div', { class: 'device-list' });
+      MP.sync.devices().then((list) => {
+        deviceList.innerHTML = '';
+        list.forEach((d) => {
+          deviceList.appendChild(el('div', { class: 'mine-row' }, [
+            el('span', { class: 'mine-en', text: d.label + (d.current ? ' (this one)' : '') + ' · last seen ' + timeAgo(d.lastSeen) }),
+            el('button', {
+              class: 'btn ghost small', type: 'button', text: d.current ? 'Sign out' : 'Revoke',
+              onclick: () => {
+                if (!global.confirm(d.current ? 'Sign this device out?' : 'Revoke "' + d.label + '"?')) return;
+                MP.sync.revoke(d.id).then(() => renderHome()).catch(() => paint());
+              }
+            })
+          ]));
+        });
+      }).catch(() => {
+        deviceList.appendChild(el('p', { class: 'muted small', text: 'Could not list devices — offline, most likely.' }));
+      });
+
+      body.appendChild(el('div', { class: 'cta-row' }, [
+        syncBtn,
+        el('button', {
+          class: 'btn ghost', type: 'button', text: 'Sign out of this device',
+          onclick: () => { MP.sync.signOut(); renderHome(); }
+        })
+      ]));
+      body.appendChild(deviceList);
+    }
+
+    paint();
+    panel.appendChild(status);
+    panel.appendChild(el('p', { class: 'muted small', text: 'Progress and your own words are carried between devices. Everything keeps working offline; sync catches up when you are back.' }));
+    panel.appendChild(body);
+    return panel;
+  }
+
+  /* a small labelled control, shared with the editor's look */
+  function field(labelText, control) {
+    return el('label', { class: 'field' }, [
+      el('span', { class: 'field-label', text: labelText }),
+      control
+    ]);
   }
 
   function stepName(id) {
@@ -727,6 +839,10 @@
     else renderStep();
   }
 
+  ['pointerdown', 'keydown'].forEach((evt) => {
+    document.addEventListener(evt, () => { touched = true; }, true);
+  });
+
   /* keyboard: Enter/Space to move on, 1–9 to pick an option */
   document.addEventListener('keydown', (e) => {
     if (!session) return;
@@ -969,6 +1085,7 @@
   /* ------------------------------------------------------------------ */
 
   function renderSummary() {
+    MP.sync.syncQuietly();   // a finished session is the natural moment to push
     const score = E.sessionScore(session);
     const bd = E.breakdown(session);
     const missed = session.missedWords.slice();
@@ -1023,5 +1140,15 @@
   document.addEventListener('DOMContentLoaded', () => {
     MP.custom.apply();   // fold in anything the user has added
     renderHome();
+    /* Pull anything a second device did since we were last here — but never
+       redraw under someone's finger: if they have already started tapping,
+       the fresher data waits until the next time home is drawn. */
+    MP.sync.syncQuietly().then((result) => {
+      if (result && !touched && $('.home')) {
+        MP.custom.apply();
+        settings = MP.store.loadSettings();
+        renderHome();
+      }
+    });
   });
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -6,13 +6,12 @@
  * disk, so a new file can never be left out of the offline cache and a deploy
  * always invalidates the old one.
  */
-'use strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-
-const root = path.join(__dirname, '..');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const swPath = path.join(root, 'sw.js');
 
 /* everything the app needs to run with no network */

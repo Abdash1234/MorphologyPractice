@@ -1,0 +1,19 @@
+{
+  "name": "sarf-morphology-practice",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Arabic morphology practice — a local-first PWA with optional cloud sync",
+  "type": "module",
+  "scripts": {
+    "check": "node tools/validate.js && node --test tools/test-merge.mjs",
+    "validate": "node tools/validate.js",
+    "test": "node --test tools/test-merge.mjs",
+    "test:api": "node --test tools/test-api.mjs",
+    "release": "node tools/bump-version.js && npm run check",
+    "dev": "python3 -m http.server 8000",
+    "dev:api": "wrangler pages dev .",
+    "db:local": "wrangler d1 execute sarf --local --file=schema.sql",
+    "db:remote": "wrangler d1 execute sarf --remote --file=schema.sql",
+    "deploy": "npm run release && wrangler pages deploy ."
+  }
+}
