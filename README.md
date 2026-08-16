@@ -66,12 +66,15 @@ A **📖 Reference** button on the home screen and in the top bar of every
 question, opening over the drill without losing your place, and a **🎯 Tips &
 tricks** button that opens it straight at the tricks page. Nine tabs:
 
-- **Tips & tricks** — the give-aways in one place: the endings said out loud
-  ("-aani" is a dual, "-oona" a masculine plural, "-eena" is "you (f.)" on a
-  verb but a masculine plural on a noun, "-uu" ـُوا and "-at" ـَتْ in the māḍī),
-  the five verbs and what their nūn tells you about the iʿrāb, what a mīm or an
-  alif at the front means, the four mnemonics worth memorising, and the traps
-  where one shape does two jobs.
+- **Tips & tricks** — sixteen cards of give-aways: the endings said out loud
+  ("-aani" a dual, "-oona" a masculine plural, "-aat" a sound feminine plural,
+  "-eena" is "you (f.)" on a verb but a masculine plural on a noun); the five
+  verbs and what their nūn tells you about the iʿrāb; the prefixes; the two
+  vowels that decide voice; what a mīm or an alif at the front means; broken
+  plurals and non-human agreement; tanwīn, الـ and diptotes; which abwāb are
+  transitive; reading the bāb off the maṣdar; the vowel a hollow verb leaves
+  behind; Form VIII hiding as اِتَّصَلَ or اِزْدَحَمَ; the particles that force naṣb
+  and jazm; the four mnemonics; and the traps where one shape does two jobs.
 - **The six gates** — each bāb with its vowel pattern, how to recognise it, what
   kind of verbs live there, and example verbs.
 - **Forms II–X** — for every form: the shape of the māḍī, muḍāriʿ, maṣdar, ism
@@ -191,10 +194,10 @@ Keyboard: `1`–`9` pick an option, `Enter` moves on.
 
 ## What's in the bank
 
-- **163 words** over **44 ṣarf ṣaghīr tables**, covering all six abwāb of
+- **167 words** over **44 ṣarf ṣaghīr tables**, covering all six abwāb of
   thulāthī mujarrad, Forms II–X, rubāʿī mujarrad and mazīd, muḍāʿaf, all three
   positions of mahmūz, and every muʿtall category including both lafīfs.
-- **141 sentences**, one per word, used for the gap-fill drill and shown after
+- **145 sentences**, one per word, used for the gap-fill drill and shown after
   the translation.
 - **37 full conjugation tables** (34 forms each) behind the conjugation drill
   and the reference.

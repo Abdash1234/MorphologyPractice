@@ -95,6 +95,8 @@
         '"-uu" ـُوا (wāw with a silent alif) and "-oona" ـُونَ → masculine plural: نَصَرُوا، يَنْصُرُونَ، مُسْلِمُونَ.',
         '"-eena" ـِينَ → masculine plural on a noun in naṣb/jarr (مُسْلِمِينَ), but "you (f. singular)" on a verb (تَنْصُرِينَ).',
         '"-na" ـْنَ → feminine plural, nūn al-niswah: نَصَرْنَ، يَنْصُرْنَ.',
+        '"-aat" ـَاتٌ → sound feminine plural on a noun: مُسْلِمَاتٌ. Its manṣūb and majrūr both take a kasrah, never a fatḥah.',
+        'No ending at all but clearly more than two? A broken plural, where the word is rebuilt: رَجُل → رِجَال، عَالِم → عُلَمَاء.',
         'Do not confuse the نَ of يَنْصُرُونَ (a sign of rafʿ, dropped in naṣb and jazm) with the نَ of يَنْصُرْنَ (a pronoun, never dropped).',
         'One more trap: a final wāw with no alif is not a plural — يَدْعُو is "he calls".'
       ]
@@ -440,6 +442,102 @@
             ['a sense or an inner state', 'leans towards ʿalima — سَمِعَ، فَرِحَ']
           ],
           spot: ['Three of the six are settled by the māḍī alone. That is why a dictionary always gives you both parts.']
+        },
+        {
+          ar: 'الجُمُوع',
+          title: 'Plurals beyond "-oona"',
+          tag: 'the feminine plural, and the ones with no ending at all',
+          rows: [
+            ['"-aat" ـَاتٌ', 'sound feminine plural — مُسْلِمَاتٌ، مُعَلِّمَاتٌ'],
+            ['its cases', 'marfūʿ takes a ḍammah (مُسْلِمَاتٌ); manṣūb and majrūr both take a kasrah (مُسْلِمَاتٍ) — a fatḥah never appears on it'],
+            ['broken plural — جَمْع التَّكْسِير', 'no ending at all: the word itself is rebuilt — رَجُل → رِجَال، كِتَاب → كُتُب، عَالِم → عُلَمَاء، مَسْجِد → مَسَاجِد'],
+            ['common broken shapes', 'أَفْعَال · فُعُول · فِعَال · فُعَلَاء · مَفَاعِل']
+          ],
+          spot: [
+            'If a word clearly means more than two but carries none of ـُونَ ـِينَ ـَاتٌ, it is a broken plural — and those come with the singular, not from a rule.',
+            'Careful with ـَات: it is a plural marker on a noun, but the ـَتْ of نَصَرَتْ is "she" on a verb. Settle ism-or-fiʿl first.'
+          ],
+          means: [
+            'A plural of non-humans is treated as a feminine singular: الكُتُبُ جَمِيلَةٌ, الجِبَالُ تَسِيرُ — not جَمِيلَاتٌ, not يَسِيرُونَ.',
+            'A verb that comes before its subject stays singular: قَالَ الرِّجَالُ, never قَالُوا الرِّجَالُ.'
+          ]
+        },
+        {
+          ar: 'التَّنْوِين وَأَلْ',
+          title: 'Tanwīn, الـ and the words that refuse tanwīn',
+          tag: 'quick tests on any noun',
+          rows: [
+            ['tanwīn', 'only ever sits on an ism — a verb can never carry it. Instant word-type test.'],
+            ['الـ + tanwīn', 'never both at once, and no tanwīn inside an iḍāfah: كِتَابُ الوَلَدِ'],
+            ['diptotes — المَمْنُوع مِنَ الصَّرْف', 'أَفْعَل (أَكْبَرُ) · فَعْلَاء (حَمْرَاءُ) · فُعَلَاء (عُلَمَاءُ) · مَفَاعِل (مَسَاجِدُ)'],
+            ['how a diptote behaves', 'no tanwīn, and a fatḥah where you expect a kasrah in jarr: فِي مَسَاجِدَ']
+          ],
+          spot: ['A noun with no tanwīn and no الـ that takes a fatḥah after a ḥarf al-jarr is not a mistake — it is a diptote.']
+        },
+        {
+          ar: 'اللَّازِم وَالمُتَعَدِّي',
+          title: 'Does it take an object?',
+          tag: 'transitive or intransitive, by bāb',
+          rows: [
+            ['bāb karuma', 'always lāzim — a settled quality has nothing to fall on'],
+            ['Forms VII and IX', 'always lāzim — they carry an effect rather than do something'],
+            ['Forms II, III, IV', 'commonly make a verb transitive: عَلِمَ → عَلَّمَ / أَعْلَمَ'],
+            ['Form X', 'usually transitive — you seek something'],
+            ['the ṣarf ṣaghīr itself', 'if it has an ism al-mafʿūl, the verb takes an object; if that cell is —, it does not']
+          ],
+          spot: ['A lāzim verb still reaches an object, but through a preposition: ذَهَبَ إِلَى المَسْجِدِ, جَلَسَ فِي البَيْتِ.']
+        },
+        {
+          ar: 'المَصْدَر يَدُلُّ عَلَى البَاب',
+          title: 'The maṣdar names the bāb on sight',
+          tag: 'works in both directions',
+          rows: [
+            ['تَفْعِيل', 'Form II'], ['مُفَاعَلَة / فِعَال', 'Form III'], ['إِفْعَال', 'Form IV'],
+            ['تَفَعُّل', 'Form V'], ['تَفَاعُل', 'Form VI'], ['اِنْفِعَال', 'Form VII'],
+            ['اِفْتِعَال', 'Form VIII'], ['اِفْعِلَال', 'Form IX'], ['اِسْتِفْعَال', 'Form X'],
+            ['فَعْلَلَة', 'rubāʿī mujarrad']
+          ],
+          spot: [
+            'See اِسْتِغْفَارًا and you know it is Form X of غ ف ر without ever meeting the verb.',
+            'It runs the other way too: know the bāb and the maṣdar is fixed — which is why the mujarrad maṣdars, which have no rule, are the ones you must memorise.'
+          ]
+        },
+        {
+          ar: 'الأَجْوَف',
+          title: 'Hollow verbs — the leftover vowel gives the game away',
+          tag: 'when the middle letter drops',
+          rows: [
+            ['قُلْتُ — ḍammah', 'from قَالَ يَقُولُ, so the ʿayn is a wāw'],
+            ['بِعْتُ — kasrah', 'from بَاعَ يَبِيعُ, so the ʿayn is a yāʾ'],
+            ['خِفْتُ — kasrah', 'from خَافَ يَخَافُ, bāb ʿalima'],
+            ['نَاقِص before ـَتْ', 'the weak letter drops too: رَمَى → رَمَتْ, دَعَا → دَعَتْ']
+          ],
+          spot: ['When the middle letter vanishes, the vowel it leaves on the first letter is the fingerprint of the original — that is how you recover the root.']
+        },
+        {
+          ar: 'اِفْتَعَلَ المُدْغَم',
+          title: 'Form VIII in disguise',
+          tag: 'when the تـ changes or swallows a letter',
+          rows: [
+            ['اِتَّصَلَ', 'Form VIII of و ص ل — the wāw assimilated into the tāʾ'],
+            ['اِتَّخَذَ', 'Form VIII of أ خ ذ'],
+            ['اِصْطَبَرَ', 'ص ب ر — the tāʾ hardened to ط'],
+            ['اِضْطَرَبَ', 'ض ر ب'], ['اِزْدَحَمَ', 'ز ح م — the tāʾ softened to د'],
+            ['اِدَّعَى', 'د ع و']
+          ],
+          spot: ['A shaddah on a tāʾ near the front, or a ط / د sitting where a تـ should be, is almost always Form VIII hiding. Do not count the changed letter as a radical.']
+        },
+        {
+          ar: 'الحُرُوف العَامِلَة',
+          title: 'The particles that change the verb',
+          tag: 'what to look for in front',
+          rows: [
+            ['أَنْ · لَنْ · كَيْ · حَتَّى · لِـ (of purpose)', 'manṣūb — fatḥah, and the nūn of the five verbs drops'],
+            ['لَمْ · لَمَّا · لَا (of prohibition) · لِـ (of command) · إِنْ', 'majzūm — sukūn, or a weak letter drops, or the nūn drops'],
+            ['قَدْ · سَـ · سَوْفَ', 'no change to the iʿrāb, but they prove the word is a verb'],
+            ['مَا · لَيْسَ', 'negate without touching the ending']
+          ],
+          spot: ['لَمْ is the one that catches people: the verb after it is a muḍāriʿ in form but past in meaning — لَمْ يَنْصُرْ is "he did not help".']
         }
       ]
     },

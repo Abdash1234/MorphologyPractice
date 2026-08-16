@@ -166,6 +166,12 @@
     'trjm-fail': { ar: 'جَلَسَ {} بَيْنَ الرَّجُلَيْنِ.', en: 'The translator sat between the two men.' },
     'dhrj2-madi': { ar: '{} الْحَجَرُ مِنَ الْجَبَلِ.', en: 'The stone rolled down the mountain.' },
 
+    /* ---- plurals ---- */
+    'slm4-fail-fpl': { ar: 'فِي الْمَدْرَسَةِ {} كَثِيرَاتٌ.', en: 'In the school there are many Muslim women.' },
+    'alm2-fail-fpl': { ar: 'خَرَجَتِ {} مِنَ الصَّفِّ.', en: 'The female teachers came out of the classroom.' },
+    'alm-fail-pl': { ar: 'هَؤُلَاءِ {} كِبَارٌ.', en: 'These are great scholars.' },
+    'jamid-rijal': { ar: 'فِي الْمَسْجِدِ {} يُصَلُّونَ.', en: 'In the mosque there are men praying.' },
+
     /* ---- nouns without a verbal paradigm, and ḥurūf ---- */
     'jamid-rajul': { ar: 'جَاءَ {} مِنَ السُّوقِ.', en: 'A man came from the market.' },
     'jamid-bayt': { ar: 'هَذَا {} كَبِيرٌ وَجَمِيلٌ.', en: 'This is a big, beautiful house.' },

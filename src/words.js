@@ -397,6 +397,19 @@
     v({ id: 'qshr-madi', w: 'اِقْشَعَرَّ', tr: 'iqshaʿarra', en: 'it shuddered, it got goosebumps', p: 'qshr-QIV', slot: 'madi',
         tense: 'madi', person: 'ghaib' }),
 
+    /* ============ plurals: the sound feminine and the broken ============ */
+    n({ id: 'slm4-fail-fpl', w: 'مُسْلِمَاتٌ', tr: 'muslimāt', en: 'Muslim women', p: 'slm-IV', slot: 'ismFail',
+        ismType: 'ismFail', gender: 'muannath', number: 'jam',
+        note: 'The sound feminine plural ـَاتٌ. Its manṣūb and majrūr both take a kasrah — مُسْلِمَاتٍ — never a fatḥah.' }),
+    n({ id: 'alm2-fail-fpl', w: 'مُعَلِّمَاتٌ', tr: 'muʿallimāt', en: 'female teachers', p: 'alm-II', slot: 'ismFail',
+        ismType: 'ismFail', gender: 'muannath', number: 'jam' }),
+    n({ id: 'alm-fail-pl', w: 'عُلَمَاءُ', tr: 'ʿulamāʾ', en: 'scholars', p: 'alm-I', slot: 'ismFail',
+        ismType: 'ismFail', number: 'jam',
+        note: 'A broken plural of عَالِمٌ — the word is rebuilt rather than given an ending. Pattern فُعَلَاء, which is also a diptote: no tanwīn, and a fatḥah in place of the kasrah in jarr.' }),
+    n({ id: 'jamid-rijal', w: 'رِجَالٌ', tr: 'rijāl', en: 'men', p: null, root: 'ر ج ل',
+        ismType: 'jamid', number: 'jam',
+        note: 'Broken plural of رَجُلٌ, on the pattern فِعَال.' }),
+
     /* ============ nouns with no verbal paradigm ============ */
     n({ id: 'jamid-rajul', w: 'رَجُلٌ', tr: 'rajul', en: 'a man', p: null, root: 'ر ج ل',
         ismType: 'jamid', starter: true,
