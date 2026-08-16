@@ -1,0 +1,18 @@
+{
+  "name": "Ṣarf — Arabic morphology practice",
+  "short_name": "Ṣarf",
+  "description": "Take an Arabic word apart through the morphology chart: type, tense, mood, voice, root, bāb, ṣaḥīḥ or muʿtall, its place in the ṣarf ṣaghīr, and its meaning.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1216",
+  "theme_color": "#0f1216",
+  "lang": "en",
+  "categories": ["education"],
+  "icons": [
+    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

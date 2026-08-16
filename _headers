@@ -1,0 +1,24 @@
+# Cloudflare Pages headers.
+# The service worker does the caching, so the origin only needs to make sure a
+# deploy is actually picked up: never cache the worker or the shell.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+/sw.js
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/src/*
+  Cache-Control: public, max-age=600
+
+/assets/*
+  Cache-Control: public, max-age=600

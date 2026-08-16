@@ -621,3 +621,23 @@ select.input { cursor: pointer; }
 @media (max-width: 480px) {
   .cell-row { grid-template-columns: 120px 1fr; }
 }
+
+/* ---------- the "new version" prompt ---------- */
+
+.update-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-dim);
+  background: var(--bg-raised);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+}

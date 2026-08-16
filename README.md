@@ -105,20 +105,48 @@ the vocabulary starts building up.
 It is plain HTML, CSS and JavaScript — no build step, no dependencies.
 
 - **Simplest:** open `index.html` in a browser.
-- **Over a local server** (nicer on a phone on the same wifi):
+- **Over a local server** (needed for the offline/installable behaviour):
 
   ```sh
   python3 -m http.server 8000
   # then visit http://localhost:8000
   ```
 
-- **On your phone anywhere:** switch on GitHub Pages for this repo
-  (Settings → Pages → deploy from branch, root folder) and the app is a URL you
-  can add to your home screen.
-
 Progress is kept in the browser's local storage — accuracy per word and per
 question type, so the home screen can show your weakest areas and the
 "weakest words first" switch can put them in front of you sooner.
+
+## Installing it on a phone
+
+The app is a PWA: served over https (or localhost) it registers a service
+worker that caches the whole shell, so once it has been opened it runs with **no
+network at all** — home screen, every drill mode, the reference, and your
+progress. Use the browser's "Add to home screen" and it opens without browser
+chrome, like an app.
+
+When a new version is deployed you get a "new version is ready — Reload" bar
+rather than the app changing under you mid-session.
+
+## Deploying
+
+Cloudflare Pages, no build step:
+
+- **Dashboard:** Workers & Pages → Create → Pages → connect this repo. Build
+  command: *(none)*. Output directory: `/`.
+- **Or:** `npx wrangler pages deploy .`
+
+Before deploying, stamp the release and check the data:
+
+```sh
+node tools/bump-version.js   # version + precache list for the service worker
+node tools/validate.js       # the whole data check
+```
+
+`_headers` sets a strict content-security policy and keeps the origin from
+caching the shell, so deploys land immediately.
+
+Cloud sync between devices is designed but not built yet — see
+[docs/cloud-plan.md](docs/cloud-plan.md).
 
 ## Session options
 
@@ -254,4 +282,8 @@ data, so a change to the generator cannot quietly go wrong.
 | `src/engine.js` | turns a word into its question sequence, grades answers, keeps score |
 | `src/store.js` | settings and progress in local storage |
 | `src/app.js` | screens and rendering |
+| `src/pwa.js` | service worker registration and the update prompt |
+| `sw.js` | the service worker: offline caching of the whole app shell |
 | `tools/validate.js` | data integrity check |
+| `tools/bump-version.js` | stamps a release into the service worker |
+| `docs/cloud-plan.md` | the agreed design for accounts and cross-device sync |

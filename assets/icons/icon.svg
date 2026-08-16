@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ṣarf">
+  <rect width="512" height="512" rx="112" fill="#0f1216"/>
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#2f6f57" stroke-width="10"/>
+  <text x="256" y="352" text-anchor="middle" font-family="Amiri, 'Scheherazade New', 'Traditional Arabic', serif"
+        font-size="300" fill="#4bb98f">ص</text>
+</svg>
