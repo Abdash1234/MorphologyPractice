@@ -12,6 +12,8 @@ require('../src/taxonomy.js');
 require('../src/paradigms.js');
 require('../src/words.js');
 require('../src/reference.js');
+require('../src/conjugation.js');
+require('../src/sentences.js');
 require('../src/store.js');
 require('../src/engine.js');
 
@@ -121,10 +123,77 @@ MP.words.forEach((w) => {
   if (n < 5) fail(`focus mode "${focus}" only matches ${n} words`);
 });
 
+/* ---- sentences ---- */
+const wordIds = new Set(MP.words.map((w) => w.id));
+Object.keys(MP.sentences).forEach((id) => {
+  const s = MP.sentences[id];
+  if (!wordIds.has(id)) fail(`sentence for unknown word "${id}"`);
+  if (!s.ar || !s.en) fail(`sentence ${id}: missing ar/en`);
+  const gaps = s.ar.split('{}').length - 1;
+  if (gaps !== 1) fail(`sentence ${id}: expected exactly one {} gap, found ${gaps}`);
+  const withoutGap = s.ar.replace('{}', '');
+  if (/[a-zA-Z]/.test(withoutGap)) fail(`sentence ${id}: Latin letters in the Arabic`);
+  if (withoutGap.trim().length < 8) warn(`sentence ${id}: very short`);
+});
+const covered = MP.words.filter((w) => MP.sentences[w.id]).length;
+
+/* ---- conjugation tables ---- */
+const C = MP.conjugation;
+C.conjugatable().forEach((pid) => {
+  const t = C.tableFor(pid);
+  if (t.madi.length !== 14) fail(`conjugation ${pid}: māḍī has ${t.madi.length} forms, expected 14`);
+  if (t.mudari.length !== 14) fail(`conjugation ${pid}: muḍāriʿ has ${t.mudari.length} forms, expected 14`);
+  if (t.amr && t.amr.length !== 6) fail(`conjugation ${pid}: amr has ${t.amr.length} forms, expected 6`);
+  t.madi.concat(t.mudari, t.amr || []).forEach((f) => {
+    if (!f || !/^[؀-ۿ]+$/.test(f)) fail(`conjugation ${pid}: bad form "${f}"`);
+  });
+  /* the 3ms forms must match the paradigm they came from */
+  const p = MP.paradigms[pid];
+  if (E.normalizeArabic(t.madi[0]) !== E.normalizeArabic(p.madi)) {
+    fail(`conjugation ${pid}: first māḍī form does not match the paradigm`);
+  }
+  if (E.normalizeArabic(t.mudari[0]) !== E.normalizeArabic(p.mudari)) {
+    fail(`conjugation ${pid}: first muḍāriʿ form does not match the paradigm`);
+  }
+});
+
+/* ---- every mode must produce answerable questions ---- */
+['analysis', 'production', 'conjugation', 'sentences'].forEach((mode) => {
+  const settings = Object.assign({}, MP.store.DEFAULT_SETTINGS, { mode, focus: null });
+  const pool = E.poolFor(mode, 'all');
+  if (pool.length < 10) fail(`mode "${mode}" only has ${pool.length} items`);
+  pool.forEach((item) => {
+    const steps = E.buildSteps(item, settings);
+    if (!steps.length) fail(`mode "${mode}": item ${item.id} generates no question`);
+    steps.forEach((s) => {
+      if (!E.hintFor(s)) fail(`mode "${mode}": no hint for step "${s.id}"`);
+      if (s.kind === 'text' && !s.check(s.answer)) {
+        fail(`mode "${mode}": ${item.id} rejects its own answer "${s.answer}"`);
+      }
+      if (s.kind === 'cloze') {
+        if (s.choices.length !== 4) fail(`cloze ${item.id}: ${s.choices.length} choices, expected 4`);
+        if (!s.choices.some((c) => c.id === s.answer)) fail(`cloze ${item.id}: answer missing from choices`);
+        const ids = s.choices.map((c) => c.id);
+        if (new Set(ids).size !== ids.length) fail(`cloze ${item.id}: duplicate choices`);
+      }
+      if (s.kind === 'radicals') {
+        s.answer.forEach((letter) => {
+          if (s.keypad.indexOf(letter) === -1) fail(`radicals ${item.id}: "${letter}" missing from the keypad`);
+        });
+        if (s.slots.length !== s.answer.length) fail(`radicals ${item.id}: slot count does not match the root`);
+      }
+    });
+  });
+});
+
 /* ---- reference content ---- */
 MP.reference.sections.forEach((sec) => {
   if (!sec.id || !sec.name || !sec.intro) fail(`reference section ${sec.id}: missing id/name/intro`);
-  if (!sec.cards.length) fail(`reference section ${sec.id}: no cards`);
+  /* the conjugator tab builds itself from the tables, so it has no cards */
+  if (!sec.cards.length && sec.kind !== 'conjugator') fail(`reference section ${sec.id}: no cards`);
+  if (sec.kind === 'conjugator' && !MP.conjugation.conjugatable().length) {
+    fail('the conjugator tab has no verbs to show');
+  }
   sec.cards.forEach((c) => {
     if (!c.ar || !c.title || !c.tag) fail(`reference card "${c.title || c.ar}": missing ar/title/tag`);
     (c.rows || []).forEach((r) => {
@@ -166,6 +235,7 @@ MP.words.forEach((w) => {
 console.log(`words: ${MP.words.length}   paradigms: ${Object.keys(MP.paradigms).length}`);
 console.log('sub-type coverage:', subtypes);
 if (missingBaabs.length) console.log('abwāb with no example word:', missingBaabs.join(', '));
+console.log('sentences: ' + Object.keys(MP.sentences).length + ' (' + covered + ' words covered)   conjugation tables: ' + C.conjugatable().length);
 console.log('decks:', T.decks.map((d) => `${d.id}=${E.deckWords(d.id).length}`).join('  '));
 
 warnings.forEach((w) => console.log('warn: ' + w));

@@ -15,15 +15,28 @@
   let session = null;
   let answered = false; // has the current step been answered?
 
+  /* the four ways to practise */
+  const MODES = [
+    { id: 'analysis', name: 'Full analysis', desc: 'Walk a word down the chart, question by question.' },
+    { id: 'production', name: 'Build the form', desc: 'Given a root and a cell, produce the word yourself.' },
+    { id: 'conjugation', name: 'Conjugation', desc: 'Ṣarf kabīr: conjugate a verb for any of the fourteen persons.' },
+    { id: 'sentences', name: 'Sentences', desc: 'Fill the missing word into a real sentence, then translate it.' }
+  ];
+
+  const currentMode = () => settings.mode || 'analysis';
+
   /* single-question drills */
   const FOCUS_MODES = [
-    { id: null, name: 'Full analysis' },
+    { id: null, name: 'Everything' },
     { id: 'baab', name: 'Bāb / form' },
     { id: 'voice', name: 'Active / passive' },
     { id: 'subtype', name: 'Ṣaḥīḥ / muʿtall type' },
+    { id: 'radicals', name: 'Radicals' },
     { id: 'ismType', name: 'Kind of noun' },
     { id: 'sarf', name: 'Ṣarf ṣaghīr' },
     { id: 'root', name: 'Root' },
+    { id: 'baseMadi', name: 'Back to the māḍī' },
+    { id: 'context', name: 'Sentence gap' },
     { id: 'translation', name: 'Translation' }
   ];
 
@@ -71,6 +84,23 @@
     wrap.appendChild(el('header', { class: 'hero' }, [
       el('h1', { class: 'title' }, [ar('الصَّرْف'), el('span', { class: 'title-en', text: 'Morphology practice' })]),
       el('p', { class: 'lede', text: 'A word appears. You take it through the chart — type, tense, mood, voice, person, gender, number, then its root, bāb, ṣaḥīḥ or muʿtall, its place in the ṣarf ṣaghīr, and finally the meaning.' })
+    ]));
+
+    /* practice mode */
+    const modeGrid = el('div', { class: 'deck-grid' });
+    MODES.forEach((m) => {
+      const count = E.poolFor(m.id, settings.deckId).length;
+      modeGrid.appendChild(el('button', {
+        class: 'deck' + (currentMode() === m.id ? ' selected' : ''), type: 'button',
+        onclick: () => { settings.mode = m.id; MP.store.saveSettings(settings); renderHome(); }
+      }, [
+        el('span', { class: 'deck-name', text: m.name }),
+        el('span', { class: 'deck-desc', text: m.desc }),
+        el('span', { class: 'deck-count', text: count + ' to draw from' })
+      ]));
+    });
+    wrap.appendChild(el('section', { class: 'panel' }, [
+      el('h2', { class: 'panel-title', text: 'Practice mode' }), modeGrid
     ]));
 
     /* deck picker */
@@ -152,13 +182,17 @@
       }));
     });
 
-    wrap.appendChild(el('section', { class: 'panel' }, [
-      el('h2', { class: 'panel-title', text: 'Session' }), lenRow, toggles,
-      el('h2', { class: 'panel-title', text: 'Drill one thing only' }),
-      el('p', { class: 'muted small', text: 'Fast reps on a single question, across many words. Everything else is skipped.' }),
-      focusRow,
-      el('h2', { class: 'panel-title', text: 'What to ask' + (settings.focus ? ' (ignored while drilling one thing)' : '') }), groupRow
-    ]));
+    const sessionPanel = [el('h2', { class: 'panel-title', text: 'Session' }), lenRow, toggles];
+    if (currentMode() === 'analysis') {
+      sessionPanel.push(
+        el('h2', { class: 'panel-title', text: 'Drill one thing only' }),
+        el('p', { class: 'muted small', text: 'Fast reps on a single question, across many words. Everything else is skipped.' }),
+        focusRow,
+        el('h2', { class: 'panel-title', text: 'What to ask' + (settings.focus ? ' (ignored while drilling one thing)' : '') }),
+        groupRow
+      );
+    }
+    wrap.appendChild(el('section', { class: 'panel' }, sessionPanel));
 
     wrap.appendChild(el('div', { class: 'cta-row' }, [
       el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: startSession }),
@@ -267,11 +301,16 @@
     const pct = Math.round((doneSteps / session.steps.length) * 100);
     wrap.appendChild(el('div', { class: 'progress' }, [el('div', { class: 'progress-fill', style: 'width:' + pct + '%' })]));
 
-    /* the word */
-    wrap.appendChild(el('div', { class: 'word-card' }, [
-      ar(display(word), 'word'),
-      el('div', { class: 'answered-so-far' }, answeredChips())
-    ]));
+    /* the word — but in the sentence drill the word IS the answer, so the
+       sentence itself takes the place of the card */
+    const hideWord = session.mode === 'sentences';
+    if (!hideWord) {
+      wrap.appendChild(el('div', { class: 'word-card' }, [
+        ar(display(word), 'word'),
+        word.sub ? el('div', { class: 'card-sub' }, [arabicAware(word.sub)]) : el('span', {}),
+        el('div', { class: 'answered-so-far' }, answeredChips())
+      ]));
+    }
 
     /* the question, with its ? help */
     const hint = E.hintFor(step);
@@ -292,6 +331,8 @@
     else if (step.kind === 'text') wrap.appendChild(renderText(step));
     else if (step.kind === 'sarf') wrap.appendChild(renderSarf(step, word));
     else if (step.kind === 'translate') wrap.appendChild(renderTranslate(step, word));
+    else if (step.kind === 'radicals') wrap.appendChild(renderRadicals(step));
+    else if (step.kind === 'cloze') wrap.appendChild(renderCloze(step));
 
     wrap.appendChild(el('div', { class: 'feedback', id: 'feedback' }));
     wrap.appendChild(el('div', { class: 'next-row', id: 'next-row' }));
@@ -380,7 +421,13 @@
       input.disabled = true;
       submit.disabled = true;
       input.classList.add(correct ? 'correct' : 'wrong');
-      showFeedback(correct, step.answer, correct ? '' : 'Say the three letters of the māḍī with no additions and no vowels.');
+      const miss = {
+        root: 'Say the letters of the māḍī with no additions and no vowels.',
+        baseMadi: 'Strip the tense letter and the ending, keep the letters of the bāb.',
+        production: 'Recite the ṣarf ṣaghīr of this bāb and stop at the cell you were asked for.',
+        conjugation: 'Watch the stem: if the ending begins with a sukūn, a weak or doubled verb changes shape.'
+      }[step.id];
+      showFeedback(correct, step.answer, correct ? '' : miss || '');
     }
     submit.addEventListener('click', grade);
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') grade(); });
@@ -398,6 +445,123 @@
         }
       })
     ]);
+    return box;
+  }
+
+  /* ---- pick the radicals out of the word, one slot at a time ---- */
+  function renderRadicals(step) {
+    const chosen = new Array(step.slots.length).fill(null);
+    let cursor = 0;
+
+    const box = el('div', { class: 'radicals' });
+    const slotRow = el('div', { class: 'radical-slots', dir: 'rtl' });
+    const keypad = el('div', { class: 'keypad', dir: 'rtl' });
+    const submit = el('button', { class: 'btn primary', type: 'button', text: 'Check', disabled: 'disabled' });
+
+    function paint() {
+      slotRow.innerHTML = '';
+      step.slots.forEach((slot, i) => {
+        const filled = chosen[i];
+        slotRow.appendChild(el('button', {
+          class: 'radical-slot' + (filled ? ' filled' : '') + (i === cursor ? ' active' : ''),
+          type: 'button',
+          onclick: () => { if (!answered) { cursor = i; chosen[i] = null; paint(); } }
+        }, [
+          el('span', { class: 'radical-letter ar', dir: 'rtl', text: filled || '؟' }),
+          el('span', { class: 'radical-name ar', dir: 'rtl', text: slot.ar })
+        ]));
+      });
+      submit.disabled = chosen.some((c) => !c);
+    }
+
+    step.keypad.forEach((letter) => {
+      keypad.appendChild(el('button', {
+        class: 'key ar', type: 'button', dir: 'rtl', text: letter,
+        onclick: () => {
+          if (answered) return;
+          const slot = chosen.indexOf(null);
+          const target = chosen[cursor] === null ? cursor : slot;
+          if (target === -1) return;
+          chosen[target] = letter;
+          cursor = chosen.indexOf(null) === -1 ? target : chosen.indexOf(null);
+          paint();
+        }
+      }));
+    });
+
+    function grade() {
+      if (answered) return;
+      answered = true;
+      const correct = chosen.every((c, i) => c === step.answer[i]);
+      E.recordAnswer(session, correct);
+      Array.prototype.forEach.call(keypad.querySelectorAll('.key'), (k) => (k.disabled = true));
+      submit.disabled = true;
+      Array.prototype.forEach.call(slotRow.querySelectorAll('.radical-slot'), (s, i) => {
+        s.classList.add(chosen[i] === step.answer[i] ? 'correct' : 'wrong');
+      });
+      showFeedback(correct, step.answer.join(' '), 'The radicals are what is left once every added letter is stripped away.');
+    }
+    submit.addEventListener('click', grade);
+
+    paint();
+    box.appendChild(slotRow);
+    box.appendChild(el('p', { class: 'muted small', text: 'Tap the letters in order. A weak radical may not be visible in the word — put it back.' }));
+    box.appendChild(keypad);
+    box.appendChild(el('div', { class: 'input-row' }, [
+      submit,
+      el('button', {
+        class: 'btn ghost small', type: 'button', text: "I don't know",
+        onclick: () => {
+          if (answered) return;
+          answered = true;
+          E.recordAnswer(session, false);
+          Array.prototype.forEach.call(keypad.querySelectorAll('.key'), (k) => (k.disabled = true));
+          submit.disabled = true;
+          showFeedback(false, step.answer.join(' '), '');
+        }
+      })
+    ]));
+    return box;
+  }
+
+  /* ---- fill the word into a real sentence ---- */
+  function renderCloze(step) {
+    const box = el('div', { class: 'cloze' });
+    const parts = step.sentence.ar.split('{}');
+
+    const line = el('div', { class: 'cloze-sentence ar', dir: 'rtl', lang: 'ar' });
+    line.appendChild(document.createTextNode(parts[0] || ''));
+    const gap = el('span', { class: 'cloze-gap', text: '؟؟؟' });
+    line.appendChild(gap);
+    line.appendChild(document.createTextNode(parts[1] || ''));
+
+    box.appendChild(line);
+    box.appendChild(el('p', { class: 'cloze-en', text: step.sentence.en }));
+
+    const opts = el('div', { class: 'options' });
+    step.choices.forEach((choice) => {
+      const btn = el('button', {
+        class: 'option', type: 'button', 'data-id': choice.id,
+        onclick: () => {
+          if (answered) return;
+          answered = true;
+          const correct = choice.id === step.answer;
+          E.recordAnswer(session, correct);
+          Array.prototype.forEach.call(opts.querySelectorAll('.option'), (b) => {
+            b.disabled = true;
+            if (b.getAttribute('data-id') === step.answer) b.classList.add('correct');
+          });
+          if (!correct) btn.classList.add('wrong');
+          /* drop the right word into the gap */
+          const answerWord = step.choices.find((c) => c.id === step.answer);
+          gap.textContent = answerWord.w;
+          gap.classList.add('filled');
+          showFeedback(correct, answerWord.w + ' — ' + answerWord.en, step.sentence.en);
+        }
+      }, [ar(choice.w, 'option-ar'), el('span', { class: 'option-en' }, [el('span', { class: 'option-en-main', text: choice.en })])]);
+      opts.appendChild(btn);
+    });
+    box.appendChild(opts);
     return box;
   }
 
@@ -494,7 +658,16 @@
       fb.innerHTML = '';
       fb.appendChild(el('div', { class: 'fb-title', text: guessLooksRight ? 'That looks right — check it against the meaning:' : 'The meaning is:' }));
       fb.appendChild(el('div', { class: 'fb-answer', text: step.answer }));
-      if (word.note) fb.appendChild(el('div', { class: 'fb-hint', text: word.note }));
+      if (word.note) fb.appendChild(el('div', { class: 'fb-hint' }, [arabicAware(word.note)]));
+      /* leave them with the word doing a job in a real sentence */
+      const sentence = MP.sentences && MP.sentences[word.id];
+      if (sentence && step.id === 'translation') {
+        fb.appendChild(el('div', { class: 'fb-sentence' }, [
+          el('div', { class: 'muted small', text: 'Seen in use:' }),
+          ar(sentence.ar.replace('{}', word.w), 'fb-sentence-ar'),
+          el('div', { class: 'muted small', text: sentence.en })
+        ]));
+      }
       fb.appendChild(el('div', { class: 'self-mark' }, [
         el('button', { class: 'btn ok', type: 'button', text: 'I knew it', onclick: () => { E.recordAnswer(session, true); showNext(); } }),
         el('button', { class: 'btn bad', type: 'button', text: 'I did not', onclick: () => { E.recordAnswer(session, false); showNext(); } })
@@ -669,6 +842,15 @@
     const body = el('div', { class: 'ref-body' });
     body.appendChild(el('p', { class: 'ref-intro' }, [arabicAware(section.intro)]));
 
+    if (section.kind === 'conjugator') {
+      body.appendChild(renderConjugator());
+      overlay.appendChild(head);
+      overlay.appendChild(tabs);
+      overlay.appendChild(body);
+      overlay.scrollTop = 0;
+      return;
+    }
+
     section.cards.forEach((c) => {
       const card = el('div', { class: 'ref-card' });
       card.appendChild(el('div', { class: 'ref-card-head' }, [
@@ -724,6 +906,58 @@
     overlay.scrollTop = 0;
   }
 
+  /* ---- the conjugation table viewer inside the reference ---- */
+  let conjVerb = 'nsr-I';
+
+  function renderConjugator() {
+    const box = el('div', { class: 'conjugator' });
+    const ids = MP.conjugation.conjugatable();
+
+    const picker = el('div', { class: 'chip-row conj-picker' });
+    ids.forEach((id) => {
+      const p = MP.paradigms[id];
+      picker.appendChild(el('button', {
+        class: 'chip' + (id === conjVerb ? ' on' : ''), type: 'button',
+        onclick: () => { conjVerb = id; renderReference(); }
+      }, [ar(p.madi), el('span', { class: 'conj-pick-en', text: ' ' + p.meaning })]));
+    });
+    box.appendChild(picker);
+
+    const table = MP.conjugation.tableFor(conjVerb);
+    const p = MP.paradigms[conjVerb];
+    box.appendChild(el('div', { class: 'ref-card-head' }, [
+      ar(p.madi + ' ' + p.mudari, 'ref-card-ar'),
+      el('span', { class: 'ref-card-titles' }, [
+        el('span', { class: 'ref-card-title', text: p.meaning }),
+        el('span', { class: 'ref-card-tag', text: p.root + ' · ' + T.label(E.baabGroupId(p), p.baabId) })
+      ])
+    ]));
+    if (table.note) box.appendChild(el('p', { class: 'muted small' }, [arabicAware(table.note)]));
+
+    const grid = el('div', { class: 'conj-grid' });
+    [
+      { key: 'madi', name: 'Māḍī — الماضي', pronouns: MP.conjugation.PRONOUNS },
+      { key: 'mudari', name: 'Muḍāriʿ — المضارع', pronouns: MP.conjugation.PRONOUNS },
+      { key: 'amr', name: 'Amr — الأمر', pronouns: MP.conjugation.AMR_PRONOUNS }
+    ].forEach((col) => {
+      const forms = table[col.key];
+      if (!forms) return;
+      const colBox = el('div', { class: 'conj-col' }, [el('h4', { class: 'ref-sub', text: col.name })]);
+      forms.forEach((form, i) => {
+        colBox.appendChild(el('div', { class: 'conj-row' }, [
+          ar(col.pronouns[i].ar, 'conj-pronoun'),
+          ar(form, 'conj-form')
+        ]));
+      });
+      grid.appendChild(colBox);
+    });
+    box.appendChild(grid);
+    box.appendChild(el('p', { class: 'muted small', text: table.source === 'authored'
+      ? 'This table is written out by hand — the stem of this verb changes as it conjugates.'
+      : 'Built from the māḍī and muḍāriʿ: this verb keeps its stem throughout.' }));
+    return box;
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && $('#reference')) closeReference();
   });
@@ -755,11 +989,11 @@
     if (missed.length) {
       const list = el('div', { class: 'missed-list' });
       missed.forEach((id) => {
-        const w = MP.words.find((x) => x.id === id);
+        const w = session.words.find((x) => x.id === id) || MP.words.find((x) => x.id === id);
         if (!w) return;
         list.appendChild(el('div', { class: 'missed' }, [
           ar(w.w, 'missed-ar'),
-          el('span', { class: 'missed-en', text: w.en })
+          el('span', { class: 'missed-en', text: w.en || w.sub || '' })
         ]));
       });
       wrap.appendChild(el('section', { class: 'panel' }, [

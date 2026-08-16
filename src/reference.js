@@ -211,6 +211,59 @@
       ]
     },
 
+    radicals: {
+      title: 'Picking the radicals out',
+      bullets: [
+        'Cross off the servants first: prefixes يـ تـ نـ أ, endings ـُونَ ـِينَ ـْتُ ـُوا, and any added letter from سَأَلْتُمُونِيهَا.',
+        'What is left, in order, is the fāʾ, the ʿayn and the lām — the first, second and third radicals.',
+        'A weak radical can be missing from the word in front of you: يَعِدُ shows only ع and د, but the fāʾ is a و (وَعَدَ). Put it back.',
+        'A long alif in the middle is never a radical by itself — it stands for a و or a ي: قَالَ is ق و ل, بَاعَ is ب ي ع. The muḍāriʿ shows you which.',
+        'A shaddah is two letters: مَدَّ is م د د, so the ʿayn and the lām are both د.',
+        'A final ا or ى stands for a weak lām: دَعَا is د ع و, رَمَى is ر م ي.'
+      ]
+    },
+
+    baseMadi: {
+      title: 'Getting back to the māḍī',
+      bullets: [
+        'Strip the tense letter and the ending, then put the word into the plain past for هُوَ — يَنْصُرُونَ goes back to نَصَرَ.',
+        'Keep the added letters of the bāb: يَسْتَغْفِرُ goes back to اِسْتَغْفَرَ, not to غَفَرَ.',
+        'A weak letter that dropped out comes back: يَعِدُ → وَعَدَ, قُلْ → قَالَ.',
+        'This is the form every table is built from, so it is the one worth being fastest at.'
+      ]
+    },
+
+    production: {
+      title: 'Building the form yourself',
+      bullets: [
+        'Say the ṣarf ṣaghīr of the bāb in your head and stop at the cell you are asked for.',
+        'From thulāthī mujarrad: fāʿil is فَاعِل, mafʿūl is مَفْعُول, the ẓarf is مَفْعَل or مَفْعِل, the tool is مِفْعَل / مِفْعَال.',
+        'From any mazīd bāb: take the muḍāriʿ, put مُـ in place of the tense letter — kasrah before the last letter for the doer, fatḥah for the one done to.',
+        'Passives: ḍammah on the first letter, kasrah before the last in the māḍī; ḍammah on the tense letter, fatḥah before the last in the muḍāriʿ.',
+        'Ḥarakāt are not compulsory here — the answer is checked on the letters — but say them anyway.'
+      ]
+    },
+
+    conjugation: {
+      title: 'Running through the fourteen',
+      bullets: [
+        'Māḍī endings: ـَا dual, ـُوا masc. plural, ـَتْ she, ـْنَ fem. plural, ـْتَ ـْتِ ـْتُمْ for you, ـْتُ for I, ـْنَا for we.',
+        'Muḍāriʿ: يـ he/they, تـ she and all of "you", أ for I, نـ for we — plus ـَانِ dual, ـُونَ masc. plural, ـِينَ you (f.), ـْنَ fem. plural.',
+        'Weak verbs shift their stem: قَالَ but قُلْتُ, رَمَى but رَمَوْا, مَدَّ but مَدَدْتُ. If the ending starts with a sukūn, expect the stem to change.',
+        'The amr only has six forms, all 2nd person.'
+      ]
+    },
+
+    context: {
+      title: 'Reading the gap',
+      bullets: [
+        'Read the whole sentence first and decide what is missing: a doer, an action, a description, a particle.',
+        'Look at what follows the gap. A word in the accusative after it usually means the gap is a verb with an object.',
+        'Check agreement: a plural subject wants a plural verb ending, a feminine subject wants تـ or ـَتْ.',
+        'Then check the meaning of the English translation underneath — the two together only allow one answer.'
+      ]
+    },
+
     root: {
       title: 'Finding the root',
       bullets: [
@@ -784,6 +837,15 @@
           spot: ['Take the majzūm muḍāriʿ, drop the تـ, and add a hamzat waṣl at the front if what remains starts with a sukūn: تَنْصُرْ → اُنْصُرْ.', 'The hamzah takes a ḍammah when the muḍāriʿ has a ḍammah (اُنْصُرْ) and a kasrah otherwise (اِضْرِبْ، اِفْتَحْ).', 'A prohibition is different: لَا + majzūm muḍāriʿ — لَا تَنْصُرْ.']
         }
       ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'tables',
+      name: 'Conjugate any verb',
+      kind: 'conjugator',
+      intro: 'Pick a verb and read its full ṣarf kabīr — all fourteen persons of the māḍī and the muḍāriʿ, and the six of the amr. The weak and doubled verbs are written out in full, so you can see exactly where the stem shifts.',
+      cards: []
     },
 
     /* ------------------------------------------------------------- */

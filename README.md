@@ -3,6 +3,21 @@
 A drill app for taking an Arabic word apart the way the Morphology Word Analysis
 Chart does it, one question at a time, ending with the meaning.
 
+## Four ways to practise
+
+| Mode | What it asks |
+| --- | --- |
+| **Full analysis** | Walk a word down the chart, question by question (below). |
+| **Build the form** | Given a root and a cell — "build the ism al-mafʿūl of ك ت ب" — you type the word yourself. |
+| **Conjugation** | Ṣarf kabīr: "put قَالَ into the māḍī for أَنْتُنَّ" — you type the whole form. |
+| **Sentences** | A real sentence with the word cut out; pick what fills the gap, then translate the sentence. |
+
+Nothing is multiple-choice-only: the production, conjugation, root and māḍī
+questions are all typed from memory, and the analysis walk ends with the word
+placed in a sentence.
+
+## The analysis walk
+
 A word appears. You answer, step by step:
 
 1. **Ism, fiʿl or ḥarf?**
@@ -12,17 +27,26 @@ A word appears. You answer, step by step:
    **Nouns** — which kind: maṣdar, ism al-fāʿil, ism al-mafʿūl, ṣifah
    mushabbahah, ism al-tafḍīl, ism al-ẓarf, ism al-ālah, or jāmid — then gender
    and number.
-3. **Thulāthī or rubāʿī?**
-4. **Mujarrad or mazīd fīh** — and then *which* bāb: one of the six
+3. **Pick out the radicals** — tap the fāʾ, the ʿayn and the lām onto their
+   slots from a letter keypad. The keypad carries و ي ء as well as the letters
+   you can see, because a weak radical is often missing from the word in front
+   of you: يَعِدُ shows only ع and د, and you have to put the و back.
+4. **Thulāthī or rubāʿī?**
+5. **Mujarrad or mazīd fīh** — and then *which* bāb: one of the six
    (naṣara, ḍaraba, fataḥa, ʿalima, karuma, ḥasiba), or Forms II–X, or the
    rubāʿī patterns.
-5. **Ṣaḥīḥ or muʿtall** — and the sub-category: sālim, muḍāʿaf, mahmūz (with the
+6. **Ṣaḥīḥ or muʿtall** — and the sub-category: sālim, muḍāʿaf, mahmūz (with the
    position of the hamzah), or mithāl, ajwaf, nāqiṣ, lafīf mafrūq, lafīf maqrūn.
-6. **The root** — typed in.
-7. **The ṣarf ṣaghīr** — the whole eleven-cell table is shown for that root with
+7. **The root** — typed in.
+8. **Back to the māḍī** — type the bare هُوَ form the word was built from
+   (يَسْتَغْفِرُونَ → اِسْتَغْفَرَ).
+9. **The ṣarf ṣaghīr** — the whole eleven-cell table is shown for that root with
    **the word's own cell left blank**, and you say which cell it is. Answer, and
    the blank fills in.
-8. **The translation** — typed from memory, then revealed and self-marked.
+10. **The translation** — typed from memory, then revealed and self-marked, with
+    the word shown doing a job in a real sentence.
+11. **The sentence** — the same sentence comes back with the word cut out, and
+    you put it back.
 
 Every answer is graded immediately with a one-line explanation, and the chips
 under the word keep a running summary of the analysis so far.
@@ -39,7 +63,7 @@ matching page of the reference.
 ## The reference
 
 A **📖 Reference** button on the home screen and in the top bar of every
-question, opening over the drill without losing your place. Seven tabs:
+question, opening over the drill without losing your place. Eight tabs:
 
 - **The six gates** — each bāb with its vowel pattern, how to recognise it, what
   kind of verbs live there, and example verbs.
@@ -55,14 +79,18 @@ question, opening over the drill without losing your place. Seven tabs:
 - **Ṣaḥīḥ & muʿtall** — every category with what actually changes in the verb.
 - **The 14 forms** — ṣarf kabīr: the full person/gender/number endings for the
   māḍī, muḍāriʿ and amr on the فَعَلَ pattern.
+- **Conjugate any verb** — pick any of 37 verbs and read its complete table:
+  fourteen māḍī, fourteen muḍāriʿ, six amr. Regular verbs are built from their
+  two principal parts; قَالَ، بَاعَ، رَمَى، دَعَا، نَسِيَ and مَدَّ are written out by
+  hand so you can see exactly where the stem shifts.
 - **Quick spotting guide** — the tells worth memorising, gathered on one page.
 
 ## Drilling one thing at a time
 
 "Drill one thing only" on the home screen turns a session into fast reps of a
 single question across many words: bāb identification, active/passive,
-ṣaḥīḥ/muʿtall category, kind of noun, ṣarf ṣaghīr placement, root, or
-translation. Twenty words, one question each.
+ṣaḥīḥ/muʿtall category, radicals, kind of noun, ṣarf ṣaghīr placement, root,
+back-to-the-māḍī, sentence gap, or translation. Twenty words, one question each.
 
 ## Spaced repetition
 
@@ -108,13 +136,19 @@ Keyboard: `1`–`9` pick an option, `Enter` moves on.
 
 ## What's in the bank
 
-163 words over 44 ṣarf ṣaghīr tables, covering all six abwāb of thulāthī
-mujarrad, Forms II–X, rubāʿī mujarrad and mazīd, muḍāʿaf, all three positions of
-mahmūz, and every muʿtall category including both lafīfs.
+- **163 words** over **44 ṣarf ṣaghīr tables**, covering all six abwāb of
+  thulāthī mujarrad, Forms II–X, rubāʿī mujarrad and mazīd, muḍāʿaf, all three
+  positions of mahmūz, and every muʿtall category including both lafīfs.
+- **141 sentences**, one per word, used for the gap-fill drill and shown after
+  the translation.
+- **37 full conjugation tables** (34 forms each) behind the conjugation drill
+  and the reference.
+- **393 production questions** — every usable cell of every ṣarf ṣaghīr — and
+  **1,258 conjugation questions** across the tables.
 
 ## Adding your own words
 
-Vocabulary lives in two files.
+Vocabulary lives in three files.
 
 **`src/paradigms.js`** — one entry per root + bāb, holding the eleven cells of
 its ṣarf ṣaghīr. Use `'—'` for a cell the verb does not have (an intransitive
@@ -148,6 +182,18 @@ you only state what differs; `n()` does the same for nouns. Use
 `gender: 'any'` for 1st-person forms, which do not show gender — the app then
 skips that question. An optional `note:` is shown with the answer.
 
+**`src/sentences.js`** — one sentence per word id, with `{}` marking where the
+word itself sits, so the drill can cut it out and put it back:
+
+```js
+'ktb-madi-3ms': { ar: '{} الطَّالِبُ الدَّرْسَ فِي دَفْتَرِهِ.',
+                  en: 'The student wrote the lesson in his notebook.' },
+```
+
+Verbs whose stem never changes get their conjugation table generated
+automatically; if you add a weak or doubled verb you want to drill, write its
+table into the `authored` block of `src/conjugation.js`.
+
 Check your additions with:
 
 ```sh
@@ -157,8 +203,10 @@ node tools/validate.js
 It verifies that every word points at a real paradigm and a real cell, that no
 word claims a cell marked `'—'`, that every question it generates has an answer
 inside its option list, that root letter counts match thulāthī/rubāʿī, that
-every question has a **?** hint behind it, and that each focus mode still has
-enough words to drill.
+every question has a **?** hint behind it, that each focus mode still has
+enough words to drill, that every sentence has exactly one gap, that every
+conjugation table has 14/14/6 forms agreeing with its paradigm, and that every
+question in every mode accepts its own answer.
 
 ## Files
 
@@ -166,6 +214,8 @@ enough words to drill.
 | --- | --- |
 | `src/taxonomy.js` | the chart itself — every category, its Arabic term, English, and a one-line explanation |
 | `src/reference.js` | the "?" hints and the browsable reference (gates, forms, patterns, spotting guide) |
+| `src/conjugation.js` | the ṣarf kabīr: generated tables for regular verbs, hand-written ones for the rest |
+| `src/sentences.js` | one sentence per word, for the gap-fill drill |
 | `src/paradigms.js` | the ṣarf ṣaghīr tables and the structural facts of each root |
 | `src/words.js` | the word bank |
 | `src/engine.js` | turns a word into its question sequence, grades answers, keeps score |
