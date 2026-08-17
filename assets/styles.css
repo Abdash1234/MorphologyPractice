@@ -396,7 +396,52 @@ body.locked { overflow: hidden; }
   margin-right: auto;
 }
 .ref-title { margin: 0; font-size: 20px; }
-.ref-tabs { display: flex; flex-wrap: wrap; gap: 7px; max-width: 760px; margin: 10px auto; }
+/* the section menu, banded by subject */
+.ref-tabs {
+  display: grid;
+  gap: 2px;
+  max-width: 760px;
+  margin: 10px auto 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--line);
+}
+.ref-band {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 14px;
+  background: var(--bg-raised);
+}
+/* the band holding the open page is marked, so you can see where you are
+   without reading every chip */
+.ref-band.active { background: color-mix(in srgb, var(--accent) 7%, var(--bg-raised)); }
+.ref-band.active .ref-band-label { color: var(--accent); }
+.ref-band-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  text-align: right;
+}
+.ref-band-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* On a phone the label keeps its own column rather than stacking above the
+   chips — a stacked label costs a whole line per band, and five of those ate
+   half the screen before any content appeared. */
+@media (max-width: 560px) {
+  .ref-band {
+    grid-template-columns: 68px 1fr;
+    gap: 9px;
+    padding: 7px 10px;
+    align-items: start;
+  }
+  .ref-band-label { font-size: 9.5px; letter-spacing: 0.05em; line-height: 1.35; padding-top: 6px; }
+  .ref-band-row { gap: 5px; }
+  .ref-band-row .chip { padding: 5px 9px; font-size: 12.5px; }
+}
 .ref-body { max-width: 760px; margin: 0 auto; }
 .ref-intro { color: var(--muted); margin: 4px 0 16px; line-height: 1.7; }
 

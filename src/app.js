@@ -1681,12 +1681,34 @@
        they redrew the overlay unconditionally, so in Learn the picker was dead. */
     const again = redraw || (() => onSelect(sectionId));
 
+    /*
+     * Twelve sections in one flat row had stopped reading as a menu and
+     * started reading as a wall. They are banded by subject now — the verb,
+     * the weak ones, nouns and particles, the full tables, quick reference —
+     * so finding a page is a matter of looking in the right band rather than
+     * scanning the lot. The picker inside a section is unchanged.
+     */
     const tabs = el('div', { class: 'ref-tabs' });
-    MP.reference.sections.forEach((s) => {
-      tabs.appendChild(el('button', {
-        class: 'chip' + (s.id === section.id ? ' on' : ''), type: 'button', text: s.name,
-        onclick: () => onSelect(s.id)
-      }));
+    const order = MP.reference.groupOrder || [];
+    const bands = order.concat(['More']);
+
+    bands.forEach((band) => {
+      const inBand = MP.reference.sections.filter((s) => {
+        const g = s.group && order.indexOf(s.group) !== -1 ? s.group : 'More';
+        return g === band;
+      });
+      if (!inBand.length) return;
+
+      const row = el('div', { class: 'ref-band-row' });
+      inBand.forEach((s) => {
+        row.appendChild(el('button', {
+          class: 'chip' + (s.id === section.id ? ' on' : ''), type: 'button', text: s.name,
+          onclick: () => onSelect(s.id)
+        }));
+      });
+      tabs.appendChild(el('div', {
+        class: 'ref-band' + (inBand.some((s) => s.id === section.id) ? ' active' : '')
+      }, [el('span', { class: 'ref-band-label', text: band }), row]));
     });
     box.appendChild(tabs);
 

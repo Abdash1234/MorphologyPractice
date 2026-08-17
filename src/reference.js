@@ -344,6 +344,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'tricks',
+      group: 'Quick reference',
       name: 'Tips & tricks',
       intro: 'The give-aways, gathered in one place. Most of identifying a word is recognising a handful of sounds and shapes: say the ending out loud, look at the front of the word, and read two vowels. Learn this page and the questions start answering themselves.',
       cards: [
@@ -579,6 +580,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'gates',
+      group: 'The verb',
       name: 'The six gates',
       /* six long cards: one page each, rather than one page you scroll */
       subpages: true,
@@ -674,6 +676,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'forms',
+      group: 'The verb',
       name: 'Forms II–X',
       /* nine long cards: one page each */
       subpages: true,
@@ -881,6 +884,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'rubai',
+      group: 'The verb',
       name: 'Rubāʿī',
       intro: 'Verbs with four root letters. One bare pattern, three augmented ones.',
       cards: [
@@ -930,6 +934,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'nouns',
+      group: 'Nouns & particles',
       name: 'Noun patterns',
       intro: 'The derived nouns on the second page of the chart. Each has a shape you can recognise on sight.',
       cards: [
@@ -1006,6 +1011,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'weak',
+      group: 'Weak & irregular',
       name: 'Ṣaḥīḥ & muʿtall',
       intro: 'How the root letters behave. Sound roots keep their shape; weak roots (containing و or ي) shift, drop letters and merge — knowing which category you are in tells you what to expect.',
       cards: [
@@ -1078,6 +1084,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'sighah',
+      group: 'The verb',
       name: 'The 14 forms',
       intro: 'Ṣarf kabīr: every verb runs through fourteen persons. Learn the endings once on فَعَلَ and you can read them on any verb. The pronoun is written beside each one.',
       cards: [
@@ -1123,6 +1130,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'ilal',
+      group: 'Weak & irregular',
       name: 'Weak letter rules',
       subpages: true,
       intro: 'The other page tells you which category a weak verb belongs to. This one tells you what actually happens to the letter — because قَوَلَ is never said, it comes out قَالَ, and يَقْوُلُ comes out يَقُولُ. There are only three things a weak letter ever does: it turns into something else, it hands its vowel back, or it drops. Learn those three and the whole muʿtall system stops being a list to memorise.',
@@ -1287,6 +1295,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'particles',
+      group: 'Nouns & particles',
       name: 'Particles',
       subpages: true,
       intro: 'A ḥarf has no root and no pattern, so there is nothing in it to take apart. What you learn is its ʿamal — what it does to the word after it. Sorted that way here, with the meaning of each beside it.',
@@ -1428,6 +1437,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'forms-tables',
+      group: 'Full tables',
       name: 'Form tables',
       kind: 'formtables',
       intro: 'A page for every bāb: the whole thing it produces, with each line labelled for what it is. The left column is the bare pattern on فعل, the right is a real verb in the same shape — read across and you see the rule and the example at once.',
@@ -1437,6 +1447,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'tables',
+      group: 'Full tables',
       name: 'Conjugate any verb',
       kind: 'conjugator',
       intro: 'Pick a verb and read its full ṣarf kabīr — all fourteen persons of the māḍī and the muḍāriʿ, and the six of the amr. The weak and doubled verbs are written out in full, so you can see exactly where the stem shifts.',
@@ -1446,6 +1457,7 @@
     /* ------------------------------------------------------------- */
     {
       id: 'spotting',
+      group: 'Quick reference',
       name: 'Quick spotting guide',
       intro: 'The tells worth committing to memory, gathered in one place.',
       cards: [
@@ -1509,5 +1521,12 @@
   ];
 
   MP.hints = hints;
-  MP.reference = { sections: sections };
+  /*
+   * The order the groups are shown in, and the only place that order lives.
+   * A section with no group, or a group not named here, falls in at the end
+   * under "More" rather than disappearing.
+   */
+  const groupOrder = ['The verb', 'Weak & irregular', 'Nouns & particles', 'Full tables', 'Quick reference'];
+
+  MP.reference = { sections: sections, groupOrder: groupOrder };
 })(typeof window !== 'undefined' ? window : globalThis);
