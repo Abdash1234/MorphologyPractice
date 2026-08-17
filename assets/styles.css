@@ -674,6 +674,27 @@ body.locked { overflow: hidden; }
   .sarf-input { min-width: 110px; width: 5.5em; }
 }
 
+/* ---------- drill: the page with nothing on it ---------- */
+
+.drill-hero { margin: 18px 0 22px; text-align: center; }
+.drill-hero .title { justify-content: center; }
+.drill-hero .lede { max-width: 46ch; margin-inline: auto; }
+
+.drill-panel { text-align: center; padding: 22px 18px; }
+.drill-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.drill-lengths { justify-content: center; gap: 9px; }
+/* the one thing on the page worth pressing, so it is big enough to press */
+.big-chip { padding: 12px 24px; font-size: 17px; font-weight: 600; min-width: 72px; }
+.drill-panel .cta-row { justify-content: center; margin-top: 20px; }
+.drill-note { text-align: center; max-width: 48ch; margin: 16px auto 0; }
+
 /* ---------- resuming a session you stepped away from ---------- */
 
 .panel.resume {

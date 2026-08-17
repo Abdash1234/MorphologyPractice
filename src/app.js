@@ -107,6 +107,7 @@
 
   const VIEWS = [
     { id: 'practice', name: 'Practice', title: 'Practice' },
+    { id: 'drill', name: 'Drill', title: 'Drill' },
     { id: 'learn', name: 'Learn', title: 'Learn' },
     { id: 'dictionary', name: 'Dictionary', title: 'Dictionary' },
     { id: 'words', name: 'My words', title: 'My words' }
@@ -134,6 +135,7 @@
   }
 
   function render(keepScroll) {
+    if (view === 'drill') return renderDrill(keepScroll);
     if (view === 'learn') return renderLearn(keepScroll);
     if (view === 'dictionary') return renderDictionary(keepScroll);
     if (view === 'words') return renderEditor();
@@ -210,6 +212,92 @@
       (id) => { refSection = id; renderLearn(true); },
       () => renderLearn(true)
     ));
+    setScreen(wrap, keepScroll);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* drill: the app with every dial taken off                            */
+  /* ------------------------------------------------------------------ */
+
+  /*
+   * The whole bank, every question, nothing to choose but how many words.
+   *
+   * Practice grew a mode picker, a deck picker, ten focus chips and nine stage
+   * switches, which is the right amount of control for shaping a session and
+   * far too much for someone who just wants to be handed words. This is the
+   * original app: a word appears, you walk it down the chart, next word.
+   *
+   * It runs on its own settings object rather than the saved one, so nothing
+   * chosen over on Practice is disturbed by drilling and nothing set here
+   * leaks back.
+   */
+  const DRILL_LENGTHS = [10, 25, 50, 0];
+
+  function drillSettings() {
+    return Object.assign({}, settings, {
+      mode: 'analysis',
+      deckId: 'all',
+      focus: [],                 // every question, no shortcuts
+      length: settings.drillLength === undefined ? 10 : settings.drillLength,
+      /* every stage on, explicitly, so a switch flipped on Practice cannot
+         quietly narrow a drill */
+      groups: {
+        identity: true, features: true, structure: true, root: true,
+        base: true, sarf: true, translation: true, context: true
+      },
+      /* ordering, not filtering: the words you are shakiest on come round
+         first. Nothing is excluded either way. */
+      weakestFirst: true
+    });
+  }
+
+  function startDrill() {
+    const cfg = drillSettings();
+    if (!E.poolFor('analysis', 'all').length) {
+      global.alert('There are no words to drill.');
+      return;
+    }
+    startSession(null, cfg, 'drill');
+  }
+
+  function renderDrill(keepScroll) {
+    repaint = () => renderDrill(true);
+    const wrap = el('div', { class: 'screen drill-home' });
+
+    if (sessionInProgress()) wrap.appendChild(resumeBanner());
+
+    const total = E.poolFor('analysis', 'all').length;
+    const chosen = settings.drillLength === undefined ? 10 : settings.drillLength;
+
+    wrap.appendChild(el('header', { class: 'drill-hero' }, [
+      el('h1', { class: 'title' }, [ar('دَرِّبْ'), el('span', { class: 'title-en', text: 'Drill' })]),
+      el('p', { class: 'lede', text: 'Every word in the bank, every question on the chart, nothing to set up. A word appears, you take it apart, the next one comes.' })
+    ]));
+
+    const row = el('div', { class: 'chip-row drill-lengths' });
+    DRILL_LENGTHS.forEach((n) => {
+      row.appendChild(el('button', {
+        class: 'chip big-chip' + (chosen === n ? ' on' : ''), type: 'button',
+        text: n === 0 ? 'All ' + total : String(n),
+        onclick: () => {
+          settings.drillLength = n;
+          MP.store.saveSettings(settings);
+          refresh();
+        }
+      }));
+    });
+
+    wrap.appendChild(el('section', { class: 'panel drill-panel' }, [
+      el('span', { class: 'drill-label', text: 'How many words' }),
+      row,
+      el('div', { class: 'cta-row' }, [
+        el('button', { class: 'btn primary big', type: 'button', text: 'Start drilling', onclick: startDrill })
+      ])
+    ]));
+
+    wrap.appendChild(el('p', { class: 'muted small drill-note', text:
+      'Drawing on all ' + total + ' words — verbs, nouns and particles, every bāb and every form. Everything you have not seen for a while comes round first. Nothing here changes your Practice settings.' }));
+
     setScreen(wrap, keepScroll);
   }
 
@@ -727,16 +815,23 @@
   /* the drill                                                           */
   /* ------------------------------------------------------------------ */
 
-  function startSession(only) {
+  /*
+   * `config` lets a caller run a session on settings other than the saved
+   * ones — Drill uses it so that nothing chosen there is written back over
+   * the Practice screen. `origin` is the view to return to when it ends.
+   */
+  function startSession(only, config, origin) {
+    const cfg = config || settings;
     session = E.buildSession({
-      deckId: settings.deckId,
-      settings: settings,
+      deckId: cfg.deckId,
+      settings: cfg,
       only: Array.isArray(only) ? only : null
     });
     if (!session.words.length) {
       global.alert('That deck is empty.');
       return;
     }
+    session.origin = origin || 'practice';
     MP.store.recordSession();
     answered = false;
     renderStep();
@@ -758,7 +853,11 @@
     /* top bar */
     const doneSteps = session.stepIndex;
     wrap.appendChild(el('div', { class: 'topbar' }, [
-      el('button', { class: 'btn ghost small', type: 'button', text: '← Practice', onclick: () => go('practice') }),
+      el('button', {
+        class: 'btn ghost small', type: 'button',
+        text: session.origin === 'drill' ? '← Drill' : '← Practice',
+        onclick: () => go(session.origin || 'practice')
+      }),
       el('span', { class: 'counter', text: 'Word ' + (session.index + 1) + ' of ' + session.words.length }),
       el('span', { class: 'counter', text: 'Step ' + (doneSteps + 1) + ' / ' + session.steps.length }),
       el('button', { class: 'btn ghost small', type: 'button', text: '📖 Reference', onclick: () => openReference(sectionForStep(step)) })
@@ -2026,12 +2125,15 @@
       ]));
     }
 
+    /* a drill carries on as a drill: same settings, same place to go back to */
+    const cfg = session.settings;
+    const from = session.origin || 'practice';
     wrap.appendChild(el('div', { class: 'cta-row' }, [
       missed.length
-        ? el('button', { class: 'btn primary big', type: 'button', text: 'Practise the ' + missed.length + ' missed', onclick: () => startSession(missed) })
+        ? el('button', { class: 'btn primary big', type: 'button', text: 'Practise the ' + missed.length + ' missed', onclick: () => startSession(missed, cfg, from) })
         : el('span', {}),
-      el('button', { class: 'btn big', type: 'button', text: 'Another session', onclick: () => startSession() }),
-      el('button', { class: 'btn ghost big', type: 'button', text: 'Practice', onclick: () => go('practice') })
+      el('button', { class: 'btn big', type: 'button', text: 'Another session', onclick: () => startSession(null, cfg, from) }),
+      el('button', { class: 'btn ghost big', type: 'button', text: from === 'drill' ? 'Drill' : 'Practice', onclick: () => go(from) })
     ]));
 
     setScreen(wrap);
