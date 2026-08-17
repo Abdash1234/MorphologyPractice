@@ -37,24 +37,24 @@
     },
     {
       id: 'majhul',
-      ar: 'المَجْهُول وَالمُشْتَقَّات',
-      en: 'Passive, then the doer and the one done to',
+      ar: 'المَجْهُول',
+      en: 'The same, with the doer dropped',
       parts: [
         { slot: 'madiMajhul' },
-        { slot: 'mudariMajhul' },
-        { slot: 'ismFail', lead: 'فَهُوَ', sep: '،' },
-        { slot: 'ismMaful', lead: 'وَذَاكَ' }
+        { slot: 'mudariMajhul' }
       ]
     },
     {
-      id: 'amr',
-      ar: 'الأَمْر وَالنَّهْي وَالظَّرْف وَالآلَة',
-      en: 'Command, prohibition, place or time, instrument',
+      id: 'mushtaqqat',
+      ar: 'المُشْتَقَّات',
+      en: 'The doer, the one done to, the command, the prohibition, the place, the tool',
       parts: [
-        { slot: 'amr' },
-        { slot: 'nahi', sep: '،' },
-        { slot: 'zarf', sep: '،' },
-        { slot: 'aalah', sep: '،' }
+        { slot: 'ismFail', lead: 'فَهُوَ' },
+        { slot: 'ismMaful', lead: 'وَذَاكَ' },
+        { slot: 'amr', lead: 'وَالأَمْرُ مِنْهُ', sep: '،' },
+        { slot: 'nahi', lead: 'وَالنَّهْيُ عَنْهُ', sep: '،' },
+        { slot: 'zarf', lead: 'وَالظَّرْفُ مِنْهُ', sep: '،' },
+        { slot: 'aalah', lead: 'وَالآلَةُ مِنْهُ', sep: '،' }
       ]
     }
   ];

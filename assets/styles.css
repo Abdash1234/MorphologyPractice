@@ -574,10 +574,27 @@ body.locked { overflow: hidden; }
 }
 .sarf-part { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; }
 .sarf-part.unused { opacity: 0.4; }
-.sarf-word { font-size: calc(28px * var(--ar-boost)); }
-.sarf-word.dash { font-size: calc(24px * var(--ar-boost)); color: var(--muted); }
-.sarf-lead { font-size: calc(22px * var(--ar-boost)); color: var(--muted); }
-.sarf-sep { font-size: calc(22px * var(--ar-boost)); color: var(--muted); }
+.sarf-phrase { display: inline-flex; align-items: baseline; gap: 7px; flex-wrap: nowrap; }
+.sarf-line-none { margin: 2px 0 0; font-style: italic; }
+/*
+ * The recitation is carried by joining words that never change — فَهُوَ,
+ * وَالأَمْرُ مِنْهُ, وَالنَّهْيُ عَنْهُ — and the actual conjugated forms, which are the
+ * only part that differs from one bāb to the next. Those are what you are
+ * learning, so they get the weight and the colour and the formula recedes.
+ */
+.sarf-word {
+  font-size: calc(28px * var(--ar-boost));
+  color: var(--text);
+  font-weight: 600;
+}
+.sarf-word.dash { font-size: calc(24px * var(--ar-boost)); color: var(--muted); font-weight: 400; }
+.sarf-lead {
+  font-size: calc(19px * var(--ar-boost));
+  color: var(--muted);
+  opacity: 0.75;
+  font-weight: 400;
+}
+.sarf-sep { font-size: calc(19px * var(--ar-boost)); color: var(--muted); opacity: 0.75; }
 .sarf-part-en {
   font-size: 11px;
   color: var(--muted);
@@ -665,29 +682,75 @@ body.locked { overflow: hidden; }
 .tree-verdict-en { display: flex; flex-direction: column; color: var(--muted); font-size: 13.5px; }
 .tree-flag { color: var(--bad); font-size: 12px; }
 
-.tree-chain { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
-.tree-node {
+/*
+ * The chart itself: a level per question, alternatives side by side, joined
+ * by a stem down the middle from one level to the next.
+ */
+.tree-diagram { display: grid; gap: 0; }
+
+.tree-level { position: relative; padding: 10px 0 0; }
+/* the stem joining this level to the one above */
+.tree-level + .tree-level::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
+.tree-level.on + .tree-level::before,
+.tree-level.on::before { background: var(--accent); }
+
+.tree-level-name {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin: 12px 0 6px;
+}
+.tree-level.on .tree-level-name { color: var(--accent); }
+
+/* a wide level scrolls sideways on its own rather than the page doing it */
+.tree-branches {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 8px 13px;
+  gap: 7px;
+  justify-content: center;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  padding: 2px;
+}
+.tree-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 13px;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--bg-raised);
   color: var(--text);
   font: inherit;
-  text-align: left;
   cursor: pointer;
+  /* the roads not taken are still legible, just clearly not the answer */
+  opacity: 0.4;
 }
-.tree-node:hover { border-color: var(--accent-dim); }
-.tree-node.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--bg-raised)); }
-.tree-node.missed { border-left: 3px solid var(--bad); }
-.tree-node-name { font-size: 13.5px; color: var(--muted); }
-.tree-node .ar { font-size: calc(19px * var(--ar-boost)); }
+.tree-branch:hover { opacity: 0.75; border-color: var(--accent-dim); }
+.tree-branch.chosen {
+  opacity: 1;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-raised));
+  box-shadow: 0 1px 6px var(--shadow);
+}
+.tree-branch.chosen.missed { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--bg-raised)); }
+.tree-level.on .tree-branch.chosen { box-shadow: 0 0 0 2px var(--accent); }
+.tree-branch-ar { font-size: calc(19px * var(--ar-boost)); }
+.tree-branch-en { font-size: 11px; color: var(--muted); text-align: center; }
 
-.arabic-first .tree-node-name { font-size: 12px; }
+.arabic-first .tree-branch-en { font-style: italic; }
 .arabic-first .tree-verdict-en { font-size: 12.5px; }
 
 /* ---------- the dictionary ---------- */
@@ -769,16 +832,17 @@ body.locked { overflow: hidden; }
   gap: 2px;
 }
 .arabic-first .option-ar { font-size: calc(31px * var(--ar-boost)); }
-/* the gloss and the transliteration read as one line: "meaning / translit" */
-.arabic-first .option-en {
-  flex-direction: row;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 5px;
+/*
+ * The Arabic term is now the label, so it takes the weight and the colour;
+ * the English translation drops to the footnote the transliteration used to be.
+ */
+.arabic-first .option-en-main {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-style: italic;
 }
-.arabic-first .option-en-main { font-size: 12.5px; }
-.arabic-first .option-tr { font-size: 12px; }
-.arabic-first .option-tr::before { content: "/ "; }
+.arabic-first .option-tr { font-size: 12px; opacity: 1; }
 .arabic-first .option.dunno { align-items: center; }
 
 /* the question itself: the Arabic wording leads, the English explains */
@@ -833,7 +897,7 @@ body.locked { overflow: hidden; }
 .word-note { border-top: 1px solid var(--line); padding-top: 8px; }
 .self-mark { display: flex; gap: 10px; margin-top: 12px; }
 
-.next-row { margin-top: 16px; display: flex; justify-content: flex-end; }
+.next-row { margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
 
 /* ---------- summary ---------- */
 

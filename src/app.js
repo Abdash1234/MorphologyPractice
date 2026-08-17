@@ -427,6 +427,13 @@
       el('button', {
         class: 'chip' + (settings.weakestFirst ? ' on' : ''), type: 'button', text: 'Weakest words first',
         onclick: () => { settings.weakestFirst = !settings.weakestFirst; MP.store.saveSettings(settings); refresh(); }
+      }),
+      /* also lives under Account → Appearance, but this is where you are when
+         you notice you want it */
+      el('button', {
+        class: 'chip' + (settings.arabicFirst ? ' on' : ''), type: 'button', text: 'Arabic terms first',
+        title: 'Read "fiʿl" with "Verb" underneath, rather than the other way round.',
+        onclick: () => { settings.arabicFirst = !settings.arabicFirst; MP.store.saveSettings(settings); refresh(); }
       })
     ]);
 
@@ -740,6 +747,29 @@
     return out;
   }
 
+  /*
+   * The two lines of text beside an option's Arabic.
+   *
+   * Normally the English meaning leads and the transliteration is a footnote:
+   * "Verb" over "fiʿl". Arabic-first swaps them, so the Arabic term itself is
+   * what you read and remember — "fiʿl" over "Verb" — which is the whole point
+   * of the setting: to learn the term, not its translation.
+   */
+  function optionLabel(o) {
+    const term = o.tr || o.en;
+    const gloss = o.en;
+    if (settings.arabicFirst) {
+      return el('span', { class: 'option-en' }, [
+        el('span', { class: 'option-en-main', text: term }),
+        el('span', { class: 'option-tr', text: gloss })
+      ]);
+    }
+    return el('span', { class: 'option-en' }, [
+      el('span', { class: 'option-en-main', text: gloss }),
+      settings.showTranslit ? el('span', { class: 'option-tr', text: term }) : el('span', {})
+    ]);
+  }
+
   function renderChoice(step) {
     const box = el('div', { class: 'options' });
     E.optionsFor(step).forEach((o) => {
@@ -749,13 +779,7 @@
           if (answered) return;
           gradeChoice(step, o, btn, box);
         }
-      }, [
-        ar(o.ar, 'option-ar'),
-        el('span', { class: 'option-en' }, [
-          el('span', { class: 'option-en-main', text: o.en }),
-          settings.showTranslit ? el('span', { class: 'option-tr', text: o.tr }) : el('span', {})
-        ])
-      ]);
+      }, [ar(o.ar, 'option-ar'), optionLabel(o)]);
       box.appendChild(btn);
     });
 
@@ -1053,11 +1077,25 @@
         showEnglish ? el('span', { class: 'sarf-line-en', text: line.en }) : el('span', {})
       ]));
 
+      /* an intransitive verb has no passive at all, so reciting a line of
+         dashes says nothing — name the reason instead */
+      if (line.parts.every((part) => !part.used)) {
+        row.appendChild(el('p', { class: 'sarf-line-none muted small', text: line.id === 'majhul'
+          ? 'This verb takes no object, so it has no passive.'
+          : 'This bāb produces none of these.' }));
+        box.appendChild(row);
+        return;
+      }
+
       const recite = el('div', { class: 'sarf-recite', dir: 'rtl', lang: 'ar' });
       line.parts.forEach((part) => {
         const cell = el('span', { class: 'sarf-part' + (part.used ? '' : ' unused') });
-        if (part.sep) cell.appendChild(el('span', { class: 'sarf-sep ar', dir: 'rtl', text: part.sep }));
-        if (part.lead) cell.appendChild(ar(part.lead, 'sarf-lead'));
+        /* the joining words and the form itself read as one phrase, right to
+           left — وَالأَمْرُ مِنْهُ اُنْصُرْ — so they sit on one line together */
+        const phrase = el('span', { class: 'sarf-phrase', dir: 'rtl' });
+        cell.appendChild(phrase);
+        if (part.sep) phrase.appendChild(el('span', { class: 'sarf-sep ar', dir: 'rtl', text: part.sep }));
+        if (part.lead) phrase.appendChild(ar(part.lead, 'sarf-lead'));
 
         const blanked = part.used && blanks.indexOf(part.slot) !== -1;
         if (blanked) {
@@ -1067,11 +1105,11 @@
             'aria-label': part.labelEn
           });
           inputs[part.slot] = input;
-          cell.appendChild(input);
+          phrase.appendChild(input);
         } else if (part.used) {
-          cell.appendChild(ar(part.value, 'sarf-word'));
+          phrase.appendChild(ar(part.value, 'sarf-word'));
         } else {
-          cell.appendChild(el('span', { class: 'sarf-word dash', text: MP.NOT_USED }));
+          phrase.appendChild(el('span', { class: 'sarf-word dash', text: MP.NOT_USED }));
         }
 
         /* the cell's own name, only when English is asked for */
@@ -1242,11 +1280,16 @@
       }
 
       const record = (answers || []).find((a) => a.wordId === word.id && a.stepId === step.id);
+      /* the other branches on this level of the chart, so the diagram can show
+         what was ruled out as well as what was chosen */
+      const siblings = step.kind === 'choice' ? (T.groups[step.groupId] || []) : [];
       out.push({
         id: step.id,
         question: step.q,
         questionAr: step.qAr || '',
         label: label,
+        answerId: answerId,
+        siblings: siblings,
         got: record ? record.correct : null,
         evidence: MP.evidence.forStep(word, p, step.id, answerId)
       });
@@ -1314,22 +1357,37 @@
         ])
       ]));
 
-      /* the whole chain, every node clickable */
-      const chain = el('ol', { class: 'tree-chain' });
+      /*
+       * The whole chart, drawn: a level per question, every alternative on
+       * that level shown side by side the way the paper chart does, with the
+       * branch this word actually took lit and the roads not taken faded.
+       * Seeing جَمْع sitting next to مُفْرَد and مُثَنَّى is most of the lesson.
+       */
+      const diagram = el('div', { class: 'tree-diagram' });
       nodes.forEach((n, i) => {
-        chain.appendChild(el('li', {}, [
-          el('button', {
-            class: 'tree-node' + (i === treeAt ? ' on' : '') + (n.got === false ? ' missed' : ''),
+        const level = el('div', { class: 'tree-level' + (i === treeAt ? ' on' : '') });
+        level.appendChild(el('span', { class: 'tree-level-name', text: stepName(n.id) }));
+
+        const branches = el('div', { class: 'tree-branches' });
+        const siblings = n.siblings.length ? n.siblings : [n.label];
+        siblings.forEach((s) => {
+          const chosen = s.id === undefined ? true : s.id === n.answerId;
+          branches.appendChild(el('button', {
+            class: 'tree-branch' + (chosen ? ' chosen' : '') + (chosen && n.got === false ? ' missed' : ''),
             type: 'button',
             onclick: () => { treeAt = i; paint(); }
           }, [
-            el('span', { class: 'tree-node-name', text: stepName(n.id) }),
-            ar(n.label.ar, 'tree-node-ar')
-          ])
-        ]));
+            ar(s.ar, 'tree-branch-ar'),
+            el('span', { class: 'tree-branch-en', text: settings.arabicFirst ? (s.tr || s.en || '') : (s.en || '') })
+          ]));
+        });
+        level.appendChild(branches);
+        diagram.appendChild(level);
       });
       wrap.appendChild(el('section', { class: 'panel' }, [
-        el('h2', { class: 'panel-title', text: 'The whole tree' }), chain
+        el('h2', { class: 'panel-title', text: 'The whole chart' }),
+        el('p', { class: 'muted small', text: 'Every level of the chart, with the branch this word took lit up. Tap any level to see what gives it away.' }),
+        diagram
       ]));
 
       const prev = el('button', {
