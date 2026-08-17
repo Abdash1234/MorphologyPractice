@@ -32,6 +32,7 @@
     { id: 'voice', name: 'Active / passive' },
     { id: 'subtype', name: 'Ṣaḥīḥ / muʿtall type' },
     { id: 'ismType', name: 'Kind of noun' },
+    { id: 'harfType', name: 'What a particle governs' },
     { id: 'sarf', name: 'Ṣarf ṣaghīr' },
     { id: 'root', name: 'Root & radicals' },
     { id: 'baseMadi', name: 'Back to the māḍī' },
@@ -692,7 +693,8 @@
     const names = {
       wordType: 'Word type', tense: 'Tense', mood: 'Iʿrāb / mood', voice: 'Voice',
       polarity: 'Affirmative/negative', person: 'Person', gender: 'Gender', number: 'Number',
-      ismType: 'Kind of noun', letters: 'Thulāthī / rubāʿī', augmentation: 'Mujarrad / mazīd',
+      ismType: 'Kind of noun', harfType: 'Particle ʿamal',
+      letters: 'Thulāthī / rubāʿī', augmentation: 'Mujarrad / mazīd',
       baab: 'Bāb / form', soundness: 'Ṣaḥīḥ / muʿtall', subtype: 'Sub-category',
       mahmuzPosition: 'Hamzah position', root: 'Root & radicals', sarf: 'Ṣarf ṣaghīr',
       translation: 'Translation', baseMadi: 'Back to the māḍī', context: 'In a sentence',
@@ -1607,7 +1609,8 @@
       baabRubaiMazeed: 'rubai',
       sahihType: 'weak',
       mutalType: 'weak',
-      ismType: 'nouns'
+      ismType: 'nouns',
+      harfType: 'particles'
     };
     if (!step) return 'gates';
     if (map[step.groupId]) return map[step.groupId];

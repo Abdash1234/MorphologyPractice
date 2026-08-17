@@ -73,6 +73,32 @@
       { id: 'jamid', ar: 'اِسْم جَامِد', tr: 'ism jāmid', en: 'Non-derived noun', hint: 'Not derived from a verb — it stands on its own.' }
     ],
 
+    /*
+     * ---- particles, sorted by what they DO ----
+     *
+     * A ḥarf has no root and no pattern, so there is nothing in it to take
+     * apart. What you learn about a particle is its ʿamal: what it does to the
+     * word after it. That is the branch of the chart it actually belongs on,
+     * and it is what ties لَمْ and لَنْ to the jussive and subjunctive you
+     * already meet under a verb's iʿrāb.
+     */
+    harfType: [
+      { id: 'jarr', ar: 'حَرْف جَرّ', tr: 'ḥarf jarr', en: 'Preposition',
+        hint: 'Puts the noun after it into jarr: مِنَ البَيْتِ, فِي الدَّارِ. Only ever comes before a noun.' },
+      { id: 'nasb', ar: 'حَرْف نَصْب', tr: 'ḥarf naṣb', en: 'Takes the subjunctive',
+        hint: 'Puts the muḍāriʿ after it into naṣb — fatḥah on the end: لَنْ يَنْصُرَ, أَنْ يَذْهَبَ.' },
+      { id: 'jazm', ar: 'حَرْف جَزْم', tr: 'ḥarf jazm', en: 'Takes the jussive',
+        hint: 'Puts the muḍāriʿ after it into jazm — sukūn on the end: لَمْ يَنْصُرْ.' },
+      { id: 'mushabbahah', ar: 'حَرْف مُشَبَّه بِالفِعْل', tr: 'mushabbah bi-l-fiʿl', en: 'Inna and her sisters',
+        hint: 'Puts its noun into naṣb and its predicate into rafʿ: إِنَّ اللهَ غَفُورٌ.' },
+      { id: 'atf', ar: 'حَرْف عَطْف', tr: 'ḥarf ʿaṭf', en: 'Conjunction',
+        hint: 'Joins what follows to what came before, and it takes the same iʿrāb: زَيْدٌ وَعَمْرٌو.' },
+      { id: 'nida', ar: 'حَرْف نِدَاء', tr: 'ḥarf nidāʾ', en: 'Vocative',
+        hint: 'Calls out to someone — يَا عَبْدَ اللهِ.' },
+      { id: 'muhmal', ar: 'حَرْف مُهْمَل', tr: 'ḥarf muhmal', en: 'No governing effect',
+        hint: 'Changes the meaning without touching the iʿrāb: قَدْ, سَوْفَ, هَلْ.' }
+    ],
+
     /* ---- extra branch: root-letter count ---- */
     letters: [
       { id: 'thulathi', ar: 'ثُلَاثِي', tr: 'thulāthī', en: 'Triliteral', hint: 'Three root letters.' },
@@ -167,6 +193,7 @@
     { id: 'all', name: 'Everything', desc: 'The whole bank, shuffled.' },
     { id: 'verbs', name: 'Verbs only', desc: 'Every kind of fiʿl.' },
     { id: 'nouns', name: 'Nouns only', desc: 'Derived and non-derived asmāʾ.' },
+    { id: 'harf', name: 'Particles', desc: 'Ḥurūf, sorted by what they govern.' },
     { id: 'mujarrad', name: 'Thulāthī mujarrad', desc: 'The six abwāb.' },
     { id: 'mazeed', name: 'Mazīd fīh', desc: 'Forms II–X and the rubāʿī.' },
     { id: 'sahih', name: 'Ṣaḥīḥ', desc: 'Sālim, muḍāʿaf and mahmūz.' },

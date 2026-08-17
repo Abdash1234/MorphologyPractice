@@ -91,6 +91,7 @@
     const p = paradigmOf(word);
     if (word.type === 'fil') tags.push('verbs');
     if (word.type === 'ism') tags.push('nouns');
+    if (word.type === 'harf') tags.push('harf');
     if (word.starter) tags.push('starter');
     if (word.custom) tags.push('mine');
     if (p) {
@@ -264,6 +265,25 @@
           q: 'How many?', qAr: 'مفرد أم مثنى أم جمع؟', answer: word.number
         }));
       }
+    }
+
+    /*
+     * --- particles ---
+     *
+     * A ḥarf has no root, no bāb and no pattern, so every structural question
+     * below is skipped and it used to fall out of buildSteps with nothing
+     * asked but "what kind of word is this?" and its meaning. The question
+     * that does apply is its ʿamal — what it does to the word after it — and
+     * that is also where لَمْ and لَنْ join up with the jussive and subjunctive
+     * met under a verb's iʿrāb.
+     */
+    if (word.type === 'harf' && word.harfType) {
+      steps.push(choiceStep({
+        id: 'harfType', group: 'identity', groupId: 'harfType',
+        q: 'What does this particle do to the word after it?',
+        qAr: 'ما عَمَلُهُ؟',
+        answer: word.harfType
+      }));
     }
 
     /*

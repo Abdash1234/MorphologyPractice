@@ -17,6 +17,19 @@
   /* ================================================================== */
 
   const hints = {
+    harfType: {
+      title: 'What does the particle govern?',
+      bullets: [
+        'If a noun can follow it, it is a ḥarf jarr, and that noun takes a kasrah: مِنَ البَيْتِ، فِي الدَّارِ، بِسْمِ اللهِ.',
+        'If a muḍāriʿ follows with a fatḥah on the end, the particle is nāṣibah: أَنْ، لَنْ، كَيْ، إِذَنْ.',
+        'If a muḍāriʿ follows with a sukūn on the end, it is jāzimah: لَمْ، لَمَّا، إِنْ الشرطية.',
+        'إِنَّ and her sisters take a whole nominal sentence: the subject goes into naṣb, the predicate stays in rafʿ.',
+        'A ḥarf ʿaṭf just joins, and whatever follows copies the iʿrāb of what came before: زَيْدٌ وَعَمْرٌو، رَأَيْتُ زَيْدًا وَعَمْرًا.',
+        'قَدْ، سَوْفَ، هَلْ، نَعَمْ change the meaning and leave the iʿrāb alone — those are muhmal.',
+        'Watch the shaddah: أَنْ takes the subjunctive but أَنَّ is one of inna’s sisters; إِنْ is the conditional but إِنَّ is not.'
+      ]
+    },
+
     wordType: {
       title: 'Ism, fiʿl or ḥarf?',
       bullets: [
@@ -1082,6 +1095,147 @@
             ['أَنْتِ — you (f.)', 'اِفْعَلِي'], ['أَنْتُمَا — you two (f.)', 'اِفْعَلَا'], ['أَنْتُنَّ — you (f. pl.)', 'اِفْعَلْنَ']
           ],
           spot: ['Take the majzūm muḍāriʿ, drop the تـ, and add a hamzat waṣl at the front if what remains starts with a sukūn: تَنْصُرْ → اُنْصُرْ.', 'The hamzah takes a ḍammah when the muḍāriʿ has a ḍammah (اُنْصُرْ) and a kasrah otherwise (اِضْرِبْ، اِفْتَحْ).', 'A prohibition is different: لَا + majzūm muḍāriʿ — لَا تَنْصُرْ.']
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
+      id: 'particles',
+      name: 'Particles',
+      subpages: true,
+      intro: 'A ḥarf has no root and no pattern, so there is nothing in it to take apart. What you learn is its ʿamal — what it does to the word after it. Sorted that way here, with the meaning of each beside it.',
+      cards: [
+        {
+          ar: 'حُرُوف الجَرّ',
+          title: 'Prepositions',
+          tag: 'the noun after it takes a kasrah',
+          rows: [
+            ['مِنْ', 'from — مِنَ البَيْتِ'],
+            ['إِلَى', 'to, towards'],
+            ['عَنْ', 'away from, about'],
+            ['عَلَى', 'on, upon'],
+            ['فِي', 'in'],
+            ['بِ', 'with, by, in — joined to the front of the noun: بِسْمِ اللهِ'],
+            ['كَ', 'like, as'],
+            ['مُنْذُ', 'since'],
+            ['رُبَّ', 'many a, how often']
+          ],
+          spot: [
+            'A noun always follows, never a verb, and that noun is majrūr — a kasrah, or a yāʾ in the dual and sound masculine plural.',
+            'بِ، كَ and لِ are written joined to the word they govern, so look at the first letter of the word, not for a separate one.'
+          ],
+          means: ['They tie a noun to the verb or noun before it: to it, from it, on it, with it.']
+        },
+        {
+          ar: 'حُرُوف النَّصْب',
+          title: 'Takes the subjunctive',
+          tag: 'fatḥah on the end of the muḍāriʿ',
+          rows: [
+            ['أَنْ', 'that — أُرِيدُ أَنْ أَذْهَبَ'],
+            ['لَنْ', 'will never — لَنْ يَنْصُرَ'],
+            ['كَيْ', 'in order that'],
+            ['إِذَنْ', 'in that case, then']
+          ],
+          spot: [
+            'The verb after it ends in a fatḥah, and the نَ of the five verbs drops: يَنْصُرُونَ becomes لَنْ يَنْصُرُوا.',
+            'أَنْ with a sukūn is this one. أَنَّ with a shaddah is a different word entirely — one of inna’s sisters.'
+          ],
+          means: ['They point the verb at something not yet real: a purpose, an intention, a denial of the future.']
+        },
+        {
+          ar: 'حُرُوف الجَزْم',
+          title: 'Takes the jussive',
+          tag: 'sukūn on the end of the muḍāriʿ',
+          rows: [
+            ['لَمْ', 'did not — لَمْ يَنْصُرْ'],
+            ['لَمَّا', 'not yet'],
+            ['إِنْ', 'if — the conditional']
+          ],
+          spot: [
+            'The verb ends in a sukūn, and the نَ of the five verbs drops.',
+            'لَمْ is the strange one: a present-tense form with a past meaning. لَمْ يَنْصُرْ is "he did not help", not "he does not help".',
+            'إِنْ الشرطية makes two verbs majzūm — the condition and its answer.'
+          ],
+          means: ['They negate in the past, or hang the sentence on a condition.']
+        },
+        {
+          ar: 'إِنَّ وَأَخَوَاتُهَا',
+          title: 'Inna and her sisters',
+          tag: 'naṣb on the noun, rafʿ on the predicate',
+          rows: [
+            ['إِنَّ', 'indeed — إِنَّ اللهَ غَفُورٌ'],
+            ['أَنَّ', 'that'],
+            ['كَأَنَّ', 'as though'],
+            ['لَكِنَّ', 'but, however'],
+            ['لَيْتَ', 'if only, would that'],
+            ['لَعَلَّ', 'perhaps, so that']
+          ],
+          spot: [
+            'They come at the head of a nominal sentence, not before a verb.',
+            'The subject after them takes a fatḥah and the predicate keeps its ḍammah — that split is the giveaway.'
+          ],
+          means: ['They colour the whole sentence: certainty, comparison, contrast, longing, hope.']
+        },
+        {
+          ar: 'حُرُوف العَطْف',
+          title: 'Conjunctions',
+          tag: 'what follows copies what came before',
+          rows: [
+            ['وَ', 'and — no order implied'],
+            ['فَ', 'so, and then — immediately after'],
+            ['ثُمَّ', 'then — after a gap'],
+            ['أَوْ', 'or'],
+            ['بَلْ', 'rather, on the contrary'],
+            ['أَمْ', 'or, in a question']
+          ],
+          spot: ['Whatever follows takes the same iʿrāb as the word it is joined to: رَأَيْتُ زَيْدًا وَعَمْرًا, both manṣūb.'],
+          means: ['وَ، فَ and ثُمَّ differ only in timing: together, straight after, and later.']
+        },
+        {
+          ar: 'حَرْف النِّدَاء',
+          title: 'Vocative',
+          tag: 'calling out',
+          rows: [['يَا', 'O! — يَا عَبْدَ اللهِ']],
+          spot: ['A name or a title follows it directly.'],
+          means: ['It addresses someone.']
+        },
+        {
+          ar: 'الحُرُوف المُهْمَلَة',
+          title: 'No governing effect',
+          tag: 'meaning changes, iʿrāb does not',
+          rows: [
+            ['قَدْ', 'with the māḍī: certainly, already. With the muḍāriʿ it weakens to "sometimes"'],
+            ['سَوْفَ', 'shall, will — the far future'],
+            ['هَلْ', 'is/does…? — turns a statement into a question'],
+            ['نَعَمْ', 'yes'],
+            ['بَلَى', 'yes indeed — only to contradict a negative question']
+          ],
+          spot: ['The word after them is unchanged: قَدْ نَصَرَ, سَوْفَ يَنْصُرُ — the ḍammah stays put.'],
+          means: [
+            'قَدْ is worth dwelling on: قَدْ نَصَرَ is "he certainly helped", but قَدْ يَنْصُرُ is "he sometimes helps". Same particle, opposite strength, decided by the tense after it.',
+            'بَلَى and نَعَمْ are not interchangeable — بَلَى answers a negative question by contradicting it.'
+          ]
+        },
+        {
+          ar: 'حَتَّى، لِ، لَا',
+          title: 'The ones that wear two hats',
+          tag: 'the same form, different jobs',
+          rows: [
+            ['حَتَّى + noun', 'jārrah — until: حَتَّى مَطْلَعِ الفَجْرِ'],
+            ['حَتَّى + muḍāriʿ', 'nāṣibah — until, so that: حَتَّى يَرْجِعَ'],
+            ['لِ + noun', 'jārrah — for, belonging to: لِلَّهِ'],
+            ['لِ + muḍāriʿ', 'nāṣibah — in order to: لِيَعْلَمَ'],
+            ['لِ الأمر', 'jāzimah — let him: لِيَنْصُرْ'],
+            ['لَا النافية', 'no effect — does not: لَا يَنْصُرُ'],
+            ['لَا الناهية', 'jāzimah — do not: لَا تَنْصُرْ']
+          ],
+          spot: [
+            'These are not drilled in the practice bank on purpose: shown alone with nothing after them they have no single right answer.',
+            'The word that follows decides. A noun after حَتَّى makes it jārrah; a muḍāriʿ makes it nāṣibah.',
+            'For لَا, read the ending: لَا تَنْصُرُ with a ḍammah is "you do not help", لَا تَنْصُرْ with a sukūn is "do not help".'
+          ],
+          means: ['The whole point: a particle is defined by what comes after it, not by its own shape.']
         }
       ]
     },

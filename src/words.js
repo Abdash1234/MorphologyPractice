@@ -33,6 +33,10 @@
   function n(o) {
     return Object.assign({ type: 'ism', gender: 'mudhakkar', number: 'mufrad' }, o);
   }
+  /* a particle: no root, no paradigm, classified by what it governs */
+  function h(o) {
+    return Object.assign({ type: 'harf', p: null }, o);
+  }
 
   const words = [
     /* ============ ن ص ر — bāb naṣara, the standard model ============ */
@@ -429,17 +433,71 @@
     n({ id: 'sifah-shujaa', w: 'شُجَاعٌ', tr: 'shujāʿ', en: 'brave', p: null, root: 'ش ج ع',
         ismType: 'sifah' }),
 
-    /* ============ ḥurūf ============ */
-    { id: 'harf-min', w: 'مِنْ', tr: 'min', en: 'from', type: 'harf', p: null, starter: true,
-      note: 'Ḥarf al-jarr — it gives no complete meaning until it is joined to a noun.' },
-    { id: 'harf-fi', w: 'فِي', tr: 'fī', en: 'in', type: 'harf', p: null, starter: true },
-    { id: 'harf-ila', w: 'إِلَى', tr: 'ilā', en: 'to, towards', type: 'harf', p: null },
-    { id: 'harf-lam', w: 'لَمْ', tr: 'lam', en: 'did not (+ jussive)', type: 'harf', p: null,
-      note: 'Ḥarf al-jazm — it makes the muḍāriʿ majzūm and turns it into the past.' },
-    { id: 'harf-lan', w: 'لَنْ', tr: 'lan', en: 'will never (+ subjunctive)', type: 'harf', p: null,
-      note: 'Ḥarf al-naṣb — it makes the muḍāriʿ manṣūb and negates the future.' },
-    { id: 'harf-hal', w: 'هَلْ', tr: 'hal', en: 'is/does…? (question particle)', type: 'harf', p: null },
-    { id: 'harf-inna', w: 'إِنَّ', tr: 'inna', en: 'indeed, verily', type: 'harf', p: null }
+    /* ============ ḥurūf, grouped by what they govern ============
+     *
+     * A particle is not taken apart the way a verb or a noun is — it has no
+     * root and no pattern. What is worth knowing is its ʿamal: what it does to
+     * the word after it. So each one carries a harfType, and that is the
+     * question the drill asks.
+     *
+     * Particles whose form is shared between two categories are deliberately
+     * left out of the bank and covered on the reference page instead: حَتَّى is
+     * jārrah before a noun and nāṣibah before a verb, لِ is all three
+     * depending on what follows, and لَا negates or prohibits. Shown on their
+     * own with no context, they have no single right answer, so drilling them
+     * would be teaching a coin toss.
+     */
+    h({ id: 'harf-min', w: 'مِنْ', tr: 'min', en: 'from', harfType: 'jarr', starter: true,
+        note: 'Ḥarf al-jarr — it gives no complete meaning until it is joined to a noun.' }),
+    h({ id: 'harf-fi', w: 'فِي', tr: 'fī', en: 'in', harfType: 'jarr', starter: true }),
+    h({ id: 'harf-ila', w: 'إِلَى', tr: 'ilā', en: 'to, towards', harfType: 'jarr' }),
+    h({ id: 'harf-an-prep', w: 'عَنْ', tr: 'ʿan', en: 'away from, about', harfType: 'jarr' }),
+    h({ id: 'harf-ala', w: 'عَلَى', tr: 'ʿalā', en: 'on, upon', harfType: 'jarr' }),
+    h({ id: 'harf-bi', w: 'بِ', tr: 'bi', en: 'with, by, in', harfType: 'jarr',
+        note: 'Attaches to the front of the noun it governs: بِسْمِ اللهِ.' }),
+    h({ id: 'harf-ka', w: 'كَ', tr: 'ka', en: 'like, as', harfType: 'jarr' }),
+    h({ id: 'harf-mundhu', w: 'مُنْذُ', tr: 'mundhu', en: 'since', harfType: 'jarr' }),
+    h({ id: 'harf-rubba', w: 'رُبَّ', tr: 'rubba', en: 'many a, how often', harfType: 'jarr' }),
+
+    h({ id: 'harf-an', w: 'أَنْ', tr: 'an', en: 'that (+ subjunctive)', harfType: 'nasb',
+        note: 'أَنْ with a sukūn takes the subjunctive; أَنَّ with a shaddah is one of inna’s sisters.' }),
+    h({ id: 'harf-lan', w: 'لَنْ', tr: 'lan', en: 'will never', harfType: 'nasb', starter: true,
+        note: 'Ḥarf al-naṣb — it makes the muḍāriʿ manṣūb and negates the future.' }),
+    h({ id: 'harf-kay', w: 'كَيْ', tr: 'kay', en: 'in order that', harfType: 'nasb' }),
+    h({ id: 'harf-idhan', w: 'إِذَنْ', tr: 'idhan', en: 'in that case, then', harfType: 'nasb' }),
+
+    h({ id: 'harf-lam', w: 'لَمْ', tr: 'lam', en: 'did not', harfType: 'jazm', starter: true,
+        note: 'Ḥarf al-jazm — it makes the muḍāriʿ majzūm and turns it into the past.' }),
+    h({ id: 'harf-lamma', w: 'لَمَّا', tr: 'lammā', en: 'not yet', harfType: 'jazm' }),
+    h({ id: 'harf-in', w: 'إِنْ', tr: 'in', en: 'if (conditional)', harfType: 'jazm',
+        note: 'إِنْ with a sukūn is the conditional and takes the jussive — twice over, in the condition and the answer.' }),
+
+    h({ id: 'harf-inna', w: 'إِنَّ', tr: 'inna', en: 'indeed, verily', harfType: 'mushabbahah', starter: true,
+        note: 'Its noun goes into naṣb and its predicate stays in rafʿ: إِنَّ اللهَ غَفُورٌ.' }),
+    h({ id: 'harf-anna', w: 'أَنَّ', tr: 'anna', en: 'that', harfType: 'mushabbahah' }),
+    h({ id: 'harf-kaanna', w: 'كَأَنَّ', tr: 'kaʾanna', en: 'as though', harfType: 'mushabbahah' }),
+    h({ id: 'harf-lakinna', w: 'لَكِنَّ', tr: 'lākinna', en: 'but, however', harfType: 'mushabbahah' }),
+    h({ id: 'harf-layta', w: 'لَيْتَ', tr: 'layta', en: 'if only, would that', harfType: 'mushabbahah' }),
+    h({ id: 'harf-laalla', w: 'لَعَلَّ', tr: 'laʿalla', en: 'perhaps, so that', harfType: 'mushabbahah' }),
+
+    h({ id: 'harf-wa', w: 'وَ', tr: 'wa', en: 'and', harfType: 'atf', starter: true }),
+    h({ id: 'harf-fa', w: 'فَ', tr: 'fa', en: 'so, and then', harfType: 'atf',
+        note: 'Like وَ but it puts the two in order — one thing straight after the other.' }),
+    h({ id: 'harf-thumma', w: 'ثُمَّ', tr: 'thumma', en: 'then, afterwards', harfType: 'atf' }),
+    h({ id: 'harf-aw', w: 'أَوْ', tr: 'aw', en: 'or', harfType: 'atf' }),
+    h({ id: 'harf-bal', w: 'بَلْ', tr: 'bal', en: 'rather, on the contrary', harfType: 'atf' }),
+    h({ id: 'harf-am', w: 'أَمْ', tr: 'am', en: 'or (in a question)', harfType: 'atf' }),
+
+    h({ id: 'harf-ya', w: 'يَا', tr: 'yā', en: 'O! (calling someone)', harfType: 'nida', starter: true }),
+
+    h({ id: 'harf-qad', w: 'قَدْ', tr: 'qad', en: 'indeed, already', harfType: 'muhmal', starter: true,
+        note: 'With the māḍī it means the thing certainly happened; with the muḍāriʿ it weakens to "sometimes". It changes nothing in the iʿrāb.' }),
+    h({ id: 'harf-sawfa', w: 'سَوْفَ', tr: 'sawfa', en: 'shall, will', harfType: 'muhmal',
+        note: 'Pushes the muḍāriʿ into the future without touching its ending.' }),
+    h({ id: 'harf-hal', w: 'هَلْ', tr: 'hal', en: 'is/does…? (question particle)', harfType: 'muhmal' }),
+    h({ id: 'harf-naam', w: 'نَعَمْ', tr: 'naʿam', en: 'yes', harfType: 'muhmal' }),
+    h({ id: 'harf-bala', w: 'بَلَى', tr: 'balā', en: 'yes indeed (answering a negative)', harfType: 'muhmal',
+        note: 'Used only to contradict a negative question — أَلَسْتُ بِرَبِّكُمْ؟ قَالُوا بَلَى.' })
   ];
 
   MP.words = words;

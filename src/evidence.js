@@ -153,6 +153,16 @@
     const w = word.w || '';
     const rootStr = (paradigm && paradigm.root) || word.root || '';
     const root = rootStr.trim().split(/\s+/).filter(Boolean);
+
+    /* the questions that are not about the letters at all, and so are the only
+       ones a rootless word — a particle — can be asked */
+    if (stepId === 'harfType') {
+      return { indices: [], why: 'Nothing inside the particle gives this away: its ʿamal is learned, then confirmed by what the next word does.' };
+    }
+    if (stepId === 'wordType') {
+      return { indices: [], why: 'Whether it carries a tense, stands on its own, or needs something else before it means anything.' };
+    }
+
     if (!w || !root.length) return { indices: [], why: '' };
 
     const map = rootMap(w, root);
@@ -257,8 +267,6 @@
           'The pattern the radicals are poured into is what makes it this kind of noun.');
       }
 
-      case 'wordType':
-        return R([], 'Whether it carries a tense, stands on its own, or needs something else to mean anything.');
 
       case 'sarf':
         return R(withMarks(w, seen(map)),
