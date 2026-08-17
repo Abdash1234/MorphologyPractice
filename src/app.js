@@ -333,9 +333,49 @@
   /* home                                                                */
   /* ------------------------------------------------------------------ */
 
+  /*
+   * A session is not thrown away when you leave it. Looking a thing up in the
+   * middle of a drill is the normal way to use this, so the session stays in
+   * memory and Practice offers to put you back where you were.
+   */
+  function sessionInProgress() {
+    return !!(session && !session.finished && session.words.length);
+  }
+
+  function resumeSession() {
+    if (!sessionInProgress()) return;
+    /* if the step you left was already answered, carry on to the next one
+       rather than asking it again and counting it twice */
+    if (answered) goNext();
+    else renderStep();
+  }
+
+  function resumeBanner() {
+    const word = E.currentWord(session);
+    return el('section', { class: 'panel resume' }, [
+      el('div', { class: 'resume-main' }, [
+        el('div', {}, [
+          el('h2', { class: 'panel-title', text: 'Still going' }),
+          el('p', { class: 'muted small', text: 'Word ' + (session.index + 1) + ' of ' + session.words.length +
+            ', step ' + (session.stepIndex + 1) + ' of ' + session.steps.length + '.' })
+        ]),
+        word && word.w ? ar(display(word), 'resume-ar') : el('span', {})
+      ]),
+      el('div', { class: 'cta-row' }, [
+        el('button', { class: 'btn primary', type: 'button', text: 'Pick up where you left off', onclick: resumeSession }),
+        el('button', {
+          class: 'btn ghost small', type: 'button', text: 'Discard it',
+          onclick: () => { session = null; refresh(); }
+        })
+      ])
+    ]);
+  }
+
   function renderHome(keepScroll) {
     const stats = MP.store.load();
     const wrap = el('div', { class: 'screen home' });
+
+    if (sessionInProgress()) wrap.appendChild(resumeBanner());
 
     wrap.appendChild(el('header', { class: 'hero' }, [
       el('h1', { class: 'title' }, [ar('الصَّرْف'), el('span', { class: 'title-en', text: 'Morphology practice' })]),
@@ -1326,14 +1366,35 @@
     const nodes = treeNodes(word, steps, answers);
     if (treeAt >= nodes.length) treeAt = 0;
 
-    function paint() {
+    /*
+     * keepScroll on every move but the first: stepping from node to node is
+     * not navigation, and being thrown back to the top each time means
+     * scrolling down to the chart again to make the next move.
+     */
+    function paint(keepScroll) {
       const node = nodes[treeAt];
       const wrap = el('div', { class: 'screen tree' });
+
+      /* the same pair of controls sits at the top and the bottom, so you can
+         step through from wherever you happen to be reading */
+      const stepper = (extraClass) => {
+        const prev = el('button', {
+          class: 'btn ghost small', type: 'button', text: '← Previous',
+          onclick: () => { if (treeAt > 0) { treeAt--; paint(true); } }
+        });
+        prev.disabled = treeAt === 0;
+        const next = el('button', {
+          class: 'btn small' + (extraClass === 'bottom' ? ' primary' : ''), type: 'button',
+          text: treeAt === nodes.length - 1 ? 'Done' : 'Next →',
+          onclick: () => { if (treeAt < nodes.length - 1) { treeAt++; paint(true); } else onBack(); }
+        });
+        return el('div', { class: 'tree-steps ' + (extraClass || '') }, [prev, next]);
+      };
 
       wrap.appendChild(el('div', { class: 'topbar' }, [
         el('button', { class: 'btn ghost small', type: 'button', text: 'Skip ✕', onclick: onBack }),
         el('span', { class: 'counter', text: 'Node ' + (treeAt + 1) + ' of ' + nodes.length }),
-        el('span', { class: 'counter', text: word.en || '' })
+        stepper('top')
       ]));
 
       /* the word, with this node's evidence lit */
@@ -1375,7 +1436,7 @@
           branches.appendChild(el('button', {
             class: 'tree-branch' + (chosen ? ' chosen' : '') + (chosen && n.got === false ? ' missed' : ''),
             type: 'button',
-            onclick: () => { treeAt = i; paint(); }
+            onclick: () => { treeAt = i; paint(true); }
           }, [
             ar(s.ar, 'tree-branch-ar'),
             el('span', { class: 'tree-branch-en', text: settings.arabicFirst ? (s.tr || s.en || '') : (s.en || '') })
@@ -1390,26 +1451,12 @@
         diagram
       ]));
 
-      const prev = el('button', {
-        class: 'btn', type: 'button', text: '← Previous',
-        onclick: () => { if (treeAt > 0) { treeAt--; paint(); } }
-      });
-      prev.disabled = treeAt === 0;
-      wrap.appendChild(el('div', { class: 'cta-row' }, [
-        prev,
-        el('button', {
-          class: 'btn primary', type: 'button',
-          text: treeAt === nodes.length - 1 ? 'Done' : 'Next →',
-          onclick: () => {
-            if (treeAt < nodes.length - 1) { treeAt++; paint(); } else onBack();
-          }
-        })
-      ]));
+      wrap.appendChild(stepper('bottom'));
 
-      setScreen(wrap);
+      setScreen(wrap, keepScroll);
     }
 
-    paint();
+    paint(false);
   }
 
   function showFeedback(correct, answerText, hint) {
@@ -1845,6 +1892,7 @@
   /* ------------------------------------------------------------------ */
 
   function renderSummary() {
+    session.finished = true;  // nothing left to resume
     MP.sync.syncQuietly();   // a finished session is the natural moment to push
     const score = E.sessionScore(session);
     const bd = E.breakdown(session);

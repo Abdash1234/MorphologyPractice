@@ -629,7 +629,28 @@ body.locked { overflow: hidden; }
   .sarf-input { min-width: 110px; width: 5.5em; }
 }
 
+/* ---------- resuming a session you stepped away from ---------- */
+
+.panel.resume {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-raised));
+}
+.resume-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.resume .panel-title { margin-bottom: 2px; }
+.resume-ar { font-size: calc(30px * var(--ar-boost)); }
+.resume .cta-row { margin-top: 12px; }
+
 /* ---------- the decision tree, walked ---------- */
+
+/* the same stepper top and bottom, so a long chart can be driven from either end */
+.tree-steps { display: flex; align-items: center; gap: 8px; }
+.tree-steps.bottom { justify-content: flex-end; margin-top: 18px; }
 
 .tree-card {
   text-align: center;
