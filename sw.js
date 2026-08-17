@@ -10,7 +10,7 @@
  */
 'use strict';
 
-const VERSION = '20260817-313ade4';
+const VERSION = '20260817-3ef6bd0';
 const CACHE = 'sarf-' + VERSION;
 
 const PRECACHE = [
@@ -18,6 +18,7 @@ const PRECACHE = [
   './index.html',
   './manifest.webmanifest',
   './assets/styles.css',
+  './src/theme.js',
   './src/taxonomy.js',
   './src/paradigms.js',
   './src/words.js',
@@ -26,6 +27,7 @@ const PRECACHE = [
   './src/sentences.js',
   './src/generator.js',
   './src/tables.js',
+  './src/keyboard.js',
   './src/custom.js',
   './src/store.js',
   './src/engine.js',

@@ -26,9 +26,8 @@
 
   const currentMode = () => settings.mode || 'analysis';
 
-  /* single-question drills */
+  /* which questions a session asks — any combination */
   const FOCUS_MODES = [
-    { id: null, name: 'Everything' },
     { id: 'baab', name: 'Bāb / form' },
     { id: 'voice', name: 'Active / passive' },
     { id: 'subtype', name: 'Ṣaḥīḥ / muʿtall type' },
@@ -40,6 +39,18 @@
     { id: 'context', name: 'Sentence gap' },
     { id: 'translation', name: 'Translation' }
   ];
+
+  const focusOn = (id) => (settings.focus || []).indexOf(id) !== -1;
+
+  function toggleFocus(id) {
+    const list = (settings.focus || []).slice();
+    const at = list.indexOf(id);
+    if (at === -1) list.push(id);
+    else list.splice(at, 1);
+    settings.focus = list;
+    MP.store.saveSettings(settings);
+    refresh();
+  }
 
   /* ------------------------------------------------------------------ */
   /* small helpers                                                       */
@@ -66,20 +77,125 @@
     return settings.showHarakat ? word.w : E.stripHarakat(word.w);
   }
 
-  function setScreen(node) {
+  /*
+   * Swap the screen. Toggling a chip is not navigation, so it must not throw
+   * you back to the top of the page — pass keepScroll for in-place updates.
+   */
+  function setScreen(node, keepScroll) {
+    const y = global.scrollY;
     touched = false;
     const root = app();
     root.innerHTML = '';
+    root.appendChild(buildNav());
     root.appendChild(node);
-    root.scrollTop = 0;
-    global.scrollTo(0, 0);
+    if (keepScroll) global.scrollTo(0, y);
+    else global.scrollTo(0, 0);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* the nav bar                                                         */
+  /* ------------------------------------------------------------------ */
+
+  let view = 'practice';   // practice | learn | words | account
+
+  const VIEWS = [
+    { id: 'practice', name: 'Practice', title: 'Practice' },
+    { id: 'learn', name: 'Learn', title: 'Learn' },
+    { id: 'words', name: 'My words', title: 'My words' }
+  ];
+
+  function go(viewId) {
+    view = viewId;
+    render();
+  }
+
+  /* re-draw the current view without moving the page */
+  function refresh() {
+    render(true);
+  }
+
+  function render(keepScroll) {
+    if (view === 'learn') return renderLearn(keepScroll);
+    if (view === 'words') return renderEditor();
+    if (view === 'account') return renderAccount(keepScroll);
+    return renderHome(keepScroll);
+  }
+
+  function buildNav() {
+    const nav = el('nav', { class: 'nav' });
+
+    const brand = el('button', {
+      class: 'nav-brand', type: 'button', onclick: () => go('practice')
+    }, [ar('الصَّرْف', 'nav-brand-ar'), el('span', { class: 'nav-brand-en', text: 'Ṣarf' })]);
+
+    const links = el('div', { class: 'nav-links' });
+    VIEWS.forEach((v) => {
+      links.appendChild(el('button', {
+        class: 'nav-link' + (view === v.id ? ' on' : ''), type: 'button', text: v.name,
+        onclick: () => go(v.id)
+      }));
+    });
+
+    const themeNow = MP.theme.current();
+    const themeBtn = el('button', {
+      class: 'nav-icon', type: 'button',
+      title: 'Theme: ' + themeNow + ' — click to change',
+      text: { light: '☀️', dim: '🌗', dark: '🌙', system: '⚙️' }[themeNow] || '🌗',
+      onclick: () => { MP.theme.cycle(); refresh(); }
+    });
+
+    const signedIn = MP.sync.status().signedIn;
+    const account = el('button', {
+      class: 'nav-account' + (view === 'account' ? ' on' : '') + (signedIn ? ' in' : ''),
+      type: 'button',
+      title: signedIn ? 'Signed in' : 'Not signed in',
+      onclick: () => go('account')
+    }, [
+      el('span', { class: 'nav-avatar', text: signedIn ? '●' : '○' }),
+      el('span', { class: 'nav-account-label', text: signedIn ? 'Account' : 'Sign in' })
+    ]);
+
+    nav.appendChild(brand);
+    nav.appendChild(links);
+    nav.appendChild(el('div', { class: 'nav-right' }, [themeBtn, account]));
+    return nav;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* learn + account views                                               */
+  /* ------------------------------------------------------------------ */
+
+  function renderLearn(keepScroll) {
+    const wrap = el('div', { class: 'screen learn' });
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'Learn' }));
+    wrap.appendChild(buildReference(refSection, (id) => { refSection = id; renderLearn(true); }));
+    setScreen(wrap, keepScroll);
+  }
+
+  function renderAccount(keepScroll) {
+    const wrap = el('div', { class: 'screen account' });
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'Account' }));
+    wrap.appendChild(el('p', { class: 'lede', text: 'Signing in carries your progress and your own words between devices. Everything works without it — the app is yours on this device either way.' }));
+    wrap.appendChild(renderCloudPanel());
+
+    wrap.appendChild(el('section', { class: 'panel' }, [
+      el('h2', { class: 'panel-title', text: 'Appearance' }),
+      el('div', { class: 'switches' }, MP.theme.THEMES.map((t) => el('button', {
+        class: 'switch' + (MP.theme.current() === t.id ? ' on' : ''), type: 'button',
+        onclick: () => { MP.theme.set(t.id); refresh(); }
+      }, [
+        el('span', { class: 'switch-name', text: t.name }),
+        el('span', { class: 'switch-desc', text: t.desc })
+      ])))
+    ]));
+    setScreen(wrap, keepScroll);
   }
 
   /* ------------------------------------------------------------------ */
   /* home                                                                */
   /* ------------------------------------------------------------------ */
 
-  function renderHome() {
+  function renderHome(keepScroll) {
     const stats = MP.store.load();
     const wrap = el('div', { class: 'screen home' });
 
@@ -94,7 +210,7 @@
       const count = E.poolFor(m.id, settings.deckId).length;
       modeGrid.appendChild(el('button', {
         class: 'deck' + (currentMode() === m.id ? ' selected' : ''), type: 'button',
-        onclick: () => { settings.mode = m.id; MP.store.saveSettings(settings); renderHome(); }
+        onclick: () => { settings.mode = m.id; MP.store.saveSettings(settings); refresh(); }
       }, [
         el('span', { class: 'deck-name', text: m.name }),
         el('span', { class: 'deck-desc', text: m.desc }),
@@ -117,7 +233,7 @@
         onclick: () => {
           settings.deckId = d.id;
           MP.store.saveSettings(settings);
-          renderHome();
+          refresh();
         }
       }, [
         el('span', { class: 'deck-name', text: d.name }),
@@ -137,7 +253,7 @@
       lenRow.appendChild(el('button', {
         class: 'chip' + (settings.length === n ? ' on' : ''), type: 'button',
         text: n === 0 ? 'Whole deck' : n + ' words',
-        onclick: () => { settings.length = n; MP.store.saveSettings(settings); renderHome(); }
+        onclick: () => { settings.length = n; MP.store.saveSettings(settings); refresh(); }
       }));
     });
 
@@ -153,7 +269,7 @@
           if (g.locked) return;
           settings.groups[g.id] = !on;
           MP.store.saveSettings(settings);
-          renderHome();
+          refresh();
         }
       }, [
         el('span', { class: 'switch-name', text: g.name }),
@@ -164,44 +280,48 @@
     const toggles = el('div', { class: 'chip-row' }, [
       el('button', {
         class: 'chip' + (settings.showHarakat ? ' on' : ''), type: 'button', text: 'Ḥarakāt shown',
-        onclick: () => { settings.showHarakat = !settings.showHarakat; MP.store.saveSettings(settings); renderHome(); }
+        onclick: () => { settings.showHarakat = !settings.showHarakat; MP.store.saveSettings(settings); refresh(); }
       }),
       el('button', {
         class: 'chip' + (settings.showTranslit ? ' on' : ''), type: 'button', text: 'Transliteration on options',
-        onclick: () => { settings.showTranslit = !settings.showTranslit; MP.store.saveSettings(settings); renderHome(); }
+        onclick: () => { settings.showTranslit = !settings.showTranslit; MP.store.saveSettings(settings); refresh(); }
       }),
       el('button', {
         class: 'chip' + (settings.weakestFirst ? ' on' : ''), type: 'button', text: 'Weakest words first',
-        onclick: () => { settings.weakestFirst = !settings.weakestFirst; MP.store.saveSettings(settings); renderHome(); }
+        onclick: () => { settings.weakestFirst = !settings.weakestFirst; MP.store.saveSettings(settings); refresh(); }
       })
     ]);
 
-    /* focus mode — one question type, many words, fast reps */
+    /* pick any combination of questions: everything, one, or a few */
+    const chosen = settings.focus || [];
     const focusRow = el('div', { class: 'chip-row' });
+    focusRow.appendChild(el('button', {
+      class: 'chip' + (chosen.length ? '' : ' on'), type: 'button', text: 'Everything',
+      onclick: () => { settings.focus = []; MP.store.saveSettings(settings); refresh(); }
+    }));
     FOCUS_MODES.forEach((f) => {
       focusRow.appendChild(el('button', {
-        class: 'chip' + (settings.focus === f.id ? ' on' : ''), type: 'button', text: f.name,
-        onclick: () => { settings.focus = f.id; MP.store.saveSettings(settings); renderHome(); }
+        class: 'chip' + (focusOn(f.id) ? ' on' : ''), type: 'button', text: f.name,
+        onclick: () => toggleFocus(f.id)
       }));
     });
 
     const sessionPanel = [el('h2', { class: 'panel-title', text: 'Session' }), lenRow, toggles];
     if (currentMode() === 'analysis') {
       sessionPanel.push(
-        el('h2', { class: 'panel-title', text: 'Drill one thing only' }),
-        el('p', { class: 'muted small', text: 'Fast reps on a single question, across many words. Everything else is skipped.' }),
+        el('h2', { class: 'panel-title', text: 'Which questions' }),
+        el('p', { class: 'muted small', text: chosen.length
+          ? 'Asking ' + chosen.length + ' question' + (chosen.length === 1 ? '' : 's') + ' per word. Tap more to add them, or Everything to go back to the full walk.'
+          : 'The whole walk. Tap any of these to drill just those instead — one, three, however many you like.' }),
         focusRow,
-        el('h2', { class: 'panel-title', text: 'What to ask' + (settings.focus ? ' (ignored while drilling one thing)' : '') }),
+        el('h2', { class: 'panel-title', text: 'Stages' + (chosen.length ? ' (ignored while specific questions are chosen)' : '') }),
         groupRow
       );
     }
     wrap.appendChild(el('section', { class: 'panel' }, sessionPanel));
 
     wrap.appendChild(el('div', { class: 'cta-row' }, [
-      el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: startSession }),
-      el('button', { class: 'btn big', type: 'button', text: '📖 Reference & bāb summary', onclick: () => openReference('gates') }),
-      el('button', { class: 'btn big', type: 'button', text: '🎯 Tips & tricks', onclick: () => openReference('tricks') }),
-      el('button', { class: 'btn big', type: 'button', text: '✏️ My words', onclick: renderEditor })
+      el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: () => startSession() })
     ]));
 
     /* progress so far */
@@ -232,19 +352,17 @@
         el('button', {
           class: 'btn ghost small', type: 'button', text: 'Reset progress',
           onclick: () => {
-            if (global.confirm('Clear all saved progress?')) { MP.store.reset(); renderHome(); }
+            if (global.confirm('Clear all saved progress?')) { MP.store.reset(); refresh(); }
           }
         })
       ]));
     }
 
-    wrap.appendChild(renderCloudPanel());
-
     if (!MP.store.storageAvailable) {
       wrap.appendChild(el('p', { class: 'muted small', text: 'Note: this browser is blocking local storage, so progress will not be kept between visits.' }));
     }
 
-    setScreen(wrap);
+    setScreen(wrap, keepScroll);
   }
 
   /* one line describing the state of the review queue */
@@ -304,7 +422,7 @@
           go.disabled = true;
           go.textContent = 'Signing in…';
           MP.sync.signIn(pass.value, label.value)
-            .then(() => { renderHome(); })
+            .then(() => { refresh(); })
             .catch(() => { go.disabled = false; go.textContent = 'Sign in'; paint(); });
         });
         pass.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
@@ -321,7 +439,7 @@
         onclick: () => {
           syncBtn.disabled = true;
           syncBtn.textContent = 'Syncing…';
-          MP.sync.syncNow().then(() => renderHome()).catch(() => { syncBtn.disabled = false; paint(); });
+          MP.sync.syncNow().then(() => refresh()).catch(() => { syncBtn.disabled = false; paint(); });
         }
       });
 
@@ -335,7 +453,7 @@
               class: 'btn ghost small', type: 'button', text: d.current ? 'Sign out' : 'Revoke',
               onclick: () => {
                 if (!global.confirm(d.current ? 'Sign this device out?' : 'Revoke "' + d.label + '"?')) return;
-                MP.sync.revoke(d.id).then(() => renderHome()).catch(() => paint());
+                MP.sync.revoke(d.id).then(() => refresh()).catch(() => paint());
               }
             })
           ]));
@@ -348,7 +466,7 @@
         syncBtn,
         el('button', {
           class: 'btn ghost', type: 'button', text: 'Sign out of this device',
-          onclick: () => { MP.sync.signOut(); renderHome(); }
+          onclick: () => { MP.sync.signOut(); refresh(); }
         })
       ]));
       body.appendChild(deviceList);
@@ -407,7 +525,7 @@
     /* top bar */
     const doneSteps = session.stepIndex;
     wrap.appendChild(el('div', { class: 'topbar' }, [
-      el('button', { class: 'btn ghost small', type: 'button', text: '← Home', onclick: renderHome }),
+      el('button', { class: 'btn ghost small', type: 'button', text: '← Practice', onclick: () => go('practice') }),
       el('span', { class: 'counter', text: 'Word ' + (session.index + 1) + ' of ' + session.words.length }),
       el('span', { class: 'counter', text: 'Step ' + (doneSteps + 1) + ' / ' + session.steps.length }),
       el('button', { class: 'btn ghost small', type: 'button', text: '📖 Reference', onclick: () => openReference(sectionForStep(step)) })
@@ -548,7 +666,7 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') grade(); });
     setTimeout(() => input.focus(), 30);
 
-    const box = el('div', {}, [form,
+    const box = el('div', {}, [form, MP.keyboard.attach(input, { onEnter: grade }),
       el('button', {
         class: 'btn ghost small', type: 'button', text: "I don't know",
         onclick: () => {
@@ -945,44 +1063,35 @@
     document.body.classList.remove('locked');
   }
 
-  function renderReference() {
-    const overlay = $('#reference');
-    if (!overlay) return;
-    const section = MP.reference.sections.find((s) => s.id === refSection) || MP.reference.sections[0];
-
-    overlay.innerHTML = '';
-    const head = el('div', { class: 'ref-head' }, [
-      el('h2', { class: 'ref-title', text: 'Reference' }),
-      el('button', { class: 'btn ghost small', type: 'button', text: 'Close ✕', onclick: closeReference })
-    ]);
+  /*
+   * The reference content, without any chrome: used both by the Learn view and
+   * by the overlay that opens from inside a session.
+   */
+  function buildReference(sectionId, onSelect) {
+    const section = MP.reference.sections.find((s) => s.id === sectionId) || MP.reference.sections[0];
+    const box = el('div', { class: 'ref-wrap' });
 
     const tabs = el('div', { class: 'ref-tabs' });
     MP.reference.sections.forEach((s) => {
       tabs.appendChild(el('button', {
         class: 'chip' + (s.id === section.id ? ' on' : ''), type: 'button', text: s.name,
-        onclick: () => { refSection = s.id; renderReference(); }
+        onclick: () => onSelect(s.id)
       }));
     });
+    box.appendChild(tabs);
 
     const body = el('div', { class: 'ref-body' });
     body.appendChild(el('p', { class: 'ref-intro' }, [arabicAware(section.intro)]));
 
     if (section.kind === 'formtables') {
       body.appendChild(renderFormTables());
-      overlay.appendChild(head);
-      overlay.appendChild(tabs);
-      overlay.appendChild(body);
-      overlay.scrollTop = 0;
-      return;
+      box.appendChild(body);
+      return box;
     }
-
     if (section.kind === 'conjugator') {
       body.appendChild(renderConjugator());
-      overlay.appendChild(head);
-      overlay.appendChild(tabs);
-      overlay.appendChild(body);
-      overlay.scrollTop = 0;
-      return;
+      box.appendChild(body);
+      return box;
     }
 
     section.cards.forEach((c) => {
@@ -1034,9 +1143,20 @@
       body.appendChild(card);
     });
 
-    overlay.appendChild(head);
-    overlay.appendChild(tabs);
-    overlay.appendChild(body);
+    box.appendChild(body);
+    return box;
+  }
+
+  /* the overlay version, for looking something up mid-session */
+  function renderReference() {
+    const overlay = $('#reference');
+    if (!overlay) return;
+    overlay.innerHTML = '';
+    overlay.appendChild(el('div', { class: 'ref-head' }, [
+      el('h2', { class: 'ref-title', text: 'Reference' }),
+      el('button', { class: 'btn ghost small', type: 'button', text: 'Close ✕', onclick: closeReference })
+    ]));
+    overlay.appendChild(buildReference(refSection, (id) => { refSection = id; renderReference(); }));
     overlay.scrollTop = 0;
   }
 
@@ -1209,7 +1329,7 @@
         ? el('button', { class: 'btn primary big', type: 'button', text: 'Practise the ' + missed.length + ' missed', onclick: () => startSession(missed) })
         : el('span', {}),
       el('button', { class: 'btn big', type: 'button', text: 'Another session', onclick: () => startSession() }),
-      el('button', { class: 'btn ghost big', type: 'button', text: 'Home', onclick: renderHome })
+      el('button', { class: 'btn ghost big', type: 'button', text: 'Practice', onclick: () => go('practice') })
     ]));
 
     setScreen(wrap);
@@ -1218,12 +1338,14 @@
   /* ------------------------------------------------------------------ */
 
   function renderEditor() {
-    MP.editor.render(app(), renderHome);
+    const wrap = el('div', { class: 'screen words' });
+    setScreen(wrap);
+    MP.editor.render(wrap, () => go('practice'));
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     MP.custom.apply();   // fold in anything the user has added
-    renderHome();
+    render();
     /* Pull anything a second device did since we were last here — but never
        redraw under someone's finger: if they have already started tapping,
        the fresher data waits until the next time home is drawn. */
@@ -1231,7 +1353,7 @@
       if (result && !touched && $('.home')) {
         MP.custom.apply();
         settings = MP.store.loadSettings();
-        renderHome();
+        refresh();
       }
     });
   });

@@ -62,9 +62,9 @@ matching page of the reference.
 
 ## The reference
 
-A **📖 Reference** button on the home screen and in the top bar of every
-question, opening over the drill without losing your place, and a **🎯 Tips &
-tricks** button that opens it straight at the tricks page. Ten tabs:
+**Learn** in the nav bar, and a **📖 Reference** button in the top bar of every
+question that opens the same thing as an overlay so a lookup mid-session never
+costs you your place. Ten tabs:
 
 - **Tips & tricks** — sixteen cards of give-aways: the endings said out loud
   ("-aani" a dual, "-oona" a masculine plural, "-aat" a sound feminine plural,
@@ -101,13 +101,6 @@ tricks** button that opens it straight at the tricks page. Ten tabs:
   hand so you can see exactly where the stem shifts.
 - **Quick spotting guide** — the tells worth memorising, gathered on one page.
 
-## Drilling one thing at a time
-
-"Drill one thing only" on the home screen turns a session into fast reps of a
-single question across many words: bāb identification, active/passive,
-ṣaḥīḥ/muʿtall category, radicals, kind of noun, ṣarf ṣaghīr placement, root,
-back-to-the-māḍī, sentence gap, or translation. Twenty words, one question each.
-
 ## Spaced repetition
 
 Every word sits in a Leitner box. Analyse a word with no mistakes and it moves
@@ -115,6 +108,42 @@ up a box (1, 2, 4, 8, 16, 32 days); slip on any question and it drops back and
 returns sooner. The **Due for review** deck is whatever the boxes say you are
 closest to forgetting, most overdue first — that is the deck to open daily once
 the vocabulary starts building up.
+
+## Getting around
+
+A nav bar across the top: **Practice**, **Learn** and **My words**, with the
+theme switch and your account on the right.
+
+- **Practice** — pick the mode, the deck, the length and which questions to
+  ask, then start.
+- **Learn** — the whole reference as a proper page rather than a pop-up: tips
+  and tricks, the six gates, Forms II–X, the form tables, the conjugator and
+  the rest. (It still opens as an overlay from inside a session, so looking
+  something up never costs you your place.)
+- **My words** — the editor.
+- **Account** — sign in for sync, and choose the theme.
+
+### Themes
+
+Three: **light**, **dim** and **dark**, plus "system" to follow the device.
+Dim is the middle one — warm off-white paper with softened contrast, easier on
+the eyes for a long session than plain light. The switch is the icon in the nav
+bar; it cycles light → dim → dark, or pick one in Account.
+
+### Choosing what to drill
+
+Under **Which questions**, "Everything" walks the full chart. Tap any
+combination of the individual questions — bāb, active/passive, radicals, root,
+ṣarf ṣaghīr, translation and the rest — to drill just those: one question per
+word, or three, or however many you pick.
+
+### The Arabic keyboard
+
+Every typed answer has an on-screen Arabic keypad under it, laid out in
+alphabet order rather than the ض ص ث keyboard order, because hunting for a
+letter by its place in the alphabet is quicker while you are still learning.
+Ḥarakāt sit on their own row and are **optional** — answers are checked on the
+letters, so vowels only matter if you want the practice.
 
 ## Running it
 
@@ -318,6 +347,8 @@ data, so a change to the generator cannot quietly go wrong.
 | `src/engine.js` | turns a word into its question sequence, grades answers, keeps score |
 | `src/store.js` | settings and progress in local storage |
 | `src/app.js` | screens and rendering |
+| `src/theme.js` | light / dim / dark, applied before first paint |
+| `src/keyboard.js` | the on-screen Arabic keypad |
 | `src/pwa.js` | service worker registration and the update prompt |
 | `sw.js` | the service worker: offline caching of the whole app shell |
 | `tools/validate.js` | data integrity check |

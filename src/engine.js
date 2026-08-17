@@ -169,6 +169,15 @@
     return Object.assign({ kind: 'choice' }, o);
   }
 
+  /* Which questions to ask: an empty list means "everything". Older settings
+     stored a single id as a string, so accept that too. */
+  function focusList(settings) {
+    const f = settings && settings.focus;
+    if (Array.isArray(f)) return f.filter((x) => typeof x === 'string' && x);
+    if (typeof f === 'string' && f) return [f];
+    return [];
+  }
+
   function buildSteps(subject, settings) {
     /* the production modes hand us a synthetic subject, not a word */
     if (subject.kind === 'production') return [productionStep(subject)];
@@ -189,9 +198,10 @@
 
     const word = subject;
     const p = paradigmOf(word);
-    /* in focus mode every stage is built, then all but the focused one is
-       dropped at the end — so a switched-off group cannot hide it */
-    const on = (g) => (settings.focus ? true : settings.groups[g] !== false);
+    const focus = focusList(settings);
+    /* when specific questions are chosen, every stage is built and the rest
+       dropped at the end — so a switched-off group cannot hide one */
+    const on = (g) => (focus.length ? true : settings.groups[g] !== false);
     const steps = [];
 
     /* --- identity --- */
@@ -358,7 +368,7 @@
       steps.push(clozeStep(word));
     }
 
-    if (settings.focus) return steps.filter((s) => s.id === settings.focus);
+    if (focus.length) return steps.filter((s) => focus.indexOf(s.id) !== -1);
     return steps;
   }
 
@@ -525,8 +535,8 @@
     const mode = settings.mode || 'analysis';
     let pool = poolFor(mode, opts.deckId || 'all');
 
-    /* in focus mode, keep only the words that actually have that question */
-    if (settings.focus && mode === 'analysis') {
+    /* keep only the words that actually carry the chosen questions */
+    if (focusList(settings).length && mode === 'analysis') {
       pool = pool.filter((w) => buildSteps(w, settings).length > 0);
     }
 
@@ -625,6 +635,7 @@
     matchesArabic,
     acceptedForms,
     poolFor,
+    focusList,
     buildSteps,
     buildSession,
     optionsFor,

@@ -12,7 +12,7 @@
   const DEFAULT_SETTINGS = {
     deckId: 'all',
     length: 10,
-    focus: null,
+    focus: [],
     showTranslit: true,
     showHarakat: true,
     weakestFirst: true,
@@ -66,6 +66,9 @@
     const s = hasLS ? safeParse(raw, null) : memory.settings;
     const merged = Object.assign({}, DEFAULT_SETTINGS, s || {});
     merged.groups = Object.assign({}, DEFAULT_SETTINGS.groups, (s && s.groups) || {});
+    /* focus used to be a single id; it is a list now */
+    if (typeof merged.focus === 'string') merged.focus = merged.focus ? [merged.focus] : [];
+    if (!Array.isArray(merged.focus)) merged.focus = [];
     return merged;
   }
 

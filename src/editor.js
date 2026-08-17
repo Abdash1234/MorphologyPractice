@@ -95,12 +95,7 @@
   function render(host, onBack) {
     const wrap = el('div', { class: 'screen editor' });
 
-    wrap.appendChild(el('div', { class: 'topbar' }, [
-      el('button', { class: 'btn ghost small', type: 'button', text: '← Home', onclick: onBack }),
-      el('span', { class: 'counter', text: 'My words' })
-    ]));
-
-    wrap.appendChild(el('h1', { class: 'title', text: 'My words' }));
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'My words' }));
     wrap.appendChild(el('p', { class: 'lede', text: 'Anything you add here joins the bank: it gets the same analysis questions, the same ṣarf ṣaghīr, the same drills and the same review schedule as the built-in words. It is kept in this browser, so export a copy if you want it elsewhere.' }));
 
     if (notice) {
