@@ -38,6 +38,11 @@
   function register() {
     if (!supported) return;
 
+    /* Only a reload the user actually asked for. The first visit also fires
+       controllerchange — the new worker claiming the page — and reloading
+       there would restart the app under them seconds after opening it. */
+    let updateAccepted = false;
+
     navigator.serviceWorker.register('./sw.js').then((reg) => {
       reg.addEventListener('updatefound', () => {
         const incoming = reg.installing;
@@ -47,6 +52,7 @@
              rather than the very first install */
           if (incoming.state === 'installed' && navigator.serviceWorker.controller) {
             banner('A new version of the app is ready.', 'Reload', () => {
+              updateAccepted = true;
               incoming.postMessage('SKIP_WAITING');
             });
           }
@@ -56,7 +62,7 @@
 
     let reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloading) return;
+      if (!updateAccepted || reloading) return;   // first install: nothing to do
       reloading = true;
       location.reload();
     });

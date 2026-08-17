@@ -1084,6 +1084,15 @@
 
     /* ------------------------------------------------------------- */
     {
+      id: 'forms-tables',
+      name: 'Form tables',
+      kind: 'formtables',
+      intro: 'A page for every bāb: the whole thing it produces, with each line labelled for what it is. The left column is the bare pattern on فعل, the right is a real verb in the same shape — read across and you see the rule and the example at once.',
+      cards: []
+    },
+
+    /* ------------------------------------------------------------- */
+    {
       id: 'tables',
       name: 'Conjugate any verb',
       kind: 'conjugator',

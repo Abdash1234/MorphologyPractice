@@ -64,7 +64,7 @@ matching page of the reference.
 
 A **📖 Reference** button on the home screen and in the top bar of every
 question, opening over the drill without losing your place, and a **🎯 Tips &
-tricks** button that opens it straight at the tricks page. Nine tabs:
+tricks** button that opens it straight at the tricks page. Ten tabs:
 
 - **Tips & tricks** — sixteen cards of give-aways: the endings said out loud
   ("-aani" a dual, "-oona" a masculine plural, "-aat" a sound feminine plural,
@@ -89,6 +89,12 @@ tricks** button that opens it straight at the tricks page. Nine tabs:
 - **Ṣaḥīḥ & muʿtall** — every category with what actually changes in the verb.
 - **The 14 forms** — ṣarf kabīr: the full person/gender/number endings for the
   māḍī, muḍāriʿ and amr on the فَعَلَ pattern.
+- **Form tables** — a page per bāb: all six gates, Forms II–X and both rubāʿī
+  patterns. Each page lays out everything that bāb produces, every line
+  labelled with a bubble for what it is — māḍī active and passive, the muḍāriʿ
+  in all four states (marfūʿ, manṣūb, majzūm, muʾakkad) plus its passive, the
+  amr and nahy, and the maṣdar, participles, ẓarf and ālah. Two columns: the
+  bare pattern on فعل, and a real verb in the same shape beside it.
 - **Conjugate any verb** — pick any of 37 verbs and read its complete table:
   fourteen māḍī, fourteen muḍāriʿ, six amr. Regular verbs are built from their
   two principal parts; قَالَ، بَاعَ، رَمَى، دَعَا، نَسِيَ and مَدَّ are written out by

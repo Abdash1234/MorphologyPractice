@@ -18,6 +18,7 @@ require('../src/reference.js');
 require('../src/conjugation.js');
 require('../src/sentences.js');
 require('../src/generator.js');
+require('../src/tables.js');
 require('../src/store.js');
 require('../src/engine.js');
 require('../src/custom.js');
@@ -275,8 +276,9 @@ Object.keys(MP.paradigms).forEach((id) => {
 /* ---- reference content ---- */
 MP.reference.sections.forEach((sec) => {
   if (!sec.id || !sec.name || !sec.intro) fail(`reference section ${sec.id}: missing id/name/intro`);
-  /* the conjugator tab builds itself from the tables, so it has no cards */
-  if (!sec.cards.length && sec.kind !== 'conjugator') fail(`reference section ${sec.id}: no cards`);
+  /* two tabs build themselves from data rather than from cards */
+  const selfBuilding = sec.kind === 'conjugator' || sec.kind === 'formtables';
+  if (!sec.cards.length && !selfBuilding) fail(`reference section ${sec.id}: no cards`);
   if (sec.kind === 'conjugator' && !MP.conjugation.conjugatable().length) {
     fail('the conjugator tab has no verbs to show');
   }
@@ -289,6 +291,34 @@ MP.reference.sections.forEach((sec) => {
       if (!x.ar || !x.en) fail(`reference card "${c.title}": example missing ar/en`);
     });
   });
+});
+
+/* ---- one page per bāb ---- */
+MP.tables.FORMS.forEach((f) => {
+  const page = MP.tables.pageFor(f.id);
+  if (!page) {
+    fail(`form table "${f.id}" does not build`);
+    return;
+  }
+  if (!MP.paradigms[f.example]) fail(`form table "${f.id}": example paradigm "${f.example}" is missing`);
+  page.groups.forEach((g) => {
+    if (!g.rows.length) fail(`form table "${f.id}": group "${g.titleEn}" is empty`);
+    g.rows.forEach((r) => {
+      if (!r.ar || !r.en) fail(`form table "${f.id}": a row has no label`);
+      [r.pattern, r.example].forEach((cell) => {
+        if (typeof cell !== 'string' || !cell.trim()) fail(`form table "${f.id}": empty cell on "${r.en}"`);
+        if (cell !== MP.NOT_USED && !/[؀-ۿ]/.test(cell)) {
+          fail(`form table "${f.id}": "${r.en}" is not Arabic — "${cell}"`);
+        }
+      });
+    });
+  });
+  /* the māḍī and muḍāriʿ shown must be the real verb's, not something derived */
+  const ex = MP.paradigms[f.example];
+  const madiRow = page.groups[0].rows[0];
+  const mudariRow = page.groups[1].rows[0];
+  if (madiRow.example !== ex.madi) fail(`form table "${f.id}": māḍī does not match the paradigm`);
+  if (mudariRow.example !== ex.mudari) fail(`form table "${f.id}": muḍāriʿ does not match the paradigm`);
 });
 
 /* ---- decks ---- */
@@ -322,6 +352,7 @@ MP.words.forEach((w) => {
 console.log(`words: ${MP.words.length}   paradigms: ${Object.keys(MP.paradigms).length}`);
 console.log('sub-type coverage:', subtypes);
 if (missingBaabs.length) console.log('abwāb with no example word:', missingBaabs.join(', '));
+console.log('form tables: ' + MP.tables.FORMS.length + ' pages');
 console.log('generator checked against ' + genChecked + ' sound paradigms');
 console.log('sentences: ' + Object.keys(MP.sentences).length + ' (' + covered + ' words covered)   conjugation tables: ' + C.conjugatable().length);
 console.log('decks:', T.decks.map((d) => `${d.id}=${E.deckWords(d.id).length}`).join('  '));

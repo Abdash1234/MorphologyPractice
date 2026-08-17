@@ -919,7 +919,10 @@
        exactly what the tricks page is for */
     if (['person', 'gender', 'number', 'mood'].indexOf(step.id) !== -1) return 'tricks';
     if (step.id === 'tense') return 'sighah';
-    if (step.id === 'sarf' || step.id === 'root') return 'nouns';
+    /* the ṣarf ṣaghīr question is about the cells, which is what the form
+       tables lay out line by line */
+    if (step.id === 'sarf') return 'forms-tables';
+    if (step.id === 'root') return 'nouns';
     return 'spotting';
   }
 
@@ -963,6 +966,15 @@
 
     const body = el('div', { class: 'ref-body' });
     body.appendChild(el('p', { class: 'ref-intro' }, [arabicAware(section.intro)]));
+
+    if (section.kind === 'formtables') {
+      body.appendChild(renderFormTables());
+      overlay.appendChild(head);
+      overlay.appendChild(tabs);
+      overlay.appendChild(body);
+      overlay.scrollTop = 0;
+      return;
+    }
 
     if (section.kind === 'conjugator') {
       body.appendChild(renderConjugator());
@@ -1026,6 +1038,74 @@
     overlay.appendChild(tabs);
     overlay.appendChild(body);
     overlay.scrollTop = 0;
+  }
+
+  /* ---- one page per bāb, every line labelled ---- */
+  let formPage = 'nasara';
+
+  function renderFormTables() {
+    const box = el('div', { class: 'form-tables' });
+
+    /* picker, grouped the way the chart groups them */
+    ['Thulāthī mujarrad', 'Mazīd fīh', 'Rubāʿī'].forEach((groupName) => {
+      const row = el('div', { class: 'chip-row' });
+      MP.tables.FORMS.filter((f) => f.group === groupName).forEach((f) => {
+        row.appendChild(el('button', {
+          class: 'chip' + (f.id === formPage ? ' on' : ''), type: 'button', text: f.label,
+          onclick: () => { formPage = f.id; renderReference(); }
+        }));
+      });
+      box.appendChild(el('div', { class: 'picker-group' }, [
+        el('span', { class: 'picker-label', text: groupName }), row
+      ]));
+    });
+
+    const page = MP.tables.pageFor(formPage);
+    if (!page) return box;
+
+    box.appendChild(el('div', { class: 'form-head' }, [
+      el('div', { class: 'form-head-main' }, [
+        ar(page.headline, 'form-pattern'),
+        el('span', { class: 'form-title', text: page.label })
+      ]),
+      el('div', { class: 'form-head-example' }, [
+        ar(page.exampleHeadline, 'form-example-ar'),
+        el('span', { class: 'muted small' }, [arabicAware(page.root + ' · ' + page.meaning)])
+      ])
+    ]));
+
+    box.appendChild(el('div', { class: 'form-columns' }, [
+      el('span', { class: 'form-col-label', text: '' }),
+      el('span', { class: 'form-col-label', text: 'the pattern' }),
+      el('span', { class: 'form-col-label', text: 'a real verb' })
+    ]));
+
+    page.groups.forEach((group) => {
+      const g = el('div', { class: 'form-group' }, [
+        el('div', { class: 'form-group-head' }, [
+          ar(group.title, 'form-group-ar'),
+          el('span', { class: 'form-group-en', text: group.titleEn })
+        ])
+      ]);
+      group.rows.forEach((r) => {
+        const unused = r.pattern === MP.NOT_USED && r.example === MP.NOT_USED;
+        g.appendChild(el('div', { class: 'form-row' + (unused ? ' unused' : '') }, [
+          el('span', { class: 'bubble' }, [
+            ar(r.ar, 'bubble-ar'),
+            el('span', { class: 'bubble-en', text: r.en })
+          ]),
+          el('span', { class: 'form-cell' }, [
+            ar(r.pattern, 'form-cell-ar'),
+            r.note ? el('span', { class: 'form-note', text: r.note }) : null
+          ].filter(Boolean)),
+          ar(r.example, 'form-cell-ar example')
+        ]));
+      });
+      box.appendChild(g);
+    });
+
+    box.appendChild(el('p', { class: 'muted small', text: 'A dash means the bāb has no such form — an intransitive verb has no passive and no ism al-mafʿūl, and only the bare triliteral gives a ẓarf or an ālah.' }));
+    return box;
   }
 
   /* ---- the conjugation table viewer inside the reference ---- */
