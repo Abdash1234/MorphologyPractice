@@ -148,6 +148,22 @@
       onclick: () => { MP.theme.cycle(); refresh(); }
     });
 
+    /* Which language leads, one tap away wherever you are. The button shows
+       the script you are reading now, so it reads as a state, not a command. */
+    const langBtn = el('button', {
+      class: 'nav-icon lang' + (settings.arabicFirst ? ' on' : ''), type: 'button',
+      title: settings.arabicFirst
+        ? 'Arabic terms first — showing "fiʿl" with "Verb" underneath. Click for English.'
+        : 'English first — showing "Verb" with "fiʿl" underneath. Click for the Arabic term.',
+      'aria-pressed': settings.arabicFirst ? 'true' : 'false',
+      text: settings.arabicFirst ? 'ع' : 'A',
+      onclick: () => {
+        settings.arabicFirst = !settings.arabicFirst;
+        MP.store.saveSettings(settings);
+        refresh();
+      }
+    });
+
     const signedIn = MP.sync.status().signedIn;
     const account = el('button', {
       class: 'nav-account' + (view === 'account' ? ' on' : '') + (signedIn ? ' in' : ''),
@@ -161,7 +177,7 @@
 
     nav.appendChild(brand);
     nav.appendChild(links);
-    nav.appendChild(el('div', { class: 'nav-right' }, [themeBtn, account]));
+    nav.appendChild(el('div', { class: 'nav-right' }, [langBtn, themeBtn, account]));
     return nav;
   }
 

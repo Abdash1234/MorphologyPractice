@@ -1287,6 +1287,16 @@ select.input { cursor: pointer; }
   line-height: 1;
 }
 .nav-icon:hover { border-color: var(--accent); }
+/* the language switch shows the script in force, so it needs the Arabic face
+   for one of its two states */
+.nav-icon.lang { font-size: 17px; font-weight: 600; }
+.nav-icon.lang.on {
+  font-family: var(--font-ar);
+  font-size: 21px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-raised));
+  color: var(--accent);
+}
 .nav-account {
   display: flex;
   align-items: center;
