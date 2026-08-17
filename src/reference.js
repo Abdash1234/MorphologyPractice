@@ -546,6 +546,8 @@
     {
       id: 'gates',
       name: 'The six gates',
+      /* six long cards: one page each, rather than one page you scroll */
+      subpages: true,
       intro: 'Every thulāthī mujarrad verb belongs to one of these six abwāb. The bāb is decided by two vowels: the one on the middle letter of the māḍī, and the one on the middle letter of the muḍāriʿ. Learn the pair and you can build the whole ṣarf ṣaghīr yourself.',
       cards: [
         {
@@ -639,6 +641,8 @@
     {
       id: 'forms',
       name: 'Forms II–X',
+      /* nine long cards: one page each */
+      subpages: true,
       intro: 'A mazīd fīh verb is the root plus one or more added letters, and each set of additions carries its own meaning. Learn what each form does and you can often guess a new verb from a root you already know.',
       cards: [
         {

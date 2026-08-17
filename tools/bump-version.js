@@ -28,6 +28,16 @@ function shellFiles() {
     .sort()
     .forEach((f) => list.push('./assets/icons/' + f));
 
+  /* the Arabic faces: without them offline falls back to a serif that stacks
+     the ḥarakāt on the letters, which is the whole reason they are bundled */
+  const fontDir = path.join(root, 'assets', 'fonts');
+  if (fs.existsSync(fontDir)) {
+    fs.readdirSync(fontDir)
+      .filter((f) => f.endsWith('.woff2'))
+      .sort()
+      .forEach((f) => list.push('./assets/fonts/' + f));
+  }
+
   return list;
 }
 

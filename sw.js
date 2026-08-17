@@ -10,7 +10,7 @@
  */
 'use strict';
 
-const VERSION = '20260817-3ef6bd0';
+const VERSION = '20260817-arabic-type';
 const CACHE = 'sarf-' + VERSION;
 
 const PRECACHE = [
@@ -27,6 +27,9 @@ const PRECACHE = [
   './src/sentences.js',
   './src/generator.js',
   './src/tables.js',
+  './src/sarf.js',
+  './src/dictionary.js',
+  './src/evidence.js',
   './src/keyboard.js',
   './src/custom.js',
   './src/store.js',
@@ -38,7 +41,11 @@ const PRECACHE = [
   './assets/icons/apple-touch-icon.png',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
-  './assets/icons/icon-maskable-512.png'
+  './assets/icons/icon-maskable-512.png',
+  './assets/fonts/amiri-arabic-400.woff2',
+  './assets/fonts/amiri-arabic-700.woff2',
+  './assets/fonts/scheherazade-arabic-400.woff2',
+  './assets/fonts/scheherazade-arabic-700.woff2'
 ];
 
 self.addEventListener('install', (event) => {

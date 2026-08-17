@@ -16,6 +16,14 @@
     showTranslit: true,
     showHarakat: true,
     weakestFirst: true,
+    /* the ṣarf ṣaghīr overview: how much of it is blanked out, and whether
+       English is shown at all. English is off by default — beside a gap it
+       gives the answer away by matching. */
+    sarfBlank: 'none',
+    sarfEnglish: false,
+    /* Arabic as the headline and English as the small print, rather than the
+       other way round — see the .arabic-first block in styles.css */
+    arabicFirst: false,
     groups: { identity: true, features: true, structure: true, root: true, sarf: true, translation: true }
   };
 

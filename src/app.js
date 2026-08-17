@@ -31,10 +31,9 @@
     { id: 'baab', name: 'Bāb / form' },
     { id: 'voice', name: 'Active / passive' },
     { id: 'subtype', name: 'Ṣaḥīḥ / muʿtall type' },
-    { id: 'radicals', name: 'Radicals' },
     { id: 'ismType', name: 'Kind of noun' },
     { id: 'sarf', name: 'Ṣarf ṣaghīr' },
-    { id: 'root', name: 'Root' },
+    { id: 'root', name: 'Root & radicals' },
     { id: 'baseMadi', name: 'Back to the māḍī' },
     { id: 'context', name: 'Sentence gap' },
     { id: 'translation', name: 'Translation' }
@@ -84,6 +83,9 @@
   function setScreen(node, keepScroll) {
     const y = global.scrollY;
     touched = false;
+    /* one class on the body drives the whole Arabic-first layout, including
+       the reference overlay, which lives outside #app */
+    document.body.classList.toggle('arabic-first', !!settings.arabicFirst);
     const root = app();
     root.innerHTML = '';
     root.appendChild(buildNav());
@@ -101,6 +103,7 @@
   const VIEWS = [
     { id: 'practice', name: 'Practice', title: 'Practice' },
     { id: 'learn', name: 'Learn', title: 'Learn' },
+    { id: 'dictionary', name: 'Dictionary', title: 'Dictionary' },
     { id: 'words', name: 'My words', title: 'My words' }
   ];
 
@@ -116,6 +119,7 @@
 
   function render(keepScroll) {
     if (view === 'learn') return renderLearn(keepScroll);
+    if (view === 'dictionary') return renderDictionary(keepScroll);
     if (view === 'words') return renderEditor();
     if (view === 'account') return renderAccount(keepScroll);
     return renderHome(keepScroll);
@@ -168,8 +172,109 @@
   function renderLearn(keepScroll) {
     const wrap = el('div', { class: 'screen learn' });
     wrap.appendChild(el('h1', { class: 'view-title', text: 'Learn' }));
-    wrap.appendChild(buildReference(refSection, (id) => { refSection = id; renderLearn(true); }));
+    wrap.appendChild(buildReference(
+      refSection,
+      (id) => { refSection = id; renderLearn(true); },
+      () => renderLearn(true)
+    ));
     setScreen(wrap, keepScroll);
+  }
+
+  /* ---- the dictionary: every word in the app, as a catalogue ---- */
+
+  let dictQuery = '';
+  let dictGroup = 'all';
+  let dictSound = 'all';
+
+  function renderDictionary(keepScroll) {
+    const wrap = el('div', { class: 'screen dictionary' });
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'Dictionary' }));
+    wrap.appendChild(el('p', { class: 'lede', text: 'Every word the app knows, one row per entry, with its principal parts side by side. Search in Arabic or English — ḥarakāt are ignored, so نصر finds نَصَرَ.' }));
+
+    const all = MP.dictionary.entries();
+    const list = el('div', { class: 'dict-list' });
+    const count = el('p', { class: 'muted small' });
+
+    /* the search box keeps its own focus and caret across a repaint, so the
+       list can update on every keystroke without interrupting the typing */
+    const search = el('input', {
+      class: 'input dict-search', type: 'search', value: dictQuery,
+      placeholder: 'Search — نصر, naṣara, to help…',
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false'
+    });
+
+    function paint() {
+      const rows = MP.dictionary.filter(all, dictQuery, dictGroup, dictSound);
+      count.textContent = rows.length + ' of ' + all.length + ' entries';
+      list.innerHTML = '';
+
+      if (!rows.length) {
+        list.appendChild(el('p', { class: 'muted', text: 'Nothing matches that.' }));
+        return;
+      }
+
+      list.appendChild(el('div', { class: 'dict-row dict-head' }, [
+        el('span', { class: 'dict-meaning', text: 'Meaning' }),
+        el('span', { class: 'dict-cell-h', text: 'māḍī' }),
+        el('span', { class: 'dict-cell-h', text: 'muḍāriʿ' }),
+        el('span', { class: 'dict-cell-h', text: 'maṣdar' }),
+        el('span', { class: 'dict-cell-h', text: 'amr' })
+      ]));
+
+      rows.forEach((r) => {
+        const meaning = el('span', { class: 'dict-meaning' }, [
+          el('span', { class: 'dict-en', text: r.en || '—' }),
+          el('span', { class: 'dict-meta' }, [
+            r.root ? ar(r.root, 'dict-root') : el('span', {}),
+            el('span', { class: 'dict-baab', text: r.baabEn || '' }),
+            r.custom ? el('span', { class: 'dict-mine', text: 'yours' }) : el('span', {})
+          ])
+        ]);
+
+        const cellOf = (v) => (v === MP.NOT_USED
+          ? el('span', { class: 'dict-cell dash', text: MP.NOT_USED })
+          : ar(v, 'dict-cell'));
+
+        list.appendChild(el('div', { class: 'dict-row' + (r.kind === 'word' ? ' plain' : '') }, [
+          meaning, cellOf(r.madi), cellOf(r.mudari), cellOf(r.masdar), cellOf(r.amr)
+        ]));
+      });
+    }
+
+    let typing = null;
+    search.addEventListener('input', () => {
+      dictQuery = search.value;
+      global.clearTimeout(typing);
+      typing = global.setTimeout(paint, 90);
+    });
+
+    const groupRow = el('div', { class: 'chip-row' });
+    MP.dictionary.GROUPS.forEach((g) => {
+      groupRow.appendChild(el('button', {
+        class: 'chip' + (dictGroup === g.id ? ' on' : ''), type: 'button', text: g.name,
+        onclick: () => { dictGroup = g.id; renderDictionary(true); }
+      }));
+    });
+
+    const soundRow = el('div', { class: 'chip-row' });
+    MP.dictionary.SOUNDNESS.forEach((s) => {
+      soundRow.appendChild(el('button', {
+        class: 'chip' + (dictSound === s.id ? ' on' : ''), type: 'button', text: s.name,
+        onclick: () => { dictSound = s.id; renderDictionary(true); }
+      }));
+    });
+
+    wrap.appendChild(el('section', { class: 'panel' }, [
+      search, groupRow, soundRow, count
+    ]));
+    wrap.appendChild(list);
+
+    paint();
+    setScreen(wrap, keepScroll);
+    if (dictQuery) {
+      search.focus();
+      search.setSelectionRange(dictQuery.length, dictQuery.length);
+    }
   }
 
   function renderAccount(keepScroll) {
@@ -188,6 +293,39 @@
         el('span', { class: 'switch-desc', text: t.desc })
       ])))
     ]));
+
+    /* which language leads */
+    wrap.appendChild(el('section', { class: 'panel' }, [
+      el('h2', { class: 'panel-title', text: 'Which language leads' }),
+      el('div', { class: 'switches' }, [
+        el('button', {
+          class: 'switch' + (settings.arabicFirst ? '' : ' on'), type: 'button',
+          onclick: () => { settings.arabicFirst = false; MP.store.saveSettings(settings); refresh(); }
+        }, [
+          el('span', { class: 'switch-name', text: 'English first' }),
+          el('span', { class: 'switch-desc', text: 'The English term leads and the Arabic sits beside it.' })
+        ]),
+        el('button', {
+          class: 'switch' + (settings.arabicFirst ? ' on' : ''), type: 'button',
+          onclick: () => { settings.arabicFirst = true; MP.store.saveSettings(settings); refresh(); }
+        }, [
+          el('span', { class: 'switch-name', text: 'Arabic first' }),
+          el('span', { class: 'switch-desc', text: 'The Arabic is the headline and the English becomes small print underneath.' })
+        ])
+      ]),
+      /* a live sample of the thing being described, in whichever mode is on */
+      el('div', { class: 'lang-sample' }, [
+        el('span', { class: 'muted small', text: 'Looks like this:' }),
+        el('span', { class: 'option sample-option' }, [
+          ar('سَالِم', 'option-ar'),
+          el('span', { class: 'option-en' }, [
+            el('span', { class: 'option-en-main', text: 'Perfectly sound' }),
+            el('span', { class: 'option-tr', text: 'sālim' })
+          ])
+        ])
+      ])
+    ]));
+
     setScreen(wrap, keepScroll);
   }
 
@@ -493,7 +631,9 @@
       polarity: 'Affirmative/negative', person: 'Person', gender: 'Gender', number: 'Number',
       ismType: 'Kind of noun', letters: 'Thulāthī / rubāʿī', augmentation: 'Mujarrad / mazīd',
       baab: 'Bāb / form', soundness: 'Ṣaḥīḥ / muʿtall', subtype: 'Sub-category',
-      mahmuzPosition: 'Hamzah position', root: 'Root', sarf: 'Ṣarf ṣaghīr', translation: 'Translation'
+      mahmuzPosition: 'Hamzah position', root: 'Root & radicals', sarf: 'Ṣarf ṣaghīr',
+      translation: 'Translation', baseMadi: 'Back to the māḍī', context: 'In a sentence',
+      production: 'Build the form', conjugation: 'Conjugation'
     };
     return names[id] || id;
   }
@@ -587,7 +727,10 @@
         if (step.kind === 'choice') {
           const o = T.option(step.groupId, step.answer);
           text = o ? o.ar : step.answer;
-        } else if (step.id === 'root') text = step.answer;
+        } else if (step.id === 'root') {
+          /* the root step answers with its letters in order */
+          text = Array.isArray(step.answer) ? step.answer.join(' ') : step.answer;
+        }
         else if (step.id === 'sarf') {
           const slot = T.sarfSlots.find((s) => s.id === step.answer);
           text = slot ? slot.ar : step.answer;
@@ -655,7 +798,6 @@
       submit.disabled = true;
       input.classList.add(correct ? 'correct' : 'wrong');
       const miss = {
-        root: 'Say the letters of the māḍī with no additions and no vowels.',
         baseMadi: 'Strip the tense letter and the ending, keep the letters of the bāb.',
         production: 'Recite the ṣarf ṣaghīr of this bāb and stop at the cell you were asked for.',
         conjugation: 'Watch the stem: if the ending begins with a sukūn, a weak or doubled verb changes shape.'
@@ -870,6 +1012,162 @@
       'The whole table is built from ' + p.root + ', so once you know the bāb you can rebuild every cell.');
   }
 
+  /* ------------------------------------------------------------------ */
+  /* the ṣarf ṣaghīr as it is recited — three lines, any form            */
+  /* ------------------------------------------------------------------ */
+
+  const BLANK_MODES = [
+    { id: 'none', name: 'Show it all', desc: 'Read the three lines through.' },
+    { id: 'some', name: 'Blank some', desc: 'About half the cells are gaps.' },
+    { id: 'all', name: 'Blank them all', desc: 'Recite the whole thing from the root.' }
+  ];
+
+  /*
+   * The overview, in whichever of the three states the user has chosen.
+   * The English label under a cell is off by default and always off while
+   * cells are blanked: an English gloss beside a gap gives the answer away by
+   * matching, which is exactly what the recall is meant to test.
+   */
+  function renderSarfOverview(paradigm, opts) {
+    const o = opts || {};
+    const mode = o.mode || 'none';
+    const showEnglish = !!o.showEnglish;
+    const lines = MP.sarf.build(paradigm);
+    const blanks = o.blanks || [];
+    const inputs = {};
+
+    const box = el('div', { class: 'sarf-overview' });
+
+    box.appendChild(el('div', { class: 'sarf-overview-head' }, [
+      el('span', { class: 'sarf-overview-title' }, [
+        ar(paradigm.root, 'sarf-overview-root'),
+        el('span', { class: 'muted small', text: T.label(E.baabGroupId(paradigm), paradigm.baabId) })
+      ]),
+      el('span', { class: 'muted small', text: paradigm.meaning })
+    ]));
+
+    lines.forEach((line) => {
+      const row = el('div', { class: 'sarf-line' });
+      row.appendChild(el('div', { class: 'sarf-line-label' }, [
+        ar(line.ar, 'sarf-line-ar'),
+        showEnglish ? el('span', { class: 'sarf-line-en', text: line.en }) : el('span', {})
+      ]));
+
+      const recite = el('div', { class: 'sarf-recite', dir: 'rtl', lang: 'ar' });
+      line.parts.forEach((part) => {
+        const cell = el('span', { class: 'sarf-part' + (part.used ? '' : ' unused') });
+        if (part.sep) cell.appendChild(el('span', { class: 'sarf-sep ar', dir: 'rtl', text: part.sep }));
+        if (part.lead) cell.appendChild(ar(part.lead, 'sarf-lead'));
+
+        const blanked = part.used && blanks.indexOf(part.slot) !== -1;
+        if (blanked) {
+          const input = el('input', {
+            class: 'sarf-input ar', type: 'text', dir: 'rtl', lang: 'ar',
+            'data-slot': part.slot, autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false',
+            'aria-label': part.labelEn
+          });
+          inputs[part.slot] = input;
+          cell.appendChild(input);
+        } else if (part.used) {
+          cell.appendChild(ar(part.value, 'sarf-word'));
+        } else {
+          cell.appendChild(el('span', { class: 'sarf-word dash', text: MP.NOT_USED }));
+        }
+
+        /* the cell's own name, only when English is asked for */
+        if (showEnglish) {
+          cell.appendChild(el('span', { class: 'sarf-part-en', text: part.labelEn }));
+        }
+        recite.appendChild(cell);
+      });
+      row.appendChild(recite);
+      box.appendChild(row);
+    });
+
+    if (!blanks.length) return box;
+
+    /* ---- the fill-it-in drill ---- */
+    const result = el('p', { class: 'sarf-result muted small' });
+
+    function mark(reveal) {
+      let right = 0;
+      blanks.forEach((slot) => {
+        const input = inputs[slot];
+        if (!input) return;
+        const ok = E.matchesArabic(input.value, paradigm[slot]);
+        input.classList.remove('correct', 'wrong');
+        input.classList.add(ok ? 'correct' : 'wrong');
+        if (ok) right++;
+        else if (reveal) input.value = paradigm[slot];
+      });
+      result.textContent = reveal
+        ? 'Answers filled in. You had ' + right + ' of ' + blanks.length + '.'
+        : right + ' of ' + blanks.length + ' right.';
+    }
+
+    box.appendChild(el('div', { class: 'input-row sarf-actions' }, [
+      el('button', { class: 'btn primary', type: 'button', text: 'Check', onclick: () => mark(false) }),
+      el('button', { class: 'btn ghost small', type: 'button', text: 'Show me', onclick: () => mark(true) }),
+      el('button', {
+        class: 'btn ghost small', type: 'button', text: 'Clear',
+        onclick: () => {
+          Object.keys(inputs).forEach((k) => {
+            inputs[k].value = '';
+            inputs[k].classList.remove('correct', 'wrong');
+          });
+          result.textContent = '';
+        }
+      })
+    ]));
+    box.appendChild(result);
+    return box;
+  }
+
+  /*
+   * The overview plus its controls: which blanking mode, and whether English
+   * is shown at all. Both are remembered in settings, so the state you drill
+   * in is the state you come back to.
+   */
+  function renderSarfPanel(paradigm, redraw) {
+    const wrap = el('div', { class: 'sarf-panel' });
+    const mode = settings.sarfBlank || 'none';
+
+    const modeRow = el('div', { class: 'chip-row' });
+    BLANK_MODES.forEach((m) => {
+      modeRow.appendChild(el('button', {
+        class: 'chip' + (mode === m.id ? ' on' : ''), type: 'button', text: m.name, title: m.desc,
+        onclick: () => {
+          settings.sarfBlank = m.id;
+          MP.store.saveSettings(settings);
+          redraw();
+        }
+      }));
+    });
+    modeRow.appendChild(el('button', {
+      class: 'chip' + (settings.sarfEnglish ? ' on' : ''), type: 'button', text: 'English',
+      title: 'Off by default — an English gloss next to a gap gives the answer away.',
+      onclick: () => {
+        settings.sarfEnglish = !settings.sarfEnglish;
+        MP.store.saveSettings(settings);
+        redraw();
+      }
+    }));
+    wrap.appendChild(modeRow);
+
+    wrap.appendChild(renderSarfOverview(paradigm, {
+      mode: mode,
+      showEnglish: !!settings.sarfEnglish,
+      blanks: MP.sarf.blanksFor(paradigm, mode)
+    }));
+
+    if (mode !== 'none') {
+      wrap.appendChild(el('button', {
+        class: 'btn ghost small', type: 'button', text: '↻ New gaps', onclick: redraw
+      }));
+    }
+    return wrap;
+  }
+
   /* ---- translation: typed, then self-marked ---- */
   function renderTranslate(step, word) {
     const input = el('input', {
@@ -913,6 +1211,149 @@
     return box;
   }
 
+  /* ------------------------------------------------------------------ */
+  /* the decision tree, walked node by node                              */
+  /* ------------------------------------------------------------------ */
+
+  /*
+   * The chain of questions the word was taken through, with the answer to
+   * each and the piece of the word that gives that answer away.
+   */
+  function treeNodes(word, steps, answers) {
+    const p = E.paradigmOf(word);
+    const out = [];
+    steps.forEach((step) => {
+      if (step.kind === 'translate' || step.kind === 'cloze') return;
+      let answerId = step.answer;
+      let label;
+      if (step.kind === 'choice') {
+        const o = T.option(step.groupId, step.answer);
+        label = o ? { ar: o.ar, en: o.en, tr: o.tr } : { ar: String(step.answer), en: '' };
+      } else if (step.id === 'root') {
+        const letters = Array.isArray(step.answer) ? step.answer.join(' ') : step.answer;
+        label = { ar: letters, en: 'the radicals' };
+      } else if (step.id === 'sarf') {
+        const slot = T.sarfSlots.find((s) => s.id === step.answer);
+        label = slot ? { ar: slot.ar, en: slot.en } : { ar: String(step.answer), en: '' };
+      } else if (step.id === 'baseMadi') {
+        label = { ar: step.answer, en: 'the bare māḍī it came from' };
+      } else {
+        label = { ar: String(step.answer), en: '' };
+      }
+
+      const record = (answers || []).find((a) => a.wordId === word.id && a.stepId === step.id);
+      out.push({
+        id: step.id,
+        question: step.q,
+        questionAr: step.qAr || '',
+        label: label,
+        got: record ? record.correct : null,
+        evidence: MP.evidence.forStep(word, p, step.id, answerId)
+      });
+    });
+    return out;
+  }
+
+  /* The word with the evidence for one node lit up inside it. */
+  function highlightedWord(text, indices) {
+    const on = {};
+    (indices || []).forEach((i) => { on[i] = true; });
+    const box = el('span', { class: 'ar tree-word', dir: 'rtl', lang: 'ar' });
+    let run = '';
+    let runOn = false;
+
+    const flush = () => {
+      if (!run) return;
+      box.appendChild(el('span', { class: runOn ? 'lit' : '', text: run }));
+      run = '';
+    };
+
+    for (let i = 0; i < text.length; i++) {
+      const isOn = !!on[i];
+      if (isOn !== runOn) { flush(); runOn = isOn; }
+      run += text[i];
+    }
+    flush();
+    return box;
+  }
+
+  let treeAt = 0;
+
+  function renderTreeWalk(word, steps, answers, onBack) {
+    const nodes = treeNodes(word, steps, answers);
+    if (treeAt >= nodes.length) treeAt = 0;
+
+    function paint() {
+      const node = nodes[treeAt];
+      const wrap = el('div', { class: 'screen tree' });
+
+      wrap.appendChild(el('div', { class: 'topbar' }, [
+        el('button', { class: 'btn ghost small', type: 'button', text: 'Skip ✕', onclick: onBack }),
+        el('span', { class: 'counter', text: 'Node ' + (treeAt + 1) + ' of ' + nodes.length }),
+        el('span', { class: 'counter', text: word.en || '' })
+      ]));
+
+      /* the word, with this node's evidence lit */
+      wrap.appendChild(el('div', { class: 'tree-card' }, [
+        highlightedWord(word.w, node.evidence.indices),
+        el('div', { class: 'tree-why' }, [arabicAware(node.evidence.why || '')])
+      ]));
+
+      /* the answer at this node */
+      wrap.appendChild(el('div', { class: 'tree-answer' }, [
+        el('div', { class: 'tree-q' }, [
+          el('span', { class: 'tree-q-en', text: node.question }),
+          node.questionAr ? ar(node.questionAr, 'tree-q-ar') : el('span', {})
+        ]),
+        el('div', { class: 'tree-verdict' + (node.got === false ? ' missed' : '') }, [
+          ar(node.label.ar, 'tree-verdict-ar'),
+          el('span', { class: 'tree-verdict-en' }, [
+            el('span', { text: node.label.en || '' }),
+            node.got === false ? el('span', { class: 'tree-flag', text: 'you missed this one' }) : el('span', {})
+          ])
+        ])
+      ]));
+
+      /* the whole chain, every node clickable */
+      const chain = el('ol', { class: 'tree-chain' });
+      nodes.forEach((n, i) => {
+        chain.appendChild(el('li', {}, [
+          el('button', {
+            class: 'tree-node' + (i === treeAt ? ' on' : '') + (n.got === false ? ' missed' : ''),
+            type: 'button',
+            onclick: () => { treeAt = i; paint(); }
+          }, [
+            el('span', { class: 'tree-node-name', text: stepName(n.id) }),
+            ar(n.label.ar, 'tree-node-ar')
+          ])
+        ]));
+      });
+      wrap.appendChild(el('section', { class: 'panel' }, [
+        el('h2', { class: 'panel-title', text: 'The whole tree' }), chain
+      ]));
+
+      const prev = el('button', {
+        class: 'btn', type: 'button', text: '← Previous',
+        onclick: () => { if (treeAt > 0) { treeAt--; paint(); } }
+      });
+      prev.disabled = treeAt === 0;
+      wrap.appendChild(el('div', { class: 'cta-row' }, [
+        prev,
+        el('button', {
+          class: 'btn primary', type: 'button',
+          text: treeAt === nodes.length - 1 ? 'Done' : 'Next →',
+          onclick: () => {
+            if (treeAt < nodes.length - 1) { treeAt++; paint(); } else onBack();
+          }
+        })
+      ]));
+
+      setScreen(wrap);
+    }
+
+    paint();
+  }
+
   function showFeedback(correct, answerText, hint) {
     const fb = $('#feedback');
     fb.className = 'feedback ' + (correct ? 'good' : 'bad');
@@ -947,6 +1388,22 @@
     const last = session.stepIndex === session.steps.length - 1;
     const lastWord = session.index === session.words.length - 1;
     const label = last ? (lastWord ? 'Finish' : 'Next word →') : 'Next →';
+
+    /* the analysis is done: the whole chain is now available to walk back
+       through, with the evidence for each answer shown in the word itself */
+    if (last && session.mode === 'analysis' && session.steps.length > 1) {
+      const word = E.currentWord(session);
+      row.appendChild(el('button', {
+        class: 'btn ghost big', type: 'button', text: '🌳 Walk the tree',
+        onclick: () => {
+          treeAt = 0;
+          /* walking the tree is the last thing done with this word, so
+             leaving it carries straight on rather than back to the step */
+          renderTreeWalk(word, session.steps, session.answers, goNext);
+        }
+      }));
+    }
+
     const btn = el('button', { class: 'btn primary big', type: 'button', text: label, onclick: goNext });
     row.appendChild(btn);
     btn.focus();
@@ -1040,11 +1497,15 @@
     /* the ṣarf ṣaghīr question is about the cells, which is what the form
        tables lay out line by line */
     if (step.id === 'sarf') return 'forms-tables';
-    if (step.id === 'root') return 'nouns';
+    /* the hard part of naming a root is the radical you cannot see, which is
+       what the ṣaḥīḥ/muʿtall page is about */
+    if (step.id === 'root') return 'weak';
     return 'spotting';
   }
 
   let refSection = 'gates';
+  /* which card of a multi-page section is open, per section id */
+  const subPage = {};
 
   function openReference(sectionId) {
     refSection = sectionId || refSection;
@@ -1067,9 +1528,13 @@
    * The reference content, without any chrome: used both by the Learn view and
    * by the overlay that opens from inside a session.
    */
-  function buildReference(sectionId, onSelect) {
+  function buildReference(sectionId, onSelect, redraw) {
     const section = MP.reference.sections.find((s) => s.id === sectionId) || MP.reference.sections[0];
     const box = el('div', { class: 'ref-wrap' });
+    /* Pages with their own inner picker need to redraw whichever container they
+       are sitting in — the Learn view or the mid-session overlay. Without this
+       they redrew the overlay unconditionally, so in Learn the picker was dead. */
+    const again = redraw || (() => onSelect(sectionId));
 
     const tabs = el('div', { class: 'ref-tabs' });
     MP.reference.sections.forEach((s) => {
@@ -1084,17 +1549,40 @@
     body.appendChild(el('p', { class: 'ref-intro' }, [arabicAware(section.intro)]));
 
     if (section.kind === 'formtables') {
-      body.appendChild(renderFormTables());
+      body.appendChild(renderFormTables(again));
       box.appendChild(body);
       return box;
     }
     if (section.kind === 'conjugator') {
-      body.appendChild(renderConjugator());
+      body.appendChild(renderConjugator(again));
       box.appendChild(body);
       return box;
     }
 
-    section.cards.forEach((c) => {
+    /*
+     * The long sections are a page per card, not one page you scroll to the
+     * bottom of: the six gates one at a time, Forms II–X one at a time. "All
+     * of them" is still there for anyone who wants the whole run.
+     */
+    let cards = section.cards;
+    if (section.subpages && cards.length > 1) {
+      const chosen = subPage[section.id] === undefined ? 0 : subPage[section.id];
+      const picker = el('div', { class: 'chip-row sub-picker' });
+      cards.forEach((c, i) => {
+        picker.appendChild(el('button', {
+          class: 'chip' + (chosen === i ? ' on' : ''), type: 'button', text: c.title,
+          onclick: () => { subPage[section.id] = i; again(); }
+        }));
+      });
+      picker.appendChild(el('button', {
+        class: 'chip' + (chosen === 'all' ? ' on' : ''), type: 'button', text: 'All of them',
+        onclick: () => { subPage[section.id] = 'all'; again(); }
+      }));
+      body.appendChild(picker);
+      if (chosen !== 'all') cards = [cards[chosen] || cards[0]];
+    }
+
+    cards.forEach((c) => {
       const card = el('div', { class: 'ref-card' });
       card.appendChild(el('div', { class: 'ref-card-head' }, [
         ar(c.ar, 'ref-card-ar'),
@@ -1156,14 +1644,18 @@
       el('h2', { class: 'ref-title', text: 'Reference' }),
       el('button', { class: 'btn ghost small', type: 'button', text: 'Close ✕', onclick: closeReference })
     ]));
-    overlay.appendChild(buildReference(refSection, (id) => { refSection = id; renderReference(); }));
+    overlay.appendChild(buildReference(
+      refSection,
+      (id) => { refSection = id; renderReference(); },
+      renderReference
+    ));
     overlay.scrollTop = 0;
   }
 
   /* ---- one page per bāb, every line labelled ---- */
   let formPage = 'nasara';
 
-  function renderFormTables() {
+  function renderFormTables(redraw) {
     const box = el('div', { class: 'form-tables' });
 
     /* picker, grouped the way the chart groups them */
@@ -1172,7 +1664,7 @@
       MP.tables.FORMS.filter((f) => f.group === groupName).forEach((f) => {
         row.appendChild(el('button', {
           class: 'chip' + (f.id === formPage ? ' on' : ''), type: 'button', text: f.label,
-          onclick: () => { formPage = f.id; renderReference(); }
+          onclick: () => { formPage = f.id; redraw(); }
         }));
       });
       box.appendChild(el('div', { class: 'picker-group' }, [
@@ -1231,7 +1723,7 @@
   /* ---- the conjugation table viewer inside the reference ---- */
   let conjVerb = 'nsr-I';
 
-  function renderConjugator() {
+  function renderConjugator(redraw) {
     const box = el('div', { class: 'conjugator' });
     const ids = MP.conjugation.conjugatable();
 
@@ -1240,7 +1732,7 @@
       const p = MP.paradigms[id];
       picker.appendChild(el('button', {
         class: 'chip' + (id === conjVerb ? ' on' : ''), type: 'button',
-        onclick: () => { conjVerb = id; renderReference(); }
+        onclick: () => { conjVerb = id; redraw(); }
       }, [ar(p.madi), el('span', { class: 'conj-pick-en', text: ' ' + p.meaning })]));
     });
     box.appendChild(picker);
@@ -1277,6 +1769,12 @@
     box.appendChild(el('p', { class: 'muted small', text: table.source === 'authored'
       ? 'This table is written out by hand — the stem of this verb changes as it conjugates.'
       : 'Built from the māḍī and muḍāriʿ: this verb keeps its stem throughout.' }));
+
+    /* the ṣarf ṣaghīr of the same verb, underneath the ṣarf kabīr — the three
+       tables above are the fourteen persons, this is the eleven cells */
+    box.appendChild(el('h4', { class: 'ref-sub', text: 'Ṣarf ṣaghīr — الصرف الصغير' }));
+    box.appendChild(el('p', { class: 'muted small', text: 'The same verb said the other way round: three lines, recited.' }));
+    box.appendChild(renderSarfPanel(p, redraw));
     return box;
   }
 
@@ -1314,10 +1812,21 @@
       missed.forEach((id) => {
         const w = session.words.find((x) => x.id === id) || MP.words.find((x) => x.id === id);
         if (!w) return;
-        list.appendChild(el('div', { class: 'missed' }, [
+        const row = el('div', { class: 'missed' }, [
           ar(w.w, 'missed-ar'),
           el('span', { class: 'missed-en', text: w.en || w.sub || '' })
-        ]));
+        ]);
+        /* only an analysed word has a tree behind it */
+        if (session.mode === 'analysis' && w.w) {
+          row.appendChild(el('button', {
+            class: 'btn ghost small', type: 'button', text: '🌳 Walk it',
+            onclick: () => {
+              treeAt = 0;
+              renderTreeWalk(w, E.buildSteps(w, session.settings), session.answers, renderSummary);
+            }
+          }));
+        }
+        list.appendChild(row);
       });
       wrap.appendChild(el('section', { class: 'panel' }, [
         el('h2', { class: 'panel-title', text: 'Words that tripped you up' }), list

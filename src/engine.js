@@ -112,9 +112,8 @@
   const STEP_GROUPS = [
     { id: 'identity', name: 'Word type & category', desc: 'Ism / fiʿl / ḥarf, tense, and the kind of noun.', locked: true },
     { id: 'features', name: 'Verb details', desc: 'Mood, voice, affirmative/negative, person, gender, number.' },
-    { id: 'radicals', name: 'Pick out the radicals', desc: 'Choose the fāʾ, ʿayn and lām of the root, letter by letter.' },
     { id: 'structure', name: 'Root structure', desc: 'Thulāthī/rubāʿī, mujarrad/mazīd, the bāb, ṣaḥīḥ/muʿtall.' },
-    { id: 'root', name: 'Name the root', desc: 'Type the root letters.' },
+    { id: 'root', name: 'The root', desc: 'Pick out the fāʾ, ʿayn and lām, letter by letter.' },
     { id: 'base', name: 'Back to the māḍī', desc: 'Produce the bare هُوَ form the word came from.' },
     { id: 'sarf', name: 'Ṣarf ṣaghīr', desc: 'Place the word in its blank ṣarf ṣaghīr.' },
     { id: 'translation', name: 'Translation', desc: 'Recall the meaning at the end.' },
@@ -267,13 +266,22 @@
       }
     }
 
-    /* --- pick the radicals out of the word, letter by letter --- */
+    /*
+     * --- the root, picked out of the word letter by letter ---
+     *
+     * This used to be two questions in a row — "which letters are the
+     * radicals?" and then "what is the root?" — which is the same question
+     * asked twice, since the radicals in order *are* the root. One step now:
+     * the keypad, because naming each slot as the fāʾ, the ʿayn and the lām
+     * teaches more than a free-text box does.
+     */
     const rootStr = rootOf(word);
-    if (rootStr && on('radicals')) {
+    if (rootStr && on('root')) {
       const rootLetters = rootStr.trim().split(/\s+/);
       steps.push({
-        kind: 'radicals', id: 'radicals', group: 'radicals',
-        q: 'Which letters are the radicals?', qAr: 'ما حروفها الأصلية؟',
+        kind: 'radicals', id: 'root', group: 'root',
+        q: 'What is the root — which letters are the radicals?',
+        qAr: 'ما مادتها؟ ما حروفها الأصلية؟',
         slots: RADICAL_SLOTS.slice(0, rootLetters.length),
         keypad: radicalKeypad(word, rootLetters),
         answer: rootLetters
@@ -311,18 +319,6 @@
           q: 'Where does the hamzah sit?', qAr: 'أين الهمزة؟', answer: p.mahmuzPosition
         }));
       }
-    }
-
-    /* --- root recall --- */
-    const root = rootOf(word);
-    if (root && on('root')) {
-      steps.push({
-        kind: 'text', id: 'root', group: 'root',
-        q: 'What is the root?', qAr: 'ما مادته؟',
-        placeholder: 'e.g. ن ص ر',
-        answer: root,
-        check: (input) => normalizeArabic(input) === normalizeArabic(root)
-      });
     }
 
     /* --- take it back to the bare هُوَ form it was built from --- */

@@ -5,6 +5,59 @@
  * Every colour is a variable here; nothing below this block hard-codes one.
  */
 
+/*
+ * The Arabic face, bundled rather than merely named.
+ *
+ * The stack used to ask for Amiri and Scheherazade New without shipping
+ * either, and neither comes with Windows or Android — so every device
+ * silently fell through to a generic serif, which stacks ḥarakāt on top of
+ * the letters and makes a fully vowelled text unreadable. These are the
+ * Arabic subsets only (~368KB the four of them); Latin text keeps the system
+ * sans, so nothing is wasted on glyphs the .ar spans never use.
+ *
+ * Amiri and Scheherazade New are both SIL Open Font License 1.1.
+ */
+@font-face {
+  font-family: "Amiri";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/amiri-arabic-400.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF,
+    U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: "Amiri";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/amiri-arabic-700.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF,
+    U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: "Scheherazade New";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/scheherazade-arabic-400.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF,
+    U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: "Scheherazade New";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/scheherazade-arabic-700.woff2") format("woff2");
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1,
+    U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF,
+    U+FE70-FE74, U+FE76-FEFC;
+}
+
 :root,
 :root[data-theme="dim"] {
   --bg: #ebe6dc;
@@ -20,7 +73,18 @@
   --on-accent: #f6fbf8;
   --shadow: rgba(60, 50, 30, 0.14);
   --radius: 14px;
-  --font-ar: "Amiri", "Scheherazade New", "Traditional Arabic", "Noto Naskh Arabic", "Geeza Pro", serif;
+  --font-ar: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", "Geeza Pro", serif;
+
+  /*
+   * One dial for the size of every piece of Arabic in the app, and two for
+   * how much air the ḥarakāt get. Arabic is optically smaller than Latin at
+   * the same pixel size, and a fully vowelled word needs headroom above the
+   * letter for the ḍammah and below it for the kasrah — so nothing anywhere
+   * below is allowed to set a line-height tighter than --ar-lh-tight.
+   */
+  --ar-boost: 1.16;
+  --ar-lh: 2.05;
+  --ar-lh-tight: 1.75;
 }
 
 :root[data-theme="light"] {
@@ -93,7 +157,14 @@ html, body {
 .ar {
   font-family: var(--font-ar);
   direction: rtl;
-  line-height: 1.9;
+  line-height: var(--ar-lh);
+  font-size: calc(1em * var(--ar-boost));
+  font-variant-ligatures: common-ligatures contextual;
+  font-feature-settings: "kern" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  /* the marks sit outside the em box; without this they clip against a
+     neighbouring border or a tight flex row */
+  padding-block: 0.08em;
 }
 
 /* ---------- headings, panels ---------- */
@@ -109,7 +180,7 @@ html, body {
   font-size: 30px;
   font-weight: 600;
 }
-.title .ar { font-size: 40px; }
+.title .ar { font-size: calc(42px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
 .title-en { font-size: 19px; color: var(--muted); font-weight: 500; }
 
 .lede { color: var(--muted); margin: 0; max-width: 62ch; }
@@ -239,8 +310,8 @@ html, body {
 }
 .word {
   display: block;
-  font-size: clamp(46px, 13vw, 74px);
-  line-height: 1.6;
+  font-size: clamp(52px, 14vw, 82px);
+  line-height: var(--ar-lh-tight);
 }
 .answered-so-far {
   display: flex;
@@ -250,8 +321,8 @@ html, body {
   margin-top: 12px;
 }
 .mini-chip {
-  font-size: 14px;
-  padding: 3px 10px;
+  font-size: 15px;
+  padding: 4px 12px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   border: 1px solid var(--accent-dim);
@@ -264,7 +335,7 @@ html, body {
 .question { margin-bottom: 14px; }
 .q-line { display: flex; align-items: center; gap: 10px; }
 .q-en { font-size: 19px; margin: 0 0 2px; font-weight: 600; }
-.q-ar { font-size: 19px; color: var(--muted); display: block; }
+.q-ar { font-size: calc(21px * var(--ar-boost)); color: var(--muted); display: block; }
 
 .help-btn {
   flex: none;
@@ -296,7 +367,7 @@ html, body {
 .hint-item { margin-bottom: 6px; font-size: 14.5px; line-height: 1.65; }
 .hint-item:last-child { margin-bottom: 0; }
 /* isolate each Arabic run so it cannot reorder the English around it */
-.inline-ar { font-size: 1.22em; margin: 0 2px; unicode-bidi: isolate; }
+.inline-ar { font-size: 1.34em; margin: 0 3px; unicode-bidi: isolate; }
 
 /* ---------- reference overlay ---------- */
 
@@ -329,6 +400,13 @@ body.locked { overflow: hidden; }
 .ref-body { max-width: 760px; margin: 0 auto; }
 .ref-intro { color: var(--muted); margin: 4px 0 16px; line-height: 1.7; }
 
+/* the page picker inside a long section */
+.sub-picker {
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
 .ref-card {
   background: var(--bg-raised);
   border: 1px solid var(--line);
@@ -337,7 +415,7 @@ body.locked { overflow: hidden; }
   margin-bottom: 12px;
 }
 .ref-card-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-.ref-card-ar { font-size: 28px; }
+.ref-card-ar { font-size: calc(34px * var(--ar-boost)); }
 .ref-card-titles { display: flex; flex-direction: column; }
 .ref-card-title { font-weight: 600; }
 .ref-card-tag { font-size: 12.5px; color: var(--accent); }
@@ -347,12 +425,12 @@ body.locked { overflow: hidden; }
   display: grid;
   grid-template-columns: 40% 1fr;
   gap: 12px;
-  padding: 7px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 14.5px;
 }
 .ref-row-label { color: var(--muted); }
-.ref-row-value { line-height: 1.8; }
+.ref-row-value { line-height: var(--ar-lh); }
 
 .ref-sub {
   font-size: 12px;
@@ -371,7 +449,7 @@ body.locked { overflow: hidden; }
   background: var(--bg-raised-2);
   border: 1px solid var(--line);
 }
-.ref-example-ar { font-size: 20px; }
+.ref-example-ar { font-size: calc(24px * var(--ar-boost)); }
 .ref-example-en { font-size: 12.5px; color: var(--muted); }
 
 .options { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 9px; }
@@ -391,7 +469,7 @@ body.locked { overflow: hidden; }
   text-align: left;
 }
 .option:hover:not(:disabled) { border-color: var(--accent-dim); }
-.option-ar { font-size: 22px; }
+.option-ar { font-size: calc(25px * var(--ar-boost)); }
 .option-en { display: flex; flex-direction: column; align-items: flex-end; }
 .option-en-main { font-size: 13.5px; color: var(--muted); }
 .option-tr { font-size: 12px; color: var(--muted); opacity: 0.75; }
@@ -410,7 +488,7 @@ body.locked { overflow: hidden; }
   background: var(--bg-raised);
   color: var(--text);
 }
-.text-input.ar { font-family: var(--font-ar); font-size: 24px; }
+.text-input.ar { font-family: var(--font-ar); font-size: calc(26px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
 .text-input.correct { border-color: var(--good); }
 .text-input.wrong { border-color: var(--bad); }
 
@@ -424,7 +502,7 @@ body.locked { overflow: hidden; }
   flex-wrap: wrap;
   margin-bottom: 8px;
 }
-.sarf-root { font-size: 22px; }
+.sarf-root { font-size: calc(25px * var(--ar-boost)); }
 
 .sarf {
   border: 1px solid var(--line);
@@ -436,8 +514,8 @@ body.locked { overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 14px;
+  gap: 14px;
+  padding: 11px 14px;
   border-bottom: 1px solid var(--line);
   background: var(--bg-raised);
 }
@@ -445,17 +523,297 @@ body.locked { overflow: hidden; }
 .sarf-row.unused { opacity: 0.45; }
 .sarf-row.target { background: color-mix(in srgb, var(--accent) 12%, var(--bg-raised)); }
 .sarf-label { display: flex; flex-direction: column; }
-.sarf-label-ar { font-size: 16px; }
-.sarf-label-en { font-size: 11.5px; color: var(--muted); }
-.sarf-value { font-size: 24px; }
+.sarf-label-ar { font-size: calc(19px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
+.sarf-label-en { font-size: 12px; color: var(--muted); }
+.sarf-value { font-size: calc(28px * var(--ar-boost)); }
 .sarf-value.blank {
-  min-width: 90px;
+  min-width: 100px;
   text-align: center;
   border-bottom: 2px dashed var(--accent);
   color: var(--accent);
-  font-size: 22px;
+  font-size: calc(26px * var(--ar-boost));
 }
 .sarf-value.filled { color: var(--accent); }
+
+/* ---------- ṣarf ṣaghīr, the recited three-line overview ---------- */
+
+.sarf-panel { margin: 10px 0 4px; }
+.sarf-overview {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  overflow: hidden;
+  margin: 10px 0;
+}
+.sarf-overview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--bg-raised-2);
+  border-bottom: 1px solid var(--line);
+}
+.sarf-overview-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sarf-overview-root { font-size: calc(24px * var(--ar-boost)); }
+
+.sarf-line { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.sarf-line:last-child { border-bottom: none; }
+.sarf-line-label { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.sarf-line-ar { font-size: calc(16px * var(--ar-boost)); color: var(--accent); }
+.sarf-line-en { font-size: 12px; color: var(--muted); }
+
+/* the line as it is said: right to left, wrapping as one run */
+.sarf-recite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px 14px;
+  line-height: var(--ar-lh);
+}
+.sarf-part { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; }
+.sarf-part.unused { opacity: 0.4; }
+.sarf-word { font-size: calc(28px * var(--ar-boost)); }
+.sarf-word.dash { font-size: calc(24px * var(--ar-boost)); color: var(--muted); }
+.sarf-lead { font-size: calc(22px * var(--ar-boost)); color: var(--muted); }
+.sarf-sep { font-size: calc(22px * var(--ar-boost)); color: var(--muted); }
+.sarf-part-en {
+  font-size: 11px;
+  color: var(--muted);
+  direction: ltr;
+  text-align: center;
+  max-width: 15ch;
+  line-height: 1.3;
+}
+
+.sarf-input {
+  font-family: var(--font-ar);
+  font-size: calc(26px * var(--ar-boost));
+  line-height: var(--ar-lh-tight);
+  width: 6.5em;
+  min-width: 130px;
+  padding: 2px 8px;
+  text-align: center;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed var(--accent);
+}
+.sarf-input:focus { outline: none; border-bottom-style: solid; }
+.sarf-input.correct { color: var(--good); border-bottom-color: var(--good); border-bottom-style: solid; }
+.sarf-input.wrong { color: var(--bad); border-bottom-color: var(--bad); border-bottom-style: solid; }
+
+.sarf-actions { padding: 0 16px 14px; margin-bottom: 0; flex-wrap: wrap; }
+.sarf-result { padding: 0 16px 12px; margin: 0; }
+
+@media (max-width: 560px) {
+  .sarf-recite { gap: 4px 10px; }
+  .sarf-input { min-width: 110px; width: 5.5em; }
+}
+
+/* ---------- the decision tree, walked ---------- */
+
+.tree-card {
+  text-align: center;
+  padding: 26px 18px 18px;
+  margin: 14px 0 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.tree-word {
+  display: block;
+  font-size: clamp(52px, 14vw, 82px);
+  line-height: var(--ar-lh-tight);
+}
+/*
+ * The lit run is what gives this node its answer. Colour alone would be lost
+ * on a small ḥarakah, so it also gets a wash behind it and a rule underneath.
+ */
+.tree-word .lit {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--accent);
+}
+.tree-why {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.7;
+  max-width: 46ch;
+  margin-inline: auto;
+}
+
+.tree-answer { margin-bottom: 18px; }
+.tree-q { display: flex; flex-direction: column; margin-bottom: 6px; }
+.tree-q-en { font-size: 14px; color: var(--muted); }
+.tree-q-ar { font-size: calc(18px * var(--ar-boost)); color: var(--muted); }
+.tree-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--accent-dim);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-raised));
+}
+.tree-verdict.missed { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, var(--bg-raised)); }
+.tree-verdict-ar { font-size: calc(28px * var(--ar-boost)); }
+.tree-verdict-en { display: flex; flex-direction: column; color: var(--muted); font-size: 13.5px; }
+.tree-flag { color: var(--bad); font-size: 12px; }
+
+.tree-chain { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.tree-node {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tree-node:hover { border-color: var(--accent-dim); }
+.tree-node.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--bg-raised)); }
+.tree-node.missed { border-left: 3px solid var(--bad); }
+.tree-node-name { font-size: 13.5px; color: var(--muted); }
+.tree-node .ar { font-size: calc(19px * var(--ar-boost)); }
+
+.arabic-first .tree-node-name { font-size: 12px; }
+.arabic-first .tree-verdict-en { font-size: 12.5px; }
+
+/* ---------- the dictionary ---------- */
+
+.dict-search { margin-bottom: 10px; }
+.dict-list { display: grid; gap: 6px; }
+
+.dict-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.5fr) repeat(4, minmax(90px, 1fr));
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-raised);
+}
+.dict-row.plain { background: var(--bg-raised-2); }
+
+.dict-head {
+  background: transparent;
+  border: none;
+  padding-bottom: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+.dict-cell-h { text-align: right; }
+
+.dict-meaning { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dict-en { font-size: 14.5px; }
+.dict-meta { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dict-root { font-size: calc(15px * var(--ar-boost)); color: var(--muted); }
+.dict-baab { font-size: 11.5px; color: var(--accent); }
+.dict-mine {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.dict-cell { font-size: calc(23px * var(--ar-boost)); text-align: right; }
+.dict-cell.dash { color: var(--muted); opacity: 0.5; }
+
+/* on a narrow screen the four parts wrap under the meaning, each labelled */
+@media (max-width: 620px) {
+  .dict-row { grid-template-columns: 1fr 1fr; }
+  .dict-meaning { grid-column: 1 / -1; }
+  .dict-head { display: none; }
+  .dict-cell { text-align: right; }
+}
+
+.arabic-first .dict-en { font-size: 12.5px; color: var(--muted); }
+.arabic-first .dict-cell { font-size: calc(26px * var(--ar-boost)); }
+
+/* ---------- Arabic first ---------- */
+
+/*
+ * Off, the English term leads and the Arabic sits beside it. On, that turns
+ * round everywhere at once: the Arabic becomes the headline and the English
+ * and its transliteration drop to one line of small print underneath —
+ * سَالِم big, "Perfectly sound / sālim" beneath it.
+ *
+ * It is all done from this one class on the body so that no render site has
+ * to know about the setting, and the reference overlay — which lives outside
+ * #app — turns round with everything else.
+ */
+
+.lang-sample { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.sample-option { pointer-events: none; min-width: 190px; }
+
+.arabic-first .option {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.arabic-first .option-ar { font-size: calc(31px * var(--ar-boost)); }
+/* the gloss and the transliteration read as one line: "meaning / translit" */
+.arabic-first .option-en {
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.arabic-first .option-en-main { font-size: 12.5px; }
+.arabic-first .option-tr { font-size: 12px; }
+.arabic-first .option-tr::before { content: "/ "; }
+.arabic-first .option.dunno { align-items: center; }
+
+/* the question itself: the Arabic wording leads, the English explains */
+.arabic-first .question { display: flex; flex-direction: column; }
+.arabic-first .question .q-ar {
+  order: 1;
+  font-size: calc(25px * var(--ar-boost));
+  color: var(--text);
+  font-weight: 600;
+}
+.arabic-first .question .q-line { order: 2; }
+.arabic-first .question .hint-panel { order: 3; }
+.arabic-first .q-en { font-size: 14px; font-weight: 500; color: var(--muted); }
+
+/* reference cards */
+.arabic-first .ref-card-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+.arabic-first .ref-card-ar { font-size: calc(40px * var(--ar-boost)); }
+.arabic-first .ref-card-title { font-size: 13.5px; font-weight: 500; color: var(--muted); }
+
+/* the ṣarf ṣaghīr, both the drill grid and the recited overview */
+.arabic-first .sarf-label-ar { font-size: calc(22px * var(--ar-boost)); }
+.arabic-first .sarf-label-en { font-size: 11px; }
+.arabic-first .sarf-line-ar { font-size: calc(19px * var(--ar-boost)); }
+.arabic-first .sarf-line-en { font-size: 11px; }
+
+/* the bāb pages */
+.arabic-first .bubble-ar { font-size: calc(20px * var(--ar-boost)); }
+.arabic-first .bubble-en { font-size: 10.5px; }
+.arabic-first .form-group-ar { font-size: calc(23px * var(--ar-boost)); }
+.arabic-first .form-group-en { font-size: 11.5px; }
+
+/* the conjugation picker and the words you missed */
+.arabic-first .conj-pick-en { font-size: 11px; }
+.arabic-first .missed { flex-direction: column; align-items: flex-start; gap: 1px; }
+.arabic-first .missed-en { text-align: left; font-size: 12.5px; }
 
 /* ---------- feedback ---------- */
 
@@ -470,7 +828,7 @@ body.locked { overflow: hidden; }
 .feedback.bad { border-color: var(--bad); }
 .fb-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 4px; }
 .fb-answer { font-size: 22px; }
-.fb-answer.ar { font-size: 26px; }
+.fb-answer.ar { font-size: calc(29px * var(--ar-boost)); }
 .fb-hint { margin-top: 8px; color: var(--muted); font-size: 14px; }
 .word-note { border-top: 1px solid var(--line); padding-top: 8px; }
 .self-mark { display: flex; gap: 10px; margin-top: 12px; }
@@ -499,7 +857,7 @@ body.locked { overflow: hidden; }
   border-radius: 10px;
   background: var(--bg-raised-2);
 }
-.missed-ar { font-size: 26px; }
+.missed-ar { font-size: calc(28px * var(--ar-boost)); }
 .missed-en { color: var(--muted); font-size: 14px; text-align: right; }
 
 @media (max-width: 480px) {
@@ -536,20 +894,20 @@ body.locked { overflow: hidden; }
 .radical-slot.filled { border-style: solid; }
 .radical-slot.correct { border-color: var(--good); background: color-mix(in srgb, var(--good) 16%, transparent); }
 .radical-slot.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); }
-.radical-letter { font-size: 30px; line-height: 1.2; }
+.radical-letter { font-size: calc(34px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
 .radical-name { font-size: 12.5px; color: var(--muted); }
 
 .keypad { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 12px 0; }
 .key {
-  min-width: 48px;
+  min-width: 52px;
   padding: 9px 12px;
-  font-size: 26px;
+  font-size: calc(28px * var(--ar-boost));
   border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--bg-raised);
   color: var(--text);
   cursor: pointer;
-  line-height: 1.3;
+  line-height: var(--ar-lh-tight);
 }
 .key:hover:not(:disabled) { border-color: var(--accent); }
 .key:disabled { opacity: 0.45; cursor: default; }
@@ -557,8 +915,8 @@ body.locked { overflow: hidden; }
 /* ---------- sentence cloze ---------- */
 
 .cloze-sentence {
-  font-size: 27px;
-  line-height: 2.1;
+  font-size: calc(29px * var(--ar-boost));
+  line-height: var(--ar-lh);
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -581,7 +939,7 @@ body.locked { overflow: hidden; }
   padding-top: 10px;
   border-top: 1px solid var(--line);
 }
-.fb-sentence-ar { display: block; font-size: 22px; margin: 4px 0; }
+.fb-sentence-ar { display: block; font-size: calc(25px * var(--ar-boost)); margin: 6px 0; }
 
 /* ---------- conjugation tables ---------- */
 
@@ -602,12 +960,12 @@ body.locked { overflow: hidden; }
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  padding: 4px 0;
+  padding: 6px 0;
   border-bottom: 1px solid var(--line);
 }
 .conj-row:last-child { border-bottom: none; }
-.conj-pronoun { font-size: 16px; color: var(--muted); }
-.conj-form { font-size: 21px; }
+.conj-pronoun { font-size: calc(18px * var(--ar-boost)); color: var(--muted); }
+.conj-form { font-size: calc(24px * var(--ar-boost)); }
 
 /* ---------- the editor ---------- */
 
@@ -625,7 +983,7 @@ body.locked { overflow: hidden; }
   background: var(--bg-raised-2);
   color: var(--text);
 }
-.input.ar { font-family: var(--font-ar); font-size: 22px; }
+.input.ar { font-family: var(--font-ar); font-size: calc(24px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
 select.input { cursor: pointer; }
 .json-box { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; resize: vertical; }
 
@@ -654,7 +1012,7 @@ select.input { cursor: pointer; }
   background: var(--bg-raised-2);
   margin-bottom: 7px;
 }
-.mine-ar { font-size: 24px; }
+.mine-ar { font-size: calc(26px * var(--ar-boost)); }
 .mine-en { flex: 1; font-size: 13.5px; color: var(--muted); }
 
 .preview { margin-top: 14px; }
@@ -716,8 +1074,8 @@ select.input { cursor: pointer; }
 }
 .form-head-main { display: flex; flex-direction: column; }
 .form-head-example { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-.form-pattern { font-size: 30px; }
-.form-example-ar { font-size: 24px; color: var(--accent); }
+.form-pattern { font-size: calc(33px * var(--ar-boost)); }
+.form-example-ar { font-size: calc(27px * var(--ar-boost)); color: var(--accent); }
 .form-title { font-size: 13.5px; color: var(--muted); }
 
 .form-columns,
@@ -751,7 +1109,7 @@ select.input { cursor: pointer; }
   background: var(--bg-raised-2);
   border-bottom: 1px solid var(--line);
 }
-.form-group-ar { font-size: 19px; }
+.form-group-ar { font-size: calc(21px * var(--ar-boost)); }
 .form-group-en { font-size: 12.5px; color: var(--muted); }
 
 .form-row { padding: 9px 14px; border-bottom: 1px solid var(--line); }
@@ -762,17 +1120,17 @@ select.input { cursor: pointer; }
   display: inline-flex;
   flex-direction: column;
   gap: 1px;
-  padding: 5px 12px;
+  padding: 7px 14px;
   border-radius: 999px;
   border: 1px solid var(--accent-dim);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   text-align: center;
 }
-.bubble-ar { font-size: 16px; line-height: 1.5; }
-.bubble-en { font-size: 11px; color: var(--muted); line-height: 1.3; }
+.bubble-ar { font-size: calc(18px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
+.bubble-en { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
 
 .form-cell { display: flex; flex-direction: column; text-align: right; }
-.form-cell-ar { font-size: 23px; }
+.form-cell-ar { font-size: calc(26px * var(--ar-boost)); }
 .form-cell-ar.example { color: var(--accent); text-align: right; }
 .form-note { font-size: 11px; color: var(--muted); }
 
@@ -809,7 +1167,7 @@ select.input { cursor: pointer; }
   font: inherit;
   padding: 2px 6px;
 }
-.nav-brand-ar { font-size: 24px; }
+.nav-brand-ar { font-size: calc(25px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
 .nav-brand-en { font-size: 13px; color: var(--muted); }
 
 .nav-links { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
@@ -901,8 +1259,9 @@ select.input { cursor: pointer; }
   background: var(--bg-raised-2);
   color: var(--text);
   font: inherit;
-  font-size: 21px;
-  line-height: 1.35;
+  font-family: var(--font-ar);
+  font-size: calc(23px * var(--ar-boost));
+  line-height: var(--ar-lh-tight);
   cursor: pointer;
 }
 .kb-key:hover { border-color: var(--accent); }
