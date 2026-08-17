@@ -178,19 +178,25 @@
     ]
   };
 
-  /* The eleven cells of the ṣarf ṣaghīr, in the order they are recited. */
+  /*
+   * The eleven cells of the ṣarf ṣaghīr, in the order they are recited.
+   *
+   * These names were the one piece of Arabic in the app written without its
+   * ḥarakāt, which made them the hardest thing on the screen to read and the
+   * odd ones out beside every other label. They are vowelled like the rest now.
+   */
   const sarfSlots = [
-    { id: 'madi', ar: 'الماضي المعروف', en: 'Perfect (active)' },
-    { id: 'mudari', ar: 'المضارع المعروف', en: 'Imperfect (active)' },
-    { id: 'masdar', ar: 'المصدر', en: 'Verbal noun' },
-    { id: 'madiMajhul', ar: 'الماضي المجهول', en: 'Perfect (passive)' },
-    { id: 'mudariMajhul', ar: 'المضارع المجهول', en: 'Imperfect (passive)' },
-    { id: 'ismFail', ar: 'اسم الفاعل', en: 'Active participle' },
-    { id: 'ismMaful', ar: 'اسم المفعول', en: 'Passive participle' },
-    { id: 'amr', ar: 'الأمر', en: 'Imperative' },
-    { id: 'nahi', ar: 'النهي', en: 'Prohibition' },
-    { id: 'zarf', ar: 'اسم الظرف', en: 'Noun of time/place' },
-    { id: 'aalah', ar: 'اسم الآلة', en: 'Noun of instrument' }
+    { id: 'madi', ar: 'المَاضِي المَعْرُوف', en: 'Perfect (active)' },
+    { id: 'mudari', ar: 'المُضَارِع المَعْرُوف', en: 'Imperfect (active)' },
+    { id: 'masdar', ar: 'المَصْدَر', en: 'Verbal noun' },
+    { id: 'madiMajhul', ar: 'المَاضِي المَجْهُول', en: 'Perfect (passive)' },
+    { id: 'mudariMajhul', ar: 'المُضَارِع المَجْهُول', en: 'Imperfect (passive)' },
+    { id: 'ismFail', ar: 'اِسْم الفَاعِل', en: 'Active participle' },
+    { id: 'ismMaful', ar: 'اِسْم المَفْعُول', en: 'Passive participle' },
+    { id: 'amr', ar: 'الأَمْر', en: 'Imperative' },
+    { id: 'nahi', ar: 'النَّهْي', en: 'Prohibition' },
+    { id: 'zarf', ar: 'اِسْم الظَّرْف', en: 'Noun of time/place' },
+    { id: 'aalah', ar: 'اِسْم الآلَة', en: 'Noun of instrument' }
   ];
 
   /* Deck filters offered on the home screen. */

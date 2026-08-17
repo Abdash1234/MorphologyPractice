@@ -117,8 +117,19 @@
     render();
   }
 
-  /* re-draw the current view without moving the page */
+  /*
+   * How to redraw whatever is actually on screen.
+   *
+   * `view` only names the four nav destinations, so it says "practice" during
+   * a drill, a tree walk and the summary alike. refresh() used to dispatch on
+   * it, which meant hitting the theme or language button mid-drill threw you
+   * out to the home screen. Every screen now records its own way of being
+   * redrawn, and refresh() uses that.
+   */
+  let repaint = null;
+
   function refresh() {
+    if (repaint) return repaint();
     render(true);
   }
 
@@ -191,6 +202,7 @@
   /* ------------------------------------------------------------------ */
 
   function renderLearn(keepScroll) {
+    repaint = () => renderLearn(true);
     const wrap = el('div', { class: 'screen learn' });
     wrap.appendChild(el('h1', { class: 'view-title', text: 'Learn' }));
     wrap.appendChild(buildReference(
@@ -208,6 +220,7 @@
   let dictSound = 'all';
 
   function renderDictionary(keepScroll) {
+    repaint = () => renderDictionary(true);
     const wrap = el('div', { class: 'screen dictionary' });
     wrap.appendChild(el('h1', { class: 'view-title', text: 'Dictionary' }));
     wrap.appendChild(el('p', { class: 'lede', text: 'Every word the app knows, one row per entry, with its principal parts side by side. Search in Arabic or English — ḥarakāt are ignored, so نصر finds نَصَرَ.' }));
@@ -299,6 +312,7 @@
   }
 
   function renderAccount(keepScroll) {
+    repaint = () => renderAccount(true);
     const wrap = el('div', { class: 'screen account' });
     wrap.appendChild(el('h1', { class: 'view-title', text: 'Account' }));
     wrap.appendChild(el('p', { class: 'lede', text: 'Signing in carries your progress and your own words between devices. Everything works without it — the app is yours on this device either way.' }));
@@ -393,6 +407,7 @@
   }
 
   function renderHome(keepScroll) {
+    repaint = () => renderHome(true);
     const stats = MP.store.load();
     const wrap = el('div', { class: 'screen home' });
 
@@ -728,6 +743,14 @@
   }
 
   function renderStep() {
+    /*
+     * Redrawing a step that has already been graded would wipe the feedback
+     * and re-enable the options, so a theme or language change mid-question
+     * leaves the DOM where it is. Everything CSS-driven still updates from the
+     * body class; only the option labels wait until the next question.
+     */
+    repaint = () => { if (!answered) renderStep(); };
+
     const word = E.currentWord(session);
     const step = E.currentStep(session);
     const wrap = el('div', { class: 'screen drill' });
@@ -1401,6 +1424,7 @@
      * scrolling down to the chart again to make the next move.
      */
     function paint(keepScroll) {
+      repaint = () => paint(true);
       const node = nodes[treeAt];
       const wrap = el('div', { class: 'screen tree' });
 
@@ -1954,6 +1978,7 @@
   /* ------------------------------------------------------------------ */
 
   function renderSummary() {
+    repaint = renderSummary;
     session.finished = true;  // nothing left to resume
     MP.sync.syncQuietly();   // a finished session is the natural moment to push
     const score = E.sessionScore(session);
@@ -2015,6 +2040,7 @@
   /* ------------------------------------------------------------------ */
 
   function renderEditor() {
+    repaint = renderEditor;
     const wrap = el('div', { class: 'screen words' });
     setScreen(wrap);
     MP.editor.render(wrap, () => go('practice'));
