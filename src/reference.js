@@ -17,6 +17,27 @@
   /* ================================================================== */
 
   const hints = {
+    ilalForm: {
+      title: 'Work it out in order',
+      bullets: [
+        'Is there a weak letter carrying a vowel with a fatḥah in front of it? Then it becomes an alif — قَوَلَ becomes قَالَ.',
+        'Is there a weak letter carrying a vowel with a sukūn in front of it? Then the vowel moves back onto that letter — يَقْوُلُ becomes يَقُولُ.',
+        'Would two sukūns end up side by side? Then the weak letter drops — يَقُولُ + نَ becomes يَقُلْنَ.',
+        'Are the last two radicals the same letter? Then they merge under a shaddah — مَدَدَ becomes مَدَّ.',
+        'Say it aloud. If it is still heavy on the tongue, a rule has been missed.'
+      ]
+    },
+    ilalRule: {
+      title: 'Which of the four was it?',
+      bullets: [
+        'Qalb: a letter is still there but it is a different letter — the wāw of ق و ل shows up as an alif in قَالَ.',
+        'Naql: every letter is still there, but a vowel has moved one place to the left — يَقُولُ.',
+        'Ḥadhf: a letter has gone altogether. Count the radicals in what you wrote; if one is missing, it dropped.',
+        'Idghām: two identical letters are written once with a shaddah — مَدَّ.',
+        'The quickest test is to count letters against the root. Same number but one looks different is qalb; same letters with a vowel elsewhere is naql; one short is ḥadhf.'
+      ]
+    },
+
     harfType: {
       title: 'What does the particle govern?',
       bullets: [

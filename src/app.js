@@ -21,7 +21,8 @@
     { id: 'analysis', name: 'Full analysis', desc: 'Walk a word down the chart, question by question.' },
     { id: 'production', name: 'Build the form', desc: 'Given a root and a cell, produce the word yourself.' },
     { id: 'conjugation', name: 'Conjugation', desc: 'Ṣarf kabīr: conjugate a verb for any of the fourteen persons.' },
-    { id: 'sentences', name: 'Sentences', desc: 'Fill the missing word into a real sentence, then translate it.' }
+    { id: 'sentences', name: 'Sentences', desc: 'Fill the missing word into a real sentence, then translate it.' },
+    { id: 'ilal', name: 'Weak letter rules', desc: 'Iʿlāl: build what Arabic really says, then name the rule that did it.' }
   ];
 
   const currentMode = () => settings.mode || 'analysis';
@@ -74,6 +75,9 @@
   }
 
   function display(word) {
+    /* an iʿlāl item is entirely about which vowel sits where, so stripping the
+       ḥarakāt would leave nothing to reason about */
+    if (word.kind === 'ilal') return word.w;
     return settings.showHarakat ? word.w : E.stripHarakat(word.w);
   }
 
@@ -698,7 +702,8 @@
       baab: 'Bāb / form', soundness: 'Ṣaḥīḥ / muʿtall', subtype: 'Sub-category',
       mahmuzPosition: 'Hamzah position', root: 'Root & radicals', sarf: 'Ṣarf ṣaghīr',
       translation: 'Translation', baseMadi: 'Back to the māḍī', context: 'In a sentence',
-      production: 'Build the form', conjugation: 'Conjugation'
+      production: 'Build the form', conjugation: 'Conjugation',
+      ilalForm: 'Applying the rule', ilalRule: 'Naming the rule'
     };
     return names[id] || id;
   }
@@ -879,7 +884,13 @@
       input.disabled = true;
       submit.disabled = true;
       input.classList.add(correct ? 'correct' : 'wrong');
+      /* right letters, wrong vowels is a different mistake from not knowing
+         the rule, and in this drill it is the more instructive one */
+      const nearMiss = !correct && step.vowelsOnly && step.vowelsOnly(input.value);
       const miss = {
+        ilalForm: nearMiss
+          ? 'Every letter is right — it is the ḥarakāt that are wrong, and in iʿlāl the ḥarakāt are the rule. Look at which letter carries the vowel.'
+          : 'Check the three in order: does a weak letter become an alif, hand its vowel back, or drop?',
         baseMadi: 'Strip the tense letter and the ending, keep the letters of the bāb.',
         production: 'Recite the ṣarf ṣaghīr of this bāb and stop at the cell you were asked for.',
         conjugation: 'Watch the stem: if the ending begins with a sukūn, a weak or doubled verb changes shape.'
@@ -1489,6 +1500,13 @@
     if (word.note && (step.id === 'baab' || step.id === 'subtype' || step.id === 'mood' || step.id === 'tense')) {
       fb.appendChild(el('div', { class: 'fb-hint word-note' }, [arabicAware(word.note)]));
     }
+    /* an iʿlāl item carries the reason it came out that way — which is the
+       whole point of the drill, so it is shown whether you got it right or not */
+    if (word.why && (step.id === 'ilalForm' || step.id === 'ilalRule')) {
+      fb.appendChild(el('div', { class: 'fb-hint word-note' }, [
+        arabicAware(word.from + ' → ' + word.to + '. ' + word.why)
+      ]));
+    }
     /* got it wrong? offer the page of the reference that covers it */
     if (!correct) {
       const secId = sectionForStep(step);
@@ -1626,6 +1644,7 @@
     if (step.id === 'root') return 'ilal';
     /* producing a weak form is a question about the rules, not the labels */
     if (step.id === 'baseMadi' || step.id === 'production' || step.id === 'conjugation') return 'ilal';
+    if (step.id === 'ilalForm' || step.id === 'ilalRule') return 'ilal';
     return 'spotting';
   }
 

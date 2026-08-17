@@ -99,6 +99,12 @@
         hint: 'Changes the meaning without touching the iʿrāb: قَدْ, سَوْفَ, هَلْ.' }
     ],
 
+    /*
+     * ---- which rule changed the form ----
+     * Filled from ilal.js so the rules are defined in one place only.
+     */
+    ilalRule: [],
+
     /* ---- extra branch: root-letter count ---- */
     letters: [
       { id: 'thulathi', ar: 'ثُلَاثِي', tr: 'thulāthī', en: 'Triliteral', hint: 'Three root letters.' },

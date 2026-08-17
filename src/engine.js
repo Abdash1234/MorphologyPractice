@@ -147,6 +147,25 @@
     return acceptedForms(cell).some((f) => normalizeArabic(f) === given);
   }
 
+  /*
+   * The same comparison, but keeping the ḥarakāt.
+   *
+   * Everywhere else vowels are forgiven, because asking someone to type every
+   * mark to be told they know a word is cruel. The iʿlāl drill is the one
+   * place that cannot forgive them: يَقْوُلُ and يَقُولُ are the same letters in
+   * the same order and differ only in where the ḍammah sits, which is the
+   * entire thing being tested.
+   */
+  function normalizeStrict(s) {
+    return (s || '').normalize('NFC').replace(/[ـ\s]/g, '');
+  }
+
+  function matchesVowelled(input, cell) {
+    const given = normalizeStrict(input);
+    if (!given) return false;
+    return acceptedForms(cell).some((f) => normalizeStrict(f) === given);
+  }
+
   /* The letter keypad for the radicals question: the root letters, the letters
      actually visible in the word, and the weak letters + hamzah, so a weak root
      can be reconstructed even when its letter is missing from the surface. */
@@ -182,6 +201,7 @@
     /* the production modes hand us a synthetic subject, not a word */
     if (subject.kind === 'production') return [productionStep(subject)];
     if (subject.kind === 'conjugation') return [conjugationStep(subject)];
+    if (subject.kind === 'ilal') return ilalSteps(subject);
     if (subject.kind === 'sentence') {
       const word = subject.word;
       const steps = [clozeStep(word)];
@@ -425,6 +445,37 @@
     };
   }
 
+  /*
+   * The iʿlāl drill: two questions about one collision.
+   *
+   * First produce the form Arabic actually says, then name which rule got you
+   * there. Both matter — being able to write قُلْتُ without being able to say
+   * why is a memorised table, and naming the rule without being able to apply
+   * it is a memorised label.
+   */
+  function ilalSteps(item) {
+    return [
+      {
+        kind: 'text', id: 'ilalForm', group: 'ilal',
+        q: 'The pattern gives this. What does Arabic actually say?',
+        qAr: 'مَاذَا يُقَالُ فِي الحَقِيقَةِ؟',
+        placeholder: 'type it with its ḥarakāt',
+        arabicInput: true,
+        answer: item.to,
+        check: (input) => matchesVowelled(input, item.to),
+        /* the letters were right and only the vowels were wrong — worth saying,
+           because that is a different mistake from not knowing the rule */
+        vowelsOnly: (input) => !matchesVowelled(input, item.to) && matchesArabic(input, item.to)
+      },
+      choiceStep({
+        id: 'ilalRule', group: 'ilal', groupId: 'ilalRule',
+        q: 'Which rule did that?',
+        qAr: 'أَيُّ إِعْلَالٍ جَرَى؟',
+        answer: item.rule
+      })
+    ];
+  }
+
   /* Conjugate the verb for one of the fourteen persons. */
   function conjugationStep(item) {
     const table = MP.conjugation.tableFor(item.paradigmId);
@@ -543,6 +594,8 @@
     if (mode === 'production') return productionItems(deckId);
     if (mode === 'conjugation') return conjugationItems(deckId);
     if (mode === 'sentences') return sentenceItems(deckId);
+    /* the iʿlāl items are rules rather than words, so no deck applies */
+    if (mode === 'ilal') return MP.ilal.items();
     return deckWords(deckId);
   }
 
@@ -649,6 +702,7 @@
     STEP_GROUPS,
     RADICAL_SLOTS,
     matchesArabic,
+    matchesVowelled,
     acceptedForms,
     poolFor,
     focusList,

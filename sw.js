@@ -30,6 +30,7 @@ const PRECACHE = [
   './src/sarf.js',
   './src/dictionary.js',
   './src/evidence.js',
+  './src/ilal.js',
   './src/keyboard.js',
   './src/custom.js',
   './src/store.js',
