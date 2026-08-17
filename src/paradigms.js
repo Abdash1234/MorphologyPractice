@@ -109,6 +109,27 @@
       ismFail: 'آخِذٌ', ismMaful: 'مَأْخُوذٌ',
       amr: 'خُذْ', nahi: 'لَا تَأْخُذْ', zarf: 'مَأْخَذٌ', aalah: X
     },
+    /*
+     * أَكَلَ, أَخَذَ and أَمَرَ are the three verbs whose amr loses its hamzah
+     * outright. The pattern would give اُأْكُلْ — a hamzat al-waṣl carrying a
+     * ḍammah with a second, sākinah hamzah right behind it — which is too
+     * heavy to say, so both hamzahs go and only كُلْ is left. They are worth
+     * learning as a named set of three; nothing else in the language does it.
+     */
+    'akl-I': {
+      root: 'أ ك ل', baabId: 'nasara', meaning: 'to eat',
+      madi: 'أَكَلَ', mudari: 'يَأْكُلُ', masdar: 'أَكْلًا',
+      madiMajhul: 'أُكِلَ', mudariMajhul: 'يُؤْكَلُ',
+      ismFail: 'آكِلٌ', ismMaful: 'مَأْكُولٌ',
+      amr: 'كُلْ', nahi: 'لَا تَأْكُلْ', zarf: 'مَأْكَلٌ', aalah: X
+    },
+    'amr-I': {
+      root: 'أ م ر', baabId: 'nasara', meaning: 'to command',
+      madi: 'أَمَرَ', mudari: 'يَأْمُرُ', masdar: 'أَمْرًا',
+      madiMajhul: 'أُمِرَ', mudariMajhul: 'يُؤْمَرُ',
+      ismFail: 'آمِرٌ', ismMaful: 'مَأْمُورٌ',
+      amr: 'مُرْ', nahi: 'لَا تَأْمُرْ', zarf: X, aalah: X
+    },
     'sal-I': {
       root: 'س أ ل', baabId: 'fataha', meaning: 'to ask',
       madi: 'سَأَلَ', mudari: 'يَسْأَلُ', masdar: 'سُؤَالًا',
@@ -354,6 +375,8 @@
     'mdd-I': ['thulathi', 'mujarrad', 'sahih', 'mudaaf'],
     'rdd-I': ['thulathi', 'mujarrad', 'sahih', 'mudaaf'],
     'akhdh-I': ['thulathi', 'mujarrad', 'sahih', 'mahmuz', 'fa'],
+    'akl-I': ['thulathi', 'mujarrad', 'sahih', 'mahmuz', 'fa'],
+    'amr-I': ['thulathi', 'mujarrad', 'sahih', 'mahmuz', 'fa'],
     'sal-I': ['thulathi', 'mujarrad', 'sahih', 'mahmuz', 'ayn'],
     'qra-I': ['thulathi', 'mujarrad', 'sahih', 'mahmuz', 'lam'],
 

@@ -1621,9 +1621,11 @@
     /* the ṣarf ṣaghīr question is about the cells, which is what the form
        tables lay out line by line */
     if (step.id === 'sarf') return 'forms-tables';
-    /* the hard part of naming a root is the radical you cannot see, which is
-       what the ṣaḥīḥ/muʿtall page is about */
-    if (step.id === 'root') return 'weak';
+    /* the hard part of naming a root is the radical you cannot see, and what
+       happened to it is the iʿlāl page rather than the categories page */
+    if (step.id === 'root') return 'ilal';
+    /* producing a weak form is a question about the rules, not the labels */
+    if (step.id === 'baseMadi' || step.id === 'production' || step.id === 'conjugation') return 'ilal';
     return 'spotting';
   }
 

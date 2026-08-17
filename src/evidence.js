@@ -194,9 +194,20 @@
         return R(withMarks(w, seen(map)),
           root.length + ' radicals: ' + root.join(' ') + '.');
 
-      case 'root':
-        return R(withMarks(w, seen(map)),
-          'Strip every addition and these are what is left: ' + root.join(' ') + '.');
+      case 'root': {
+        /*
+         * A radical that is not on the surface is the most useful thing on
+         * this screen: it is why قَالَ hides a wāw and كُلْ hides a hamzah.
+         * Nothing can be lit up for it, so name it instead.
+         */
+        const missing = root.filter((r, k) => map[k] < 0);
+        const why = 'Strip every addition and these are what is left: ' + root.join(' ') + '.';
+        if (missing.length) {
+          return R(withMarks(w, seen(map)), why + ' The ' + missing.join(' and ') +
+            ' is not written in this form — it has dropped or changed, and only the ṣarf ṣaghīr brings it back.');
+        }
+        return R(withMarks(w, seen(map)), why);
+      }
 
       case 'augmentation': {
         const aug = augmentAt(w, map);
@@ -238,7 +249,11 @@
 
       case 'mahmuzPosition': {
         const hamzah = seen(map).filter((i) => 'ءأإؤئآ'.indexOf(w[i]) !== -1);
-        return R(hamzah, 'Where the hamzah sits among the radicals is what names it.');
+        if (!hamzah.length) {
+          /* كُلْ، خُذْ، مُرْ — the hamzah is a radical that is simply not here */
+          return R([], 'The hamzah is the first radical, but it is not in this form at all: the amr of أَكَلَ، أَخَذَ، أَمَرَ would need two hamzahs in a row, so both are dropped. It is still mahmūz al-fāʾ by its root.');
+        }
+        return R(withMarks(w, hamzah), 'Where the hamzah sits among the radicals is what names it.');
       }
 
       case 'person':

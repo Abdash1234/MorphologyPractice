@@ -1101,6 +1101,170 @@
 
     /* ------------------------------------------------------------- */
     {
+      id: 'ilal',
+      name: 'Weak letter rules',
+      subpages: true,
+      intro: 'The other page tells you which category a weak verb belongs to. This one tells you what actually happens to the letter — because قَوَلَ is never said, it comes out قَالَ, and يَقْوُلُ comes out يَقُولُ. There are only three things a weak letter ever does: it turns into something else, it hands its vowel back, or it drops. Learn those three and the whole muʿtall system stops being a list to memorise.',
+      cards: [
+        {
+          ar: 'الإِعْلَال',
+          title: 'The three things that can happen',
+          tag: 'the whole system in one card',
+          rows: [
+            ['إِعْلَال بِالقَلْب', 'The weak letter turns into a different letter — usually an alif'],
+            ['إِعْلَال بِالنَّقْل', 'The weak letter hands its vowel back to the sound letter before it'],
+            ['إِعْلَال بِالحَذْف', 'The weak letter is deleted outright']
+          ],
+          spot: [
+            'Build the word on the plain pattern first, exactly as if the root were sound: ق و ل on فَعَلَ gives قَوَلَ.',
+            'Then ask which of the three applies. قَوَلَ has a wāw with a fatḥah after a fatḥah, so it turns into an alif: قَالَ.',
+            'Nothing here is arbitrary. Every one of these exists because the sound is heavy on the tongue, and Arabic will not carry a heavy sound it can avoid.'
+          ],
+          means: ['Work forwards from the pattern, never backwards from the finished word. That is the difference between knowing the rules and guessing.']
+        },
+        {
+          ar: 'القَلْب — تَصِير أَلِفًا',
+          title: 'Turning into an alif',
+          tag: 'wāw or yāʾ with a fatḥah, after a fatḥah',
+          rows: [
+            ['قَوَلَ', 'قَالَ — wāw with a fatḥah, fatḥah before it'],
+            ['بَيَعَ', 'بَاعَ — yāʾ, same conditions'],
+            ['رَمَيَ', 'رَمَى — at the end it becomes an alif maqṣūrah'],
+            ['دَعَوَ', 'دَعَا — a final wāw does the same']
+          ],
+          spot: [
+            'Two conditions, both needed: the weak letter carries a vowel, and the letter before it carries a fatḥah.',
+            'A final weak letter written as ى comes from a yāʾ, and one written as ا comes from a wāw — رَمَى is ر م ي, دَعَا is د ع و.',
+            'It reverses the moment an ending is added: رَمَى but رَمَيْتُ, دَعَا but دَعَوْتُ. The alif was only ever a disguise.'
+          ],
+          means: ['This is why an ajwaf verb looks nothing like its root in the māḍī. قَالَ hides a wāw that the ṣarf ṣaghīr will bring straight back.']
+        },
+        {
+          ar: 'النَّقْل — تُنْقَل الحَرَكَة',
+          title: 'Handing the vowel back',
+          tag: 'the vowel moves left, the weak letter goes quiet',
+          rows: [
+            ['يَقْوُلُ', 'يَقُولُ — the ḍammah moves onto the ق'],
+            ['يَبْيِعُ', 'يَبِيعُ — the kasrah moves onto the ب'],
+            ['يَخْوَفُ', 'يَخَافُ — the fatḥah moves, then the wāw turns into an alif'],
+            ['أَقْوَمَ', 'أَقَامَ — the same, in Form IV']
+          ],
+          spot: [
+            'The setup is always the same: a weak letter carrying a vowel, with a sound letter before it that has a sukūn.',
+            'The vowel jumps back onto that sound letter, and the weak letter is left with a sukūn.',
+            'Sometimes that is the whole story (يَقُولُ). Sometimes the now-sākin weak letter then turns into an alif as well (يَخَافُ) — two rules, applied in order.'
+          ],
+          means: ['A sukūn followed by a vowelled weak letter is awkward to say. Moving the vowel one place left fixes it without losing anything.']
+        },
+        {
+          ar: 'الحَذْف — اِلْتِقَاء السَّاكِنَيْن',
+          title: 'Dropping: when two sukūns meet',
+          tag: 'the commonest reason a letter vanishes',
+          rows: [
+            ['قَالَ + تُ', 'قُلْتُ — the alif cannot stay next to a sākin ت'],
+            ['يَقُولُ + نَ', 'يَقُلْنَ'],
+            ['بَاعَ + تُ', 'بِعْتُ — and the stem vowel turns to a kasrah'],
+            ['لَمْ + يَقُولْ', 'لَمْ يَقُلْ — the jazm puts a sukūn on the end']
+          ],
+          spot: [
+            'Arabic will not say two sākin letters in a row. When an ending beginning with a sukūn meets a sākin weak letter, the weak letter is the one that goes.',
+            'The vowel left behind tells you which letter was deleted: قُلْتُ keeps a ḍammah because the wāw was there, بِعْتُ takes a kasrah because it was a yāʾ.',
+            'This is the single rule behind almost every strange-looking cell in an ajwaf conjugation table.'
+          ],
+          means: ['If you can spot where two sukūns would have collided, you can rebuild the form instead of memorising it.']
+        },
+        {
+          ar: 'الحَذْف فِي المِثَال',
+          title: 'The wāw that vanishes',
+          tag: 'mithāl — weak first letter',
+          rows: [
+            ['وَعَدَ', 'يَوْعِدُ → يَعِدُ — the wāw drops in the muḍāriʿ'],
+            ['وَصَلَ', 'يَصِلُ'],
+            ['وَضَعَ', 'يَضَعُ'],
+            ['وَعَدَ (passive)', 'يُوعَدُ — and it comes straight back']
+          ],
+          spot: [
+            'The condition: a wāw at the front, caught between a fatḥah in front of it and a kasrah behind it. That is exactly what يَوْعِدُ has.',
+            'It only affects the active muḍāriʿ. The māḍī keeps it (وَعَدَ), the maṣdar keeps it, and the passive brings it back (يُوعَدُ) because the vowel before it is now a ḍammah.',
+            'A yāʾ at the front does not drop: يَسَرَ يَيْسِرُ keeps its yāʾ.'
+          ],
+          means: ['This is why a mithāl verb looks two letters shorter in the present than the past. Nothing is lost — the letter returns wherever the conditions change.']
+        },
+        {
+          ar: 'النَّاقِص',
+          title: 'The tail that keeps changing',
+          tag: 'nāqiṣ — weak last letter',
+          rows: [
+            ['رَمَى / يَرْمِي', 'from ر م ي'],
+            ['دَعَا / يَدْعُو', 'from د ع و'],
+            ['نَسِيَ / يَنْسَى', 'the alif maqṣūrah of bāb ʿalima'],
+            ['يَرْمِي + ونَ', 'يَرْمُونَ — the yāʾ drops before the wāw'],
+            ['لَمْ يَرْمِ', 'in the jazm the whole letter goes']
+          ],
+          spot: [
+            'In the jazm a nāqiṣ verb loses its last letter entirely rather than taking a sukūn: لَمْ يَرْمِ، لَمْ يَدْعُ، لَمْ يَنْسَ. The vowel before it is the only trace left.',
+            'Before the wāw of the plural, the weak letter drops and the vowel before it changes: يَرْمِيُونَ is impossible, so يَرْمُونَ.',
+            'يَدْعُونَ is both "they (m.) call" and "they (f.) call" — two different words that collapsed into one shape. Only the context tells them apart.'
+          ],
+          means: ['The final weak letter is the least stable thing in the language. Expect it to disappear whenever anything is added.']
+        },
+        {
+          ar: 'المُضَاعَف',
+          title: 'The doubled verb',
+          tag: 'not weak, but it behaves like it',
+          rows: [
+            ['مَدَدَ', 'مَدَّ — the two identical letters run together'],
+            ['مَدَّ + تُ', 'مَدَدْتُ — and they separate again'],
+            ['يَمُدُّ + نَ', 'يَمْدُدْنَ']
+          ],
+          spot: [
+            'The two letters merge under a shaddah whenever they can, and split apart whenever a sukūn would land on the second one.',
+            'That is the same collision rule as the weak verbs, applied to a different problem — which is why muḍāʿaf sits with the ṣaḥīḥ verbs but conjugates like a muʿtall one.'
+          ],
+          means: ['Idghām is about the same instinct: do not say the same letter twice if you can say it once, long.']
+        },
+        {
+          ar: 'المَهْمُوز وَالأَمْر',
+          title: 'The hamzah, and the three imperatives',
+          tag: 'كُلْ، خُذْ، مُرْ',
+          rows: [
+            ['أَكَلَ', 'اُأْكُلْ → كُلْ'],
+            ['أَخَذَ', 'اُأْخُذْ → خُذْ'],
+            ['أَمَرَ', 'اُأْمُرْ → مُرْ'],
+            ['قَرَأَ', 'اِقْرَأْ — hamzah at the end, nothing drops'],
+            ['سَأَلَ', 'اِسْأَلْ — hamzah in the middle, nothing drops']
+          ],
+          spot: [
+            'The amr of a mahmūz al-fāʾ verb would need a hamzat al-waṣl followed immediately by a second, sākinah hamzah: اُأْكُلْ. Two hamzahs in a row is heavy, so both go.',
+            'Only these three do it, and only when they start the sentence. After a وَ or a فَ the hamzah comes back: وَأْمُرْ بِالمَعْرُوفِ.',
+            'A hamzah in the middle or at the end is not affected at all — اِسْأَلْ and اِقْرَأْ keep everything.'
+          ],
+          means: ['A hamzah is a full consonant, not a weak letter, so it never turns into an alif or hands its vowel back. It only ever gets dropped for being hard to say.']
+        },
+        {
+          ar: 'كَيْفَ تَبْنِي',
+          title: 'Working it out, step by step',
+          tag: 'the method',
+          rows: [
+            ['1', 'Drop the root letters into the plain pattern, as if the root were sound'],
+            ['2', 'Is there a weak letter with a vowel, after a fatḥah? → it becomes an alif'],
+            ['3', 'Is there a weak letter with a vowel, after a sukūn? → hand the vowel back'],
+            ['4', 'Would two sukūns end up next to each other? → drop the weak letter'],
+            ['5', 'Read it aloud. If it is still heavy, a rule has been missed']
+          ],
+          spot: [
+            'قَ و َ لَ → wāw vowelled, fatḥah before it → قَالَ.',
+            'يَ قْ وُ لُ → wāw vowelled, sukūn before it → hand the ḍammah back → يَقُولُ.',
+            'يَقُولُ + نَ → the wāw is now sākin and نْ is sākin → drop the wāw → يَقُلْنَ.',
+            'Three rules, applied in that order, generate the whole ajwaf table from the root alone.'
+          ],
+          means: ['This is the payoff: you stop memorising conjugation tables and start deriving them.']
+        }
+      ]
+    },
+
+    /* ------------------------------------------------------------- */
+    {
       id: 'particles',
       name: 'Particles',
       subpages: true,
