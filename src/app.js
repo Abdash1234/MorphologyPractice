@@ -17,13 +17,25 @@
   let touched = false;  // has the user done anything since the screen was drawn?
 
   /* the four ways to practise */
+  /*
+   * The two directions. Taking a word apart is the harder way round and the
+   * one that reads real text: you are given the surface and have to recover
+   * the chart. Building goes the other way, from a root you already know to a
+   * form. Both matter, but they are different exercises and were sitting in
+   * one undifferentiated grid of six.
+   */
+  const MODE_GROUPS = [
+    { id: 'apart', name: 'Take a word apart', desc: 'You are given the word and have to recover the chart.' },
+    { id: 'build', name: 'Build it yourself', desc: 'You are given the root or the frame and have to produce the forms.' }
+  ];
+
   const MODES = [
-    { id: 'analysis', name: 'Full analysis', desc: 'Walk a word down the chart, question by question.' },
-    { id: 'production', name: 'Build the form', desc: 'Given a root and a cell, produce the word yourself.' },
-    { id: 'conjugation', name: 'Conjugation', desc: 'Ṣarf kabīr: conjugate a verb for any of the fourteen persons.' },
-    { id: 'sentences', name: 'Sentences', desc: 'Fill the missing word into a real sentence, then translate it.' },
-    { id: 'ilal', name: 'Weak letter rules', desc: 'Iʿlāl: build what Arabic really says, then name the rule that did it.' },
-    { id: 'template', name: 'Fill the template', desc: 'The recitation frame with every form loose — drop them into place.' }
+    { id: 'analysis', group: 'apart', name: 'Full analysis', desc: 'Walk a word down the chart, question by question.' },
+    { id: 'sentences', group: 'apart', name: 'Sentences', desc: 'Fill the missing word into a real sentence, then translate it.' },
+    { id: 'production', group: 'build', name: 'Build the form', desc: 'Given a root and a cell, produce the word yourself.' },
+    { id: 'conjugation', group: 'build', name: 'Conjugation', desc: 'Ṣarf kabīr: conjugate a verb for any of the fourteen persons.' },
+    { id: 'ilal', group: 'build', name: 'Weak letter rules', desc: 'Iʿlāl: build what Arabic really says, then name the rule that did it.' },
+    { id: 'template', group: 'build', name: 'Fill the template', desc: 'The recitation frame with every form loose — drag or tap them into place.' }
   ];
 
   const currentMode = () => settings.mode || 'analysis';
@@ -507,22 +519,30 @@
       el('p', { class: 'lede', text: 'A word appears. You take it through the chart — type, tense, mood, voice, person, gender, number, then its root, bāb, ṣaḥīḥ or muʿtall, its place in the ṣarf ṣaghīr, and finally the meaning.' })
     ]));
 
-    /* practice mode */
-    const modeGrid = el('div', { class: 'deck-grid' });
-    MODES.forEach((m) => {
-      const count = E.poolFor(m.id, settings.deckId).length;
-      modeGrid.appendChild(el('button', {
-        class: 'deck' + (currentMode() === m.id ? ' selected' : ''), type: 'button',
-        onclick: () => { settings.mode = m.id; MP.store.saveSettings(settings); refresh(); }
+    /* practice mode, split by which direction you are working in */
+    const modePanel = [el('h2', { class: 'panel-title', text: 'Practice mode' })];
+    MODE_GROUPS.forEach((g) => {
+      const grid = el('div', { class: 'deck-grid' });
+      MODES.filter((m) => m.group === g.id).forEach((m) => {
+        const count = E.poolFor(m.id, settings.deckId).length;
+        grid.appendChild(el('button', {
+          class: 'deck' + (currentMode() === m.id ? ' selected' : ''), type: 'button',
+          onclick: () => { settings.mode = m.id; MP.store.saveSettings(settings); refresh(); }
+        }, [
+          el('span', { class: 'deck-name', text: m.name }),
+          el('span', { class: 'deck-desc', text: m.desc }),
+          el('span', { class: 'deck-count', text: count + ' to draw from' })
+        ]));
+      });
+      modePanel.push(el('div', {
+        class: 'mode-group' + (MODES.some((m) => m.group === g.id && m.id === currentMode()) ? ' active' : '')
       }, [
-        el('span', { class: 'deck-name', text: m.name }),
-        el('span', { class: 'deck-desc', text: m.desc }),
-        el('span', { class: 'deck-count', text: count + ' to draw from' })
+        el('span', { class: 'mode-group-name', text: g.name }),
+        el('span', { class: 'mode-group-desc', text: g.desc }),
+        grid
       ]));
     });
-    wrap.appendChild(el('section', { class: 'panel' }, [
-      el('h2', { class: 'panel-title', text: 'Practice mode' }), modeGrid
-    ]));
+    wrap.appendChild(el('section', { class: 'panel' }, modePanel));
 
     /* deck picker */
     const deckGrid = el('div', { class: 'deck-grid' });
