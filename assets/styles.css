@@ -1535,3 +1535,37 @@ select.input { cursor: pointer; }
 .cta-row.sticky-start .btn {
   box-shadow: 0 6px 24px var(--shadow);
 }
+
+/* ---------- a reference section shaped as a tree ---------- */
+
+.branch-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.branch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-raised-2);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.branch:hover { border-color: var(--accent-dim); }
+.branch.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-raised));
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.branch-ar { font-size: calc(24px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
+.branch-name { font-weight: 600; font-size: 14px; }
+.branch-count { font-size: 11.5px; color: var(--muted); }
+.branch.on .branch-count { color: var(--accent); }
+.branch-desc { margin: 0 0 12px; }

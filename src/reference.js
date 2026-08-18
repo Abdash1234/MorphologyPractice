@@ -357,9 +357,27 @@
       id: 'tricks',
       group: 'Quick reference',
       name: 'Tips & tricks',
+      subpages: true,
+      /* sixteen cards is a scroll, not a page — grouped by which part of the
+         word the trick actually looks at */
+      subgroups: [
+        { id: 'ends', name: 'The end of the word',
+          desc: 'Endings, the nūn of the five verbs, plurals and tanwīn.',
+          cards: ['endings', 'fiveverbs', 'plurals', 'tanwin'] },
+        { id: 'front', name: 'The front of the word',
+          desc: 'Prefixes, the mīm, the alif, and the form hiding behind an assimilation.',
+          cards: ['front', 'meem', 'alif', 'form8'] },
+        { id: 'vowels', name: 'The vowels in the middle',
+          desc: 'Voice, the bāb, the maṣdar, and what a hollow verb leaves behind.',
+          cards: ['voice', 'baab', 'masdar', 'hollow'] },
+        { id: 'traps', name: 'Traps and things worth memorising',
+          desc: 'The shapes that mean two things, and the lists that pay to know cold.',
+          cards: ['mnemonics', 'traps', 'object', 'particles'] }
+      ],
       intro: 'The give-aways, gathered in one place. Most of identifying a word is recognising a handful of sounds and shapes: say the ending out loud, look at the front of the word, and read two vowels. Learn this page and the questions start answering themselves.',
       cards: [
         {
+          key: 'endings',
           ar: 'أَوَاخِر الكَلِمَات',
           title: 'The endings — say them out loud',
           tag: 'the last syllable names person, gender and number',
@@ -383,6 +401,7 @@
           ]
         },
         {
+          key: 'fiveverbs',
           ar: 'الأَفْعَال الخَمْسَة',
           title: 'The five verbs — the nūn tells you the iʿrāb',
           tag: 'aani · oona · eena',
@@ -397,6 +416,7 @@
           ]
         },
         {
+          key: 'front',
           ar: 'أَنَيْتُ',
           title: 'The front of the word',
           tag: 'prefixes and what they promise',
@@ -411,6 +431,7 @@
           spot: ['The four tense letters are remembered as the word أَنَيْتُ. Nothing else can start a muḍāriʿ.']
         },
         {
+          key: 'voice',
           ar: 'حَرَكَتَانِ فَقَط',
           title: 'Two vowels decide the voice',
           tag: 'maʿlūm or majhūl',
@@ -426,6 +447,7 @@
           ]
         },
         {
+          key: 'meem',
           ar: 'مُـ · مَـ · مِـ',
           title: 'A mīm at the front',
           tag: 'which kind of noun',
@@ -437,6 +459,7 @@
           spot: ['مَفْتَح would be the place you open; مِفْتَاح is the key. One vowel on the mīm is the whole difference.']
         },
         {
+          key: 'alif',
           ar: 'أَلِف الوَصْل',
           title: 'An alif at the front',
           tag: 'which form it belongs to',
@@ -449,6 +472,7 @@
           spot: ['If the alif disappears when the word is joined to what comes before it, it is waṣl, and the verb is VII, VIII, IX, X or an imperative.']
         },
         {
+          key: 'mnemonics',
           ar: 'سَأَلْتُمُونِيهَا',
           title: 'The mnemonics worth memorising',
           tag: 'four short words that carry a lot',
@@ -461,6 +485,7 @@
           spot: ['Learning these four is worth more than learning fifty words: they let you take apart a word you have never seen.']
         },
         {
+          key: 'traps',
           ar: 'المُشْتَبِهَات',
           title: 'The traps — one shape, two jobs',
           tag: 'where people lose marks',
@@ -476,6 +501,7 @@
           spot: ['When two readings are possible, the sentence around the word decides — but knowing that the ambiguity exists is what stops you guessing confidently and wrongly.']
         },
         {
+          key: 'baab',
           ar: 'الأَبْوَاب',
           title: 'Naming the bāb quickly',
           tag: 'start from the māḍī vowel',
@@ -490,6 +516,7 @@
           spot: ['Three of the six are settled by the māḍī alone. That is why a dictionary always gives you both parts.']
         },
         {
+          key: 'plurals',
           ar: 'الجُمُوع',
           title: 'Plurals beyond "-oona"',
           tag: 'the feminine plural, and the ones with no ending at all',
@@ -509,6 +536,7 @@
           ]
         },
         {
+          key: 'tanwin',
           ar: 'التَّنْوِين وَأَلْ',
           title: 'Tanwīn, الـ and the words that refuse tanwīn',
           tag: 'quick tests on any noun',
@@ -521,6 +549,7 @@
           spot: ['A noun with no tanwīn and no الـ that takes a fatḥah after a ḥarf al-jarr is not a mistake — it is a diptote.']
         },
         {
+          key: 'object',
           ar: 'اللَّازِم وَالمُتَعَدِّي',
           title: 'Does it take an object?',
           tag: 'transitive or intransitive, by bāb',
@@ -534,6 +563,7 @@
           spot: ['A lāzim verb still reaches an object, but through a preposition: ذَهَبَ إِلَى المَسْجِدِ, جَلَسَ فِي البَيْتِ.']
         },
         {
+          key: 'masdar',
           ar: 'المَصْدَر يَدُلُّ عَلَى البَاب',
           title: 'The maṣdar names the bāb on sight',
           tag: 'works in both directions',
@@ -549,6 +579,7 @@
           ]
         },
         {
+          key: 'hollow',
           ar: 'الأَجْوَف',
           title: 'Hollow verbs — the leftover vowel gives the game away',
           tag: 'when the middle letter drops',
@@ -561,6 +592,7 @@
           spot: ['When the middle letter vanishes, the vowel it leaves on the first letter is the fingerprint of the original — that is how you recover the root.']
         },
         {
+          key: 'form8',
           ar: 'اِفْتَعَلَ المُدْغَم',
           title: 'Form VIII in disguise',
           tag: 'when the تـ changes or swallows a letter',
@@ -574,6 +606,7 @@
           spot: ['A shaddah on a tāʾ near the front, or a ط / د sitting where a تـ should be, is almost always Form VIII hiding. Do not count the changed letter as a radical.']
         },
         {
+          key: 'particles',
           ar: 'الحُرُوف العَامِلَة',
           title: 'The particles that change the verb',
           tag: 'what to look for in front',
@@ -1024,9 +1057,20 @@
       id: 'weak',
       group: 'Weak & irregular',
       name: 'Ṣaḥīḥ & muʿtall',
+      subpages: true,
+      /* the chart's own fork: sound on one side, weak on the other */
+      subgroups: [
+        { id: 'sahih', ar: 'صَحِيح', name: 'Ṣaḥīḥ — sound',
+          desc: 'No و or ي among the radicals. Three kinds, told apart by what else is odd about the letters.',
+          cards: ['salim', 'mudaaf', 'mahmuz'] },
+        { id: 'mutal', ar: 'مُعْتَلّ', name: 'Muʿtall — weak',
+          desc: 'At least one radical is و or ي. Which kind depends on where that letter sits.',
+          cards: ['mithal', 'ajwaf', 'naqis', 'lafif'] }
+      ],
       intro: 'How the root letters behave. Sound roots keep their shape; weak roots (containing و or ي) shift, drop letters and merge — knowing which category you are in tells you what to expect.',
       cards: [
         {
+          key: 'salim',
           ar: 'سَالِم',
           title: 'Sālim — perfectly sound',
           tag: 'no weak letter, no hamzah, no doubling',
@@ -1036,6 +1080,7 @@
           examples: [{ ar: 'نَصَرَ يَنْصُرُ', en: 'to help' }]
         },
         {
+          key: 'mudaaf',
           ar: 'مُضَاعَف',
           title: 'Muḍāʿaf — doubled',
           tag: 'ʿayn and lām are the same letter',
@@ -1045,6 +1090,7 @@
           examples: [{ ar: 'مَدَّ يَمُدُّ', en: 'to stretch out' }, { ar: 'رَدَّ يَرُدُّ', en: 'to return' }]
         },
         {
+          key: 'mahmuz',
           ar: 'مَهْمُوز',
           title: 'Mahmūz — hamzated',
           tag: 'one root letter is a hamzah',
@@ -1054,6 +1100,7 @@
           examples: [{ ar: 'أَخَذَ يَأْخُذُ', en: 'to take' }, { ar: 'سَأَلَ يَسْأَلُ', en: 'to ask' }, { ar: 'قَرَأَ يَقْرَأُ', en: 'to read' }]
         },
         {
+          key: 'mithal',
           ar: 'مِثَال',
           title: 'Mithāl — weak first letter',
           tag: 'و or ي as the fāʾ',
@@ -1063,6 +1110,7 @@
           examples: [{ ar: 'وَعَدَ يَعِدُ', en: 'to promise' }, { ar: 'وَصَلَ يَصِلُ', en: 'to arrive' }]
         },
         {
+          key: 'ajwaf',
           ar: 'أَجْوَف',
           title: 'Ajwaf — weak middle letter',
           tag: 'و or ي as the ʿayn',
@@ -1072,6 +1120,7 @@
           examples: [{ ar: 'قَالَ يَقُولُ', en: 'to say' }, { ar: 'بَاعَ يَبِيعُ', en: 'to sell' }, { ar: 'خَافَ يَخَافُ', en: 'to fear' }]
         },
         {
+          key: 'naqis',
           ar: 'نَاقِص',
           title: 'Nāqiṣ — weak last letter',
           tag: 'و or ي as the lām',
@@ -1081,6 +1130,7 @@
           examples: [{ ar: 'دَعَا يَدْعُو', en: 'to call' }, { ar: 'رَمَى يَرْمِي', en: 'to throw' }]
         },
         {
+          key: 'lafif',
           ar: 'لَفِيف',
           title: 'Lafīf — two weak letters',
           tag: 'mafrūq and maqrūn',
@@ -1144,9 +1194,26 @@
       group: 'Weak & irregular',
       name: 'Weak letter rules',
       subpages: true,
+      /*
+       * Two ways in, because both questions get asked. "What happened to this
+       * letter?" wants the rule; "what happens to a verb like this?" wants the
+       * position. The same nine pages, reachable either way round.
+       */
+      subgroups: [
+        { id: 'system', name: 'The system',
+          desc: 'What can happen at all, and the order to try it in.',
+          cards: ['system', 'method'] },
+        { id: 'effect', name: 'By what happens to the letter',
+          desc: 'The four things a weak or doubled letter ever does.',
+          cards: ['qalb', 'naql', 'hadhf', 'idgham'] },
+        { id: 'position', name: 'By where the letter sits',
+          desc: 'First radical, middle, last — and the hamzah.',
+          cards: ['mithal', 'ajwaf', 'naqis', 'hamzah'] }
+      ],
       intro: 'The other page tells you which category a weak verb belongs to. This one tells you what actually happens to the letter — because قَوَلَ is never said, it comes out قَالَ, and يَقْوُلُ comes out يَقُولُ. There are only three things a weak letter ever does: it turns into something else, it hands its vowel back, or it drops. Learn those three and the whole muʿtall system stops being a list to memorise.',
       cards: [
         {
+          key: 'system',
           ar: 'الإِعْلَال',
           title: 'The three things that can happen',
           tag: 'the whole system in one card',
@@ -1163,6 +1230,7 @@
           means: ['Work forwards from the pattern, never backwards from the finished word. That is the difference between knowing the rules and guessing.']
         },
         {
+          key: 'qalb',
           ar: 'القَلْب — تَصِير أَلِفًا',
           title: 'Turning into an alif',
           tag: 'wāw or yāʾ with a fatḥah, after a fatḥah',
@@ -1180,6 +1248,7 @@
           means: ['This is why an ajwaf verb looks nothing like its root in the māḍī. قَالَ hides a wāw that the ṣarf ṣaghīr will bring straight back.']
         },
         {
+          key: 'naql',
           ar: 'النَّقْل — تُنْقَل الحَرَكَة',
           title: 'Handing the vowel back',
           tag: 'the vowel moves left, the weak letter goes quiet',
@@ -1197,6 +1266,7 @@
           means: ['A sukūn followed by a vowelled weak letter is awkward to say. Moving the vowel one place left fixes it without losing anything.']
         },
         {
+          key: 'hadhf',
           ar: 'الحَذْف — اِلْتِقَاء السَّاكِنَيْن',
           title: 'Dropping: when two sukūns meet',
           tag: 'the commonest reason a letter vanishes',
@@ -1214,6 +1284,7 @@
           means: ['If you can spot where two sukūns would have collided, you can rebuild the form instead of memorising it.']
         },
         {
+          key: 'mithal',
           ar: 'الحَذْف فِي المِثَال',
           title: 'The wāw that vanishes',
           tag: 'mithāl — weak first letter',
@@ -1231,6 +1302,26 @@
           means: ['This is why a mithāl verb looks two letters shorter in the present than the past. Nothing is lost — the letter returns wherever the conditions change.']
         },
         {
+          key: 'ajwaf',
+          ar: 'الأَجْوَف',
+          title: 'The hollow middle',
+          tag: 'ajwaf — weak second letter',
+          rows: [
+            ['قَوَلَ', 'قَالَ — the wāw becomes an alif'],
+            ['يَقْوُلُ', 'يَقُولُ — the vowel hands back'],
+            ['قَالَ + تُ', 'قُلْتُ — and it drops when a sukūn meets it'],
+            ['بَاعَ / يَبِيعُ', 'the same three rules on a yāʾ'],
+            ['خَافَ / يَخَافُ', 'bāb ʿalima: the vowel moves, then turns into an alif']
+          ],
+          spot: [
+            'An ajwaf verb is the one that shows all three rules in a single paradigm, which is why it looks the most irregular and is really the most systematic.',
+            'The vowel left behind when the letter drops tells you which letter it was: قُلْتُ keeps a ḍammah for a wāw, بِعْتُ a kasrah for a yāʾ.',
+            'In the māḍī the alif is a disguise. The ṣarf ṣaghīr and the muḍāriʿ both put the real letter back.'
+          ],
+          means: ['Learn قَالَ properly and بَاعَ، خَافَ، قَامَ، سَارَ all come free — they are the same three rules on different letters.']
+        },
+        {
+          key: 'naqis',
           ar: 'النَّاقِص',
           title: 'The tail that keeps changing',
           tag: 'nāqiṣ — weak last letter',
@@ -1249,6 +1340,7 @@
           means: ['The final weak letter is the least stable thing in the language. Expect it to disappear whenever anything is added.']
         },
         {
+          key: 'idgham',
           ar: 'المُضَاعَف',
           title: 'The doubled verb',
           tag: 'not weak, but it behaves like it',
@@ -1264,6 +1356,7 @@
           means: ['Idghām is about the same instinct: do not say the same letter twice if you can say it once, long.']
         },
         {
+          key: 'hamzah',
           ar: 'المَهْمُوز وَالأَمْر',
           title: 'The hamzah, and the three imperatives',
           tag: 'كُلْ، خُذْ، مُرْ',
@@ -1282,6 +1375,7 @@
           means: ['A hamzah is a full consonant, not a weak letter, so it never turns into an alif or hands its vowel back. It only ever gets dropped for being hard to say.']
         },
         {
+          key: 'method',
           ar: 'كَيْفَ تَبْنِي',
           title: 'Working it out, step by step',
           tag: 'the method',

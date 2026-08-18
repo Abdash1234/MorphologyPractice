@@ -1978,6 +1978,8 @@
   let refSection = 'gates';
   /* which card of a multi-page section is open, per section id */
   const subPage = {};
+  /* and which branch, for the sections shaped as a tree */
+  const subGroup = {};
 
   function openReference(sectionId) {
     refSection = sectionId || refSection;
@@ -2059,7 +2061,49 @@
      * of them" is still there for anyone who wants the whole run.
      */
     let cards = section.cards;
-    if (section.subpages && cards.length > 1) {
+
+    /*
+     * A section with subgroups is a two-level tree: pick the branch, then the
+     * page on it. That is how the chart itself is shaped — ṣaḥīḥ forks into
+     * sālim, muḍāʿaf and mahmūz, muʿtall into mithāl, ajwaf, nāqiṣ and lafīf —
+     * and a flat row of seven chips hid that fork completely.
+     */
+    if (section.subgroups && cards.length > 1) {
+      const pickedId = subGroup[section.id] || section.subgroups[0].id;
+      const branch = section.subgroups.find((g) => g.id === pickedId) || section.subgroups[0];
+
+      const branchRow = el('div', { class: 'branch-row' });
+      section.subgroups.forEach((g) => {
+        branchRow.appendChild(el('button', {
+          class: 'branch' + (g.id === branch.id ? ' on' : ''), type: 'button',
+          onclick: () => { subGroup[section.id] = g.id; again(); }
+        }, [
+          g.ar ? ar(g.ar, 'branch-ar') : el('span', {}),
+          el('span', { class: 'branch-name', text: g.name }),
+          el('span', { class: 'branch-count', text: g.cards.length + ' pages' })
+        ]));
+      });
+      body.appendChild(branchRow);
+      if (branch.desc) body.appendChild(el('p', { class: 'branch-desc muted small', text: branch.desc }));
+
+      const inBranch = cards.filter((c) => branch.cards.indexOf(c.key) !== -1);
+      const stateKey = section.id + ':' + branch.id;
+      const chosen = subPage[stateKey] === undefined ? 0 : subPage[stateKey];
+
+      const picker = el('div', { class: 'chip-row sub-picker' });
+      inBranch.forEach((c, i) => {
+        picker.appendChild(el('button', {
+          class: 'chip' + (chosen === i ? ' on' : ''), type: 'button', text: c.title,
+          onclick: () => { subPage[stateKey] = i; again(); }
+        }));
+      });
+      picker.appendChild(el('button', {
+        class: 'chip' + (chosen === 'all' ? ' on' : ''), type: 'button', text: 'All of them',
+        onclick: () => { subPage[stateKey] = 'all'; again(); }
+      }));
+      body.appendChild(picker);
+      cards = chosen === 'all' ? inBranch : [inBranch[chosen] || inBranch[0]];
+    } else if (section.subpages && cards.length > 1) {
       const chosen = subPage[section.id] === undefined ? 0 : subPage[section.id];
       const picker = el('div', { class: 'chip-row sub-picker' });
       cards.forEach((c, i) => {
