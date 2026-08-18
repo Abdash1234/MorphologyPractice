@@ -2044,6 +2044,11 @@
     const body = el('div', { class: 'ref-body' });
     body.appendChild(el('p', { class: 'ref-intro' }, [arabicAware(section.intro)]));
 
+    if (section.kind === 'formsoverview') {
+      body.appendChild(renderFormsOverview());
+      box.appendChild(body);
+      return box;
+    }
     if (section.kind === 'formtables') {
       body.appendChild(renderFormTables(again));
       box.appendChild(body);
@@ -2190,6 +2195,76 @@
     overlay.scrollTop = 0;
   }
 
+  /*
+   * Every derived form on one screen, for a glance rather than a study.
+   *
+   * Sorted by how many letters are added, because that count is the quickest
+   * way to place an unfamiliar verb: one addition narrows it to three forms,
+   * two to five, three to exactly one. The patterns are built from the same
+   * generator the rest of the app uses, so this cannot drift from the tables.
+   */
+  const FORM_ADDITIONS = [
+    { id: 'II', n: 1, adds: 'The ʿayn is doubled — a shaddah on the middle radical' },
+    { id: 'III', n: 1, adds: 'An alif after the fāʾ' },
+    { id: 'IV', n: 1, adds: 'A hamzat al-qaṭʿ before the fāʾ' },
+    { id: 'V', n: 2, adds: 'A tāʾ before the fāʾ, and the ʿayn doubled' },
+    { id: 'VI', n: 2, adds: 'A tāʾ before the fāʾ, and an alif after it' },
+    { id: 'VII', n: 2, adds: 'A hamzat al-waṣl and a nūn before the fāʾ' },
+    { id: 'VIII', n: 2, adds: 'A hamzat al-waṣl before the fāʾ, and a tāʾ after it' },
+    { id: 'IX', n: 2, adds: 'A hamzat al-waṣl before the fāʾ, and the lām doubled' },
+    { id: 'X', n: 3, adds: 'A hamzat al-waṣl, a sīn and a tāʾ before the fāʾ' }
+  ];
+
+  const RUBAI_ADDITIONS = [
+    { id: 'falala', n: 0, adds: 'Four radicals, nothing added' },
+    { id: 'tafalala', n: 1, adds: 'A tāʾ before the fāʾ' }
+  ];
+
+  function renderFormsOverview() {
+    const box = el('div', { class: 'forms-overview' });
+
+    function block(title, note, rows, groupId) {
+      const wrap = el('div', { class: 'fo-block' });
+      wrap.appendChild(el('div', { class: 'fo-block-head' }, [
+        el('span', { class: 'fo-block-title', text: title }),
+        note ? el('span', { class: 'fo-block-note', text: note }) : el('span', {})
+      ]));
+      const t = el('div', { class: 'fo-table' });
+      rows.forEach((r) => {
+        const pattern = MP.generator.build(r.id, r.id === 'falala' || r.id === 'tafalala'
+          ? ['ف', 'ع', 'ل', 'ل'] : ['ف', 'ع', 'ل']);
+        if (!pattern) return;
+        const opt = T.option(groupId, r.id);
+        t.appendChild(el('div', { class: 'fo-row' }, [
+          el('span', { class: 'fo-name', text: opt ? opt.en : r.id }),
+          el('span', { class: 'fo-pattern' }, [
+            ar(pattern.madi + ' ' + pattern.mudari, 'fo-pattern-ar'),
+            el('span', { class: 'fo-masdar' }, [ar(pattern.masdar, 'fo-masdar-ar')])
+          ]),
+          el('span', { class: 'fo-adds', text: r.adds })
+        ]));
+      });
+      wrap.appendChild(t);
+      box.appendChild(wrap);
+    }
+
+    [1, 2, 3].forEach((n) => {
+      const rows = FORM_ADDITIONS.filter((f) => f.n === n);
+      if (!rows.length) return;
+      block(n === 1 ? 'One letter added' : n === 2 ? 'Two letters added' : 'Three letters added',
+        rows.map((r) => (T.option('baabThulathiMazeed', r.id) || {}).en).join(' · '),
+        rows, 'baabThulathiMazeed');
+    });
+
+    block('Four radicals', 'Rubāʿī, bare and derived', RUBAI_ADDITIONS, 'baabRubaiMujarrad');
+    /* the derived rubāʿī lives in the other option group */
+    const last = box.querySelector('.fo-block:last-child .fo-row:last-child .fo-name');
+    if (last && last.textContent === 'tafalala') last.textContent = 'Tafaʿlala';
+
+    box.appendChild(el('p', { class: 'muted small', text: 'Count the letters that are not radicals and you have narrowed it to at most five forms. The full page for any of them is under Form tables.' }));
+    return box;
+  }
+
   /* ---- one page per bāb, every line labelled ---- */
   let formPage = 'nasara';
 
@@ -2286,24 +2361,69 @@
     ]));
     if (table.note) box.appendChild(el('p', { class: 'muted small' }, [arabicAware(table.note)]));
 
-    const grid = el('div', { class: 'conj-grid' });
-    [
+    const COLS = [
       { key: 'madi', name: 'Māḍī — الماضي', pronouns: MP.conjugation.PRONOUNS },
       { key: 'mudari', name: 'Muḍāriʿ — المضارع', pronouns: MP.conjugation.PRONOUNS },
       { key: 'amr', name: 'Amr — الأمر', pronouns: MP.conjugation.AMR_PRONOUNS }
-    ].forEach((col) => {
-      const forms = table[col.key];
-      if (!forms) return;
-      const colBox = el('div', { class: 'conj-col' }, [el('h4', { class: 'ref-sub', text: col.name })]);
-      forms.forEach((form, i) => {
-        colBox.appendChild(el('div', { class: 'conj-row' }, [
-          ar(col.pronouns[i].ar, 'conj-pronoun'),
-          ar(form, 'conj-form')
-        ]));
-      });
-      grid.appendChild(colBox);
+    ];
+
+    /*
+     * Two ways to read the same fourteen.
+     *
+     * By tense stacks each tense as its own list, which is how you recite it.
+     * By pronoun puts the pronouns down the side and the tenses across, so a
+     * single row shows everything هُوَ does — which is how the printed tables
+     * lay it out, and how most people were taught it.
+     */
+    const layout = settings.conjLayout === 'pronoun' ? 'pronoun' : 'tense';
+    const layoutRow = el('div', { class: 'chip-row' });
+    [
+      { id: 'tense', name: 'By tense' },
+      { id: 'pronoun', name: 'By pronoun' }
+    ].forEach((o) => {
+      layoutRow.appendChild(el('button', {
+        class: 'chip' + (layout === o.id ? ' on' : ''), type: 'button', text: o.name,
+        onclick: () => { settings.conjLayout = o.id; MP.store.saveSettings(settings); redraw(); }
+      }));
     });
-    box.appendChild(grid);
+    box.appendChild(layoutRow);
+
+    if (layout === 'pronoun') {
+      const amrAt = {};
+      MP.conjugation.AMR_PRONOUNS.forEach((pr, i) => { amrAt[pr.id] = i; });
+
+      const t = el('div', { class: 'conj-table' });
+      t.appendChild(el('div', { class: 'conj-trow conj-thead' }, [
+        el('span', { class: 'conj-th', text: '' })
+      ].concat(COLS.map((c) => el('span', { class: 'conj-th', text: c.name.split(' — ')[0] })))));
+
+      MP.conjugation.PRONOUNS.forEach((pr, i) => {
+        const cells = [ar(pr.ar, 'conj-pronoun')];
+        COLS.forEach((c) => {
+          const forms = table[c.key];
+          let v = null;
+          if (forms) v = c.key === 'amr' ? (amrAt[pr.id] === undefined ? null : forms[amrAt[pr.id]]) : forms[i];
+          cells.push(v ? ar(v, 'conj-form') : el('span', { class: 'conj-form none', text: '—' }));
+        });
+        t.appendChild(el('div', { class: 'conj-trow' }, cells));
+      });
+      box.appendChild(t);
+    } else {
+      const grid = el('div', { class: 'conj-grid' });
+      COLS.forEach((col) => {
+        const forms = table[col.key];
+        if (!forms) return;
+        const colBox = el('div', { class: 'conj-col' }, [el('h4', { class: 'ref-sub', text: col.name })]);
+        forms.forEach((form, i) => {
+          colBox.appendChild(el('div', { class: 'conj-row' }, [
+            ar(col.pronouns[i].ar, 'conj-pronoun'),
+            ar(form, 'conj-form')
+          ]));
+        });
+        grid.appendChild(colBox);
+      });
+      box.appendChild(grid);
+    }
     box.appendChild(el('p', { class: 'muted small', text: table.source === 'authored'
       ? 'This table is written out by hand — the stem of this verb changes as it conjugates.'
       : 'Built from the māḍī and muḍāriʿ: this verb keeps its stem throughout.' }));

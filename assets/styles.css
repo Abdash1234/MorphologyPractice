@@ -1569,3 +1569,66 @@ select.input { cursor: pointer; }
 .branch-count { font-size: 11.5px; color: var(--muted); }
 .branch.on .branch-count { color: var(--accent); }
 .branch-desc { margin: 0 0 12px; }
+
+/* the conjugation table read by pronoun: one row per person */
+.conj-table {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-raised);
+  margin-top: 8px;
+}
+.conj-trow {
+  display: grid;
+  grid-template-columns: minmax(76px, 0.8fr) repeat(3, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.conj-trow:last-child { border-bottom: none; }
+.conj-trow:nth-child(even) { background: color-mix(in srgb, var(--bg-raised-2) 55%, transparent); }
+.conj-thead { background: var(--bg-raised-2); }
+.conj-thead:nth-child(even) { background: var(--bg-raised-2); }
+.conj-th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.conj-form.none { color: var(--muted); opacity: 0.45; }
+
+@media (max-width: 560px) {
+  .conj-trow { grid-template-columns: minmax(62px, 0.8fr) repeat(3, 1fr); gap: 6px; padding: 6px 9px; }
+  .conj-table .conj-form { font-size: calc(19px * var(--ar-boost)); }
+  .conj-table .conj-pronoun { font-size: calc(15px * var(--ar-boost)); }
+}
+
+/* ---------- forms at a glance ---------- */
+
+.fo-block { margin-bottom: 18px; }
+.fo-block-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.fo-block-title { font-size: 14.5px; font-weight: 600; }
+.fo-block-note { font-size: 12px; color: var(--muted); }
+.fo-table { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.fo-row {
+  display: grid;
+  grid-template-columns: 92px minmax(180px, 1.1fr) 1.4fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-raised);
+}
+.fo-row:last-child { border-bottom: none; }
+.fo-row:nth-child(even) { background: color-mix(in srgb, var(--bg-raised-2) 55%, transparent); }
+.fo-name { font-weight: 600; font-size: 13.5px; color: var(--accent); }
+.fo-pattern { display: flex; flex-direction: column; }
+.fo-pattern-ar { font-size: calc(23px * var(--ar-boost)); }
+.fo-masdar-ar { font-size: calc(16px * var(--ar-boost)); color: var(--muted); }
+.fo-adds { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+@media (max-width: 620px) {
+  .fo-row { grid-template-columns: 1fr; gap: 3px; }
+  .fo-adds { padding-bottom: 2px; }
+}

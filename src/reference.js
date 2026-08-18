@@ -1541,6 +1541,16 @@
 
     /* ------------------------------------------------------------- */
     {
+      id: 'forms-overview',
+      group: 'The verb',
+      name: 'Forms at a glance',
+      kind: 'formsoverview',
+      intro: 'Every derived form on one screen, sorted by how many letters get added to the root. That count is the quickest way in: one letter added gives you Forms II, III and IV, two gives you V through IX, and only Form X adds three.',
+      cards: []
+    },
+
+    /* ------------------------------------------------------------- */
+    {
       id: 'forms-tables',
       group: 'Full tables',
       name: 'Form tables',
