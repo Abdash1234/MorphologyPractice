@@ -1436,6 +1436,7 @@
     const mode = settings.sarfBlank || 'none';
 
     const modeRow = el('div', { class: 'chip-row' });
+    modeRow.appendChild(el('span', { class: 'chip-label', text: 'Blank the cells:' }));
     BLANK_MODES.forEach((m) => {
       modeRow.appendChild(el('button', {
         class: 'chip' + (mode === m.id ? ' on' : ''), type: 'button', text: m.name, title: m.desc,
@@ -2386,7 +2387,126 @@
         onclick: () => { settings.conjLayout = o.id; MP.store.saveSettings(settings); redraw(); }
       }));
     });
+
+    /*
+     * The same blank-and-fill the ṣarf ṣaghīr has, applied to the fourteen.
+     *
+     * Every cell is addressed as tense:index, so a gap knows which form it
+     * wants whichever of the two layouts is on screen. The bank counts
+     * duplicates rather than holding one tile per distinct string, because
+     * تَنْصُرَانِ is genuinely wanted in three different places.
+     */
+    const blankMode = settings.conjBlank || 'none';
+    /* the ṣarf ṣaghīr panel further down has its own identical set of these,
+       so both say which table they blank */
+    layoutRow.appendChild(el('span', { class: 'chip-label', text: 'Blank the fourteen:' }));
+    [
+      { id: 'none', name: 'Show it all' },
+      { id: 'some', name: 'Blank some' },
+      { id: 'all', name: 'Blank them all' }
+    ].forEach((o) => {
+      layoutRow.appendChild(el('button', {
+        class: 'chip' + (blankMode === o.id ? ' on' : ''), type: 'button', text: o.name,
+        onclick: () => { settings.conjBlank = o.id; MP.store.saveSettings(settings); redraw(); }
+      }));
+    });
     box.appendChild(layoutRow);
+
+    const every = [];
+    COLS.forEach((c) => {
+      const forms = table[c.key];
+      if (forms) forms.forEach((f, i) => every.push({ key: c.key + ':' + i, value: f }));
+    });
+    let blanks = [];
+    if (blankMode === 'all') blanks = every.map((c) => c.key);
+    else if (blankMode === 'some') {
+      blanks = E.shuffle(every.map((c) => c.key)).slice(0, Math.max(1, Math.round(every.length * 0.4)));
+    }
+    const wanted = {};
+    every.forEach((c) => { if (blanks.indexOf(c.key) !== -1) wanted[c.key] = c.value; });
+
+    const placed = {};
+    const slotNodes = {};
+    let held = null;
+    let graded = false;
+    const bank = el('div', { class: 'tpl-bank conj-bank' });
+    const result = el('p', { class: 'tpl-result muted small' });
+
+    function paintBank() {
+      bank.innerHTML = '';
+      const need = {};
+      Object.keys(wanted).forEach((k) => { need[wanted[k]] = (need[wanted[k]] || 0) + 1; });
+      Object.keys(placed).forEach((k) => { need[placed[k]] = (need[placed[k]] || 0) - 1; });
+      const tiles = [];
+      Object.keys(need).forEach((v) => { for (let i = 0; i < need[v]; i++) tiles.push(v); });
+      if (!tiles.length) {
+        bank.appendChild(el('span', { class: 'muted small', text: 'All placed — press Check.' }));
+        return;
+      }
+      E.shuffle(tiles).forEach((value) => {
+        bank.appendChild(el('button', {
+          class: 'tpl-tile' + (held === value ? ' held' : ''), type: 'button', draggable: 'true',
+          onclick: () => { if (graded) return; held = held === value ? null : value; paintBank(); },
+          ondragstart: (ev) => { held = value; ev.dataTransfer.setData('text/plain', value); }
+        }, [ar(value, 'tpl-tile-ar')]));
+      });
+    }
+
+    function paintSlot(key) {
+      const node = slotNodes[key];
+      if (!node) return;
+      node.innerHTML = '';
+      node.classList.toggle('filled', !!placed[key]);
+      if (placed[key]) node.appendChild(ar(placed[key], 'tpl-slot-ar'));
+      else node.appendChild(el('span', { class: 'tpl-slot-hint', text: '؟' }));
+    }
+
+    function place(key, value) {
+      if (graded || !value) return;
+      placed[key] = value;
+      held = null;
+      paintSlot(key);
+      paintBank();
+    }
+
+    /* a cell is either the form itself, or a gap waiting for it */
+    function cellFor(key, value, cls) {
+      if (blanks.indexOf(key) === -1) return ar(value, cls);
+      const slot = el('span', {
+        class: 'tpl-slot conj-slot', 'data-slot': key,
+        onclick: () => {
+          if (graded) return;
+          if (held) place(key, held);
+          else if (placed[key]) { delete placed[key]; paintSlot(key); paintBank(); }
+        },
+        ondragover: (ev) => { ev.preventDefault(); slot.classList.add('over'); },
+        ondragleave: () => slot.classList.remove('over'),
+        ondrop: (ev) => {
+          ev.preventDefault();
+          slot.classList.remove('over');
+          place(key, ev.dataTransfer.getData('text/plain') || held);
+        }
+      });
+      slotNodes[key] = slot;
+      return slot;
+    }
+
+    function markAll(reveal) {
+      if (graded && !reveal) return;
+      graded = true;
+      let right = 0;
+      blanks.forEach((k) => {
+        const ok = placed[k] === wanted[k];
+        if (ok) right++;
+        else if (reveal) { placed[k] = wanted[k]; paintSlot(k); }
+        const n = slotNodes[k];
+        if (n) { n.classList.remove('correct', 'wrong'); n.classList.add(ok ? 'correct' : 'wrong'); }
+      });
+      paintBank();
+      result.textContent = reveal
+        ? 'Filled in. You had ' + right + ' of ' + blanks.length + '.'
+        : right + ' of ' + blanks.length + ' in the right place.';
+    }
 
     if (layout === 'pronoun') {
       const amrAt = {};
@@ -2401,9 +2521,11 @@
         const cells = [ar(pr.ar, 'conj-pronoun')];
         COLS.forEach((c) => {
           const forms = table[c.key];
-          let v = null;
-          if (forms) v = c.key === 'amr' ? (amrAt[pr.id] === undefined ? null : forms[amrAt[pr.id]]) : forms[i];
-          cells.push(v ? ar(v, 'conj-form') : el('span', { class: 'conj-form none', text: '—' }));
+          const at = c.key === 'amr' ? amrAt[pr.id] : i;
+          const v = (forms && at !== undefined) ? forms[at] : null;
+          cells.push(v
+            ? cellFor(c.key + ':' + at, v, 'conj-form')
+            : el('span', { class: 'conj-form none', text: '—' }));
         });
         t.appendChild(el('div', { class: 'conj-trow' }, cells));
       });
@@ -2417,13 +2539,27 @@
         forms.forEach((form, i) => {
           colBox.appendChild(el('div', { class: 'conj-row' }, [
             ar(col.pronouns[i].ar, 'conj-pronoun'),
-            ar(form, 'conj-form')
+            cellFor(col.key + ':' + i, form, 'conj-form')
           ]));
         });
         grid.appendChild(colBox);
       });
       box.appendChild(grid);
     }
+
+    if (blanks.length) {
+      Object.keys(slotNodes).forEach(paintSlot);
+      paintBank();
+      box.appendChild(el('p', { class: 'muted small', text: 'Drag a form into a gap, or tap the form then the gap. Tap a filled gap to take it back.' }));
+      box.appendChild(bank);
+      box.appendChild(result);
+      box.appendChild(el('div', { class: 'input-row' }, [
+        el('button', { class: 'btn primary', type: 'button', text: 'Check', onclick: () => markAll(false) }),
+        el('button', { class: 'btn ghost small', type: 'button', text: 'Show me', onclick: () => markAll(true) }),
+        el('button', { class: 'btn ghost small', type: 'button', text: '↻ New gaps', onclick: redraw })
+      ]));
+    }
+
     box.appendChild(el('p', { class: 'muted small', text: table.source === 'authored'
       ? 'This table is written out by hand — the stem of this verb changes as it conjugates.'
       : 'Built from the māḍī and muḍāriʿ: this verb keeps its stem throughout.' }));

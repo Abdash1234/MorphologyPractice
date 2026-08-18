@@ -1632,3 +1632,24 @@ select.input { cursor: pointer; }
   .fo-row { grid-template-columns: 1fr; gap: 3px; }
   .fo-adds { padding-bottom: 2px; }
 }
+
+/* gaps inside the conjugation table are tighter than the template's */
+.conj-slot { min-width: 92px; min-height: 40px; padding: 0 6px; }
+.conj-slot .tpl-slot-ar { font-size: calc(21px * var(--ar-boost)); }
+.conj-bank { margin-top: 8px; max-height: 260px; overflow-y: auto; }
+.conj-bank .tpl-tile-ar { font-size: calc(21px * var(--ar-boost)); }
+
+@media (max-width: 560px) {
+  .conj-slot { min-width: 68px; min-height: 36px; }
+  .conj-slot .tpl-slot-ar { font-size: calc(17px * var(--ar-boost)); }
+}
+
+/* a small caption at the head of a row of chips */
+.chip-label {
+  align-self: center;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-right: 2px;
+}
