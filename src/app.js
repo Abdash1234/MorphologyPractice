@@ -544,30 +544,34 @@
     });
     wrap.appendChild(el('section', { class: 'panel' }, modePanel));
 
-    /* deck picker */
-    const deckGrid = el('div', { class: 'deck-grid' });
-    T.decks.forEach((d) => {
-      const count = E.deckWords(d.id).length;
-      if (d.id === 'mine' && !count) return;   // nothing added yet
-      const countLabel = d.id === 'due' ? count + ' due now' : count + ' words';
-      const card = el('button', {
-        class: 'deck' + (settings.deckId === d.id ? ' selected' : ''),
-        type: 'button',
-        onclick: () => {
-          settings.deckId = d.id;
-          MP.store.saveSettings(settings);
-          refresh();
-        }
-      }, [
-        el('span', { class: 'deck-name', text: d.name }),
-        el('span', { class: 'deck-desc', text: d.desc }),
-        el('span', { class: 'deck-count', text: countLabel })
-      ]);
-      deckGrid.appendChild(card);
+    /* deck picker, banded the same way the modes and the Learn menu are */
+    const deckPanel = [el('h2', { class: 'panel-title', text: 'Deck' })];
+    T.deckGroups.forEach((g) => {
+      const grid = el('div', { class: 'deck-grid' });
+      T.decks.filter((d) => d.group === g.id).forEach((d) => {
+        const count = E.deckWords(d.id).length;
+        if (d.id === 'mine' && !count) return;   // nothing added yet
+        const countLabel = d.id === 'due' ? count + ' due now' : count + ' words';
+        grid.appendChild(el('button', {
+          class: 'deck' + (settings.deckId === d.id ? ' selected' : ''),
+          type: 'button',
+          onclick: () => {
+            settings.deckId = d.id;
+            MP.store.saveSettings(settings);
+            refresh();
+          }
+        }, [
+          el('span', { class: 'deck-name', text: d.name }),
+          el('span', { class: 'deck-desc', text: d.desc }),
+          el('span', { class: 'deck-count', text: countLabel })
+        ]));
+      });
+      if (!grid.children.length) return;
+      deckPanel.push(el('div', {
+        class: 'mode-group' + (T.decks.some((d) => d.group === g.id && d.id === settings.deckId) ? ' active' : '')
+      }, [el('span', { class: 'mode-group-name', text: g.name }), grid]));
     });
-    wrap.appendChild(el('section', { class: 'panel' }, [
-      el('h2', { class: 'panel-title', text: 'Deck' }), deckGrid
-    ]));
+    wrap.appendChild(el('section', { class: 'panel' }, deckPanel));
 
     /* session length */
     const lengths = [5, 10, 20, 0];
@@ -636,9 +640,21 @@
       }));
     });
 
-    const sessionPanel = [el('h2', { class: 'panel-title', text: 'Session' }), lenRow, toggles];
+    /*
+     * These were one panel called "Session" holding four unrelated things: how
+     * long, how the Arabic is displayed, which questions get asked, and which
+     * stages are on. They are separate decisions and read better as separate
+     * panels — and the last two only apply to the full walk, which was not
+     * obvious when they sat under the same heading as the length.
+     */
+    wrap.appendChild(el('section', { class: 'panel' }, [
+      el('h2', { class: 'panel-title', text: 'How long' }), lenRow
+    ]));
+    wrap.appendChild(el('section', { class: 'panel' }, [
+      el('h2', { class: 'panel-title', text: 'How it reads' }), toggles
+    ]));
     if (currentMode() === 'analysis') {
-      sessionPanel.push(
+      wrap.appendChild(el('section', { class: 'panel' }, [
         el('h2', { class: 'panel-title', text: 'Which questions' }),
         el('p', { class: 'muted small', text: chosen.length
           ? 'Asking ' + chosen.length + ' question' + (chosen.length === 1 ? '' : 's') + ' per word. Tap more to add them, or Everything to go back to the full walk.'
@@ -646,11 +662,12 @@
         focusRow,
         el('h2', { class: 'panel-title', text: 'Stages' + (chosen.length ? ' (ignored while specific questions are chosen)' : '') }),
         groupRow
-      );
+      ]));
     }
-    wrap.appendChild(el('section', { class: 'panel' }, sessionPanel));
 
-    wrap.appendChild(el('div', { class: 'cta-row' }, [
+    /* the page is long and every panel above it is optional, so the one thing
+       you actually came to press follows you down it */
+    wrap.appendChild(el('div', { class: 'cta-row sticky-start' }, [
       el('button', { class: 'btn primary big', type: 'button', text: 'Start practice', onclick: () => startSession() })
     ]));
 

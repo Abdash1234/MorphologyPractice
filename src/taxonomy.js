@@ -202,19 +202,29 @@
     { id: 'tafdilF', ar: 'أَفْعَل التَّفْضِيل المُؤَنَّث', en: 'Elative (feminine)' }
   ];
 
-  /* Deck filters offered on the home screen. */
+  /*
+   * Deck filters offered on the home screen, banded by what kind of choice
+   * they are: where you are up to, what kind of word, or what shape of root.
+   * Ten of them in one flat grid had stopped being scannable.
+   */
+  const deckGroups = [
+    { id: 'progress', name: 'Where you are up to' },
+    { id: 'kind', name: 'By kind of word' },
+    { id: 'shape', name: 'By shape of the root' }
+  ];
+
   const decks = [
-    { id: 'due', name: 'Due for review', desc: 'Spaced repetition — what you are closest to forgetting.' },
-    { id: 'all', name: 'Everything', desc: 'The whole bank, shuffled.' },
-    { id: 'verbs', name: 'Verbs only', desc: 'Every kind of fiʿl.' },
-    { id: 'nouns', name: 'Nouns only', desc: 'Derived and non-derived asmāʾ.' },
-    { id: 'harf', name: 'Particles', desc: 'Ḥurūf, sorted by what they govern.' },
-    { id: 'mujarrad', name: 'Thulāthī mujarrad', desc: 'The six abwāb.' },
-    { id: 'mazeed', name: 'Mazīd fīh', desc: 'Forms II–X and the rubāʿī.' },
-    { id: 'sahih', name: 'Ṣaḥīḥ', desc: 'Sālim, muḍāʿaf and mahmūz.' },
-    { id: 'mutal', name: 'Muʿtall', desc: 'Mithāl, ajwaf, nāqiṣ, lafīf.' },
-    { id: 'starter', name: 'Starter set', desc: 'The common core — begin here.' },
-    { id: 'mine', name: 'My words', desc: 'Only the words you added yourself.' }
+    { id: 'due', group: 'progress', name: 'Due for review', desc: 'Spaced repetition — what you are closest to forgetting.' },
+    { id: 'all', group: 'progress', name: 'Everything', desc: 'The whole bank, shuffled.' },
+    { id: 'verbs', group: 'kind', name: 'Verbs only', desc: 'Every kind of fiʿl.' },
+    { id: 'nouns', group: 'kind', name: 'Nouns only', desc: 'Derived and non-derived asmāʾ.' },
+    { id: 'harf', group: 'kind', name: 'Particles', desc: 'Ḥurūf, sorted by what they govern.' },
+    { id: 'mujarrad', group: 'shape', name: 'Thulāthī mujarrad', desc: 'The six abwāb.' },
+    { id: 'mazeed', group: 'shape', name: 'Mazīd fīh', desc: 'Forms II–X and the rubāʿī.' },
+    { id: 'sahih', group: 'shape', name: 'Ṣaḥīḥ', desc: 'Sālim, muḍāʿaf and mahmūz.' },
+    { id: 'mutal', group: 'shape', name: 'Muʿtall', desc: 'Mithāl, ajwaf, nāqiṣ, lafīf.' },
+    { id: 'starter', group: 'progress', name: 'Starter set', desc: 'The common core — begin here.' },
+    { id: 'mine', group: 'progress', name: 'My words', desc: 'Only the words you added yourself.' }
   ];
 
   function option(groupId, optionId) {
@@ -227,5 +237,5 @@
     return o ? o.ar + ' — ' + o.en : optionId;
   }
 
-  MP.taxonomy = { groups, sarfSlots, decks, option, label };
+  MP.taxonomy = { groups, sarfSlots, decks, deckGroups, option, label };
 })(typeof window !== 'undefined' ? window : globalThis);
