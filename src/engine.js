@@ -116,7 +116,7 @@
     { id: 'structure', name: 'Root structure', desc: 'Thulāthī/rubāʿī, mujarrad/mazīd, the bāb, ṣaḥīḥ/muʿtall.' },
     { id: 'root', name: 'The root', desc: 'Pick out the fāʾ, ʿayn and lām, letter by letter.' },
     { id: 'base', name: 'Back to the māḍī', desc: 'Produce the bare هُوَ form the word came from.' },
-    { id: 'sarf', name: 'Ṣarf ṣaghīr', desc: 'Place the word in its blank ṣarf ṣaghīr.' },
+    { id: 'sarf', name: 'Ṣarf ṣaghīr', desc: 'Say which cell of the ṣarf ṣaghīr the word is.' },
     { id: 'translation', name: 'Translation', desc: 'Recall the meaning at the end.' },
     { id: 'context', name: 'In a sentence', desc: 'Fill the word into a real sentence.' }
   ];
@@ -382,7 +382,7 @@
     if (p && word.slot && on('sarf')) {
       steps.push({
         kind: 'sarf', id: 'sarf', group: 'sarf',
-        q: 'Here is the ṣarf ṣaghīr with one cell blank. Which cell is this word?',
+        q: 'Which cell of the ṣarf ṣaghīr is this word?',
         qAr: 'أين موضع هذه الكلمة من الصرف الصغير؟',
         paradigm: p,
         answer: word.slot

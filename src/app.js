@@ -1156,29 +1156,54 @@
   }
 
   /* ---- the ṣarf ṣaghīr, with the word's own cell blanked out ---- */
+  /*
+   * The whole ṣarf ṣaghīr, filled in, with one cell marked. Used as the reveal
+   * once the question has been answered.
+   */
+  function buildSarfTable(p, markSlot, gotItRight) {
+    const table = el('div', { class: 'sarf', id: 'sarf-table' });
+    T.sarfSlots.forEach((slot) => {
+      const value = p[slot.id];
+      const marked = slot.id === markSlot;
+      table.appendChild(el('div', {
+        class: 'sarf-row' + (marked ? ' target' + (gotItRight === false ? ' missed' : '') : '') +
+          (value === MP.NOT_USED ? ' unused' : ''),
+        'data-slot': slot.id
+      }, [
+        el('span', { class: 'sarf-label' }, [
+          ar(slot.ar, 'sarf-label-ar'),
+          el('span', { class: 'sarf-label-en', text: slot.en })
+        ]),
+        value === MP.NOT_USED
+          ? el('span', { class: 'sarf-value dash', text: MP.NOT_USED })
+          : ar(value, 'sarf-value' + (marked ? ' filled' : ''))
+      ]));
+    });
+    return table;
+  }
+
   function renderSarf(step, word) {
     const p = step.paradigm;
     const box = el('div', { class: 'sarf-wrap' });
 
-    const table = el('div', { class: 'sarf', id: 'sarf-table' });
-    T.sarfSlots.forEach((slot) => {
-      const value = p[slot.id];
-      const isTarget = slot.id === step.answer;
-      const row = el('div', {
-        class: 'sarf-row' + (isTarget ? ' target' : '') + (value === MP.NOT_USED ? ' unused' : ''),
-        'data-slot': slot.id
-      }, [
-        el('span', { class: 'sarf-label' }, [ar(slot.ar, 'sarf-label-ar'), el('span', { class: 'sarf-label-en', text: slot.en })]),
-        isTarget ? el('span', { class: 'sarf-value blank', text: '؟' }) : ar(value, 'sarf-value')
-      ]);
-      table.appendChild(row);
-    });
     box.appendChild(el('div', { class: 'sarf-head' }, [
       el('span', { class: 'muted small', text: 'Ṣarf ṣaghīr of' }),
       ar(p.root, 'sarf-root'),
       el('span', { class: 'muted small', text: T.label(E.baabGroupId(p), p.baabId) })
     ]));
-    box.appendChild(table);
+
+    /*
+     * The table used to be on screen while the question was being asked, with
+     * the target cell blanked out. That handed the answer over three times: the
+     * blank row kept its own label, which is the answer written out; it sat at
+     * its fixed place in the recited order, so even a blank label would have
+     * given it away by position; and it was highlighted into the bargain.
+     *
+     * The question is now asked against the word alone — which is the point,
+     * since knowing that يَرْمِي is a muḍāriʿ is the thing being tested — and
+     * the whole table arrives afterwards as the reveal.
+     */
+    const reveal = el('div', { class: 'sarf-reveal' });
 
     const opts = el('div', { class: 'options compact' });
     T.sarfSlots
@@ -1188,20 +1213,21 @@
           class: 'option', type: 'button', 'data-id': slot.id,
           onclick: () => {
             if (answered) return;
-            gradeSarf(step, slot.id, btn, opts, table, p);
+            gradeSarf(step, slot.id, btn, opts, reveal, p);
           }
         }, [ar(slot.ar, 'option-ar'), el('span', { class: 'option-en' }, [el('span', { class: 'option-en-main', text: slot.en })])]);
         opts.appendChild(btn);
       });
     opts.appendChild(el('button', {
       class: 'option dunno', type: 'button', text: "I don't know — show me",
-      onclick: () => { if (!answered) gradeSarf(step, null, null, opts, table, p); }
+      onclick: () => { if (!answered) gradeSarf(step, null, null, opts, reveal, p); }
     }));
     box.appendChild(opts);
+    box.appendChild(reveal);
     return box;
   }
 
-  function gradeSarf(step, chosenId, btn, box, table, p) {
+  function gradeSarf(step, chosenId, btn, box, reveal, p) {
     answered = true;
     const correct = chosenId === step.answer;
     E.recordAnswer(session, correct);
@@ -1212,15 +1238,10 @@
     });
     if (btn && !correct) btn.classList.add('wrong');
 
-    /* fill the blank in */
-    const row = table.querySelector('.sarf-row.target');
-    if (row) {
-      const cell = row.querySelector('.sarf-value');
-      cell.classList.remove('blank');
-      cell.classList.add('ar', 'filled');
-      cell.setAttribute('dir', 'rtl');
-      cell.textContent = p[step.answer];
-    }
+    /* now the table, complete, with the word's own cell marked */
+    reveal.innerHTML = '';
+    reveal.appendChild(el('p', { class: 'muted small', text: 'The whole ṣarf ṣaghīr, with this word in its place:' }));
+    reveal.appendChild(buildSarfTable(p, step.answer, correct));
 
     const slot = T.sarfSlots.find((s) => s.id === step.answer);
     showFeedback(correct, slot ? slot.ar + ' — ' + slot.en : step.answer,

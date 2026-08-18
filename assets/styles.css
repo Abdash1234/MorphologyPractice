@@ -1431,3 +1431,10 @@ select.input { cursor: pointer; }
 .kb-key.haraka { background: color-mix(in srgb, var(--accent) 10%, var(--bg-raised-2)); }
 .kb-key.wide { font-size: 15px; max-width: none; }
 .kb-key.go { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+
+/* the ṣarf ṣaghīr revealed after the question is answered */
+.sarf-reveal { margin-top: 18px; }
+.sarf-reveal .sarf { margin-bottom: 0; }
+.sarf-value.dash { color: var(--muted); opacity: 0.5; }
+.sarf-row.target.missed { background: color-mix(in srgb, var(--bad) 12%, var(--bg-raised)); }
+.sarf-row.target.missed .sarf-value { color: var(--bad); }
