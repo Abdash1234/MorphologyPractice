@@ -202,6 +202,7 @@
     if (subject.kind === 'production') return [productionStep(subject)];
     if (subject.kind === 'conjugation') return [conjugationStep(subject)];
     if (subject.kind === 'ilal') return ilalSteps(subject);
+    if (subject.kind === 'template') return [templateStep(subject)];
     if (subject.kind === 'sentence') {
       const word = subject.word;
       const steps = [clozeStep(word)];
@@ -476,6 +477,28 @@
     ];
   }
 
+  /*
+   * The whole ṣarf ṣaghīr at once, dropped into the recitation frame.
+   *
+   * Every other question here takes one cell at a time. This one hands over
+   * the frame — the joining words that never change — and every form of the
+   * paradigm shuffled, and asks for the lot. Getting a single cell right is
+   * recognition; getting all of them into the right slots is knowing the bāb.
+   */
+  function templateStep(item) {
+    const p = item.paradigm;
+    const slots = [];
+    MP.sarf.template(p).forEach((line) => line.parts.forEach((part) => slots.push(part.slot)));
+    return {
+      kind: 'template', id: 'template', group: 'template',
+      q: 'Put every form where it belongs.',
+      qAr: 'ضَعْ كُلَّ صِيغَةٍ فِي مَوْضِعِهَا.',
+      paradigm: p,
+      slots: slots,
+      answer: slots.map((id) => p[id])
+    };
+  }
+
   /* Conjugate the verb for one of the fourteen persons. */
   function conjugationStep(item) {
     const table = MP.conjugation.tableFor(item.paradigmId);
@@ -528,6 +551,22 @@
   /* ------------------------------------------------------------------ */
   /* the subject pools for each practice mode                            */
   /* ------------------------------------------------------------------ */
+
+  /* every paradigm the deck touches, as one template each */
+  function templateItems(deckId) {
+    const wanted = {};
+    deckWords(deckId).forEach((w) => { if (w.p) wanted[w.p] = true; });
+    return Object.keys(wanted)
+      .map((pid) => MP.paradigms[pid])
+      .filter((p) => MP.sarf.fillableSlots(p).length >= 4)
+      .map((p) => ({
+        id: 'tpl:' + p.id,
+        kind: 'template',
+        paradigm: p,
+        w: p.root,
+        sub: p.meaning + ' · ' + MP.taxonomy.label(baabGroupId(p), p.baabId)
+      }));
+  }
 
   /* every (root, cell) pair worth producing from memory */
   function productionItems(deckId) {
@@ -596,6 +635,7 @@
     if (mode === 'sentences') return sentenceItems(deckId);
     /* the iʿlāl items are rules rather than words, so no deck applies */
     if (mode === 'ilal') return MP.ilal.items();
+    if (mode === 'template') return templateItems(deckId);
     return deckWords(deckId);
   }
 

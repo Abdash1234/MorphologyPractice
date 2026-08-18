@@ -17,6 +17,17 @@
   /* ================================================================== */
 
   const hints = {
+    template: {
+      title: 'Recite it, then place it',
+      bullets: [
+        'The frame never changes: māḍī, muḍāriʿ, maṣdar, فَهُوَ the doer — then the passive run, then الأَمْرُ مِنْهُ and وَالنَّهْيُ عَنْهُ, then the ẓarf and the ālah.',
+        'Say the line out loud before you touch anything. The order you recite in is the order the gaps are in.',
+        'The two passives sit together and both start with a ḍammah — نُصِرَ يُنْصَرُ. That pair is the easiest to place first.',
+        'مَـ at the front and a wāw before the last letter is the ism al-mafʿūl; مَـ with a fatḥah is the ẓarf; مِـ with a kasrah is the ālah.',
+        'A gap you cannot fill is a cell worth reciting again, not a guess worth making.'
+      ]
+    },
+
     ilalForm: {
       title: 'Work it out in order',
       bullets: [

@@ -125,5 +125,76 @@
       .join(' — ');
   }
 
-  MP.sarf = { LINES, build, fillableSlots, blanksFor, asText, slotInfo, used };
+
+  /*
+   * The recitation sheet's own layout — four lines rather than three, grouped
+   * the way the printed tables group them: the active run with its doer, the
+   * passive run with the one done to, then the command and prohibition, then
+   * the place and the tool. This is the frame the drag-and-drop drill fills in.
+   *
+   * The printed sheets also carry a fifth line for the ism al-tafḍīl
+   * (أَفْتَحُ / فُتْحَى). No paradigm in the bank has those two cells, so the
+   * line is left out rather than invented — see the note in the drill.
+   */
+  const TEMPLATE = [
+    {
+      id: 'malum',
+      ar: 'المَعْلُوم',
+      en: 'Active, and the one who does it',
+      parts: [
+        { slot: 'madi' },
+        { slot: 'mudari' },
+        { slot: 'masdar' },
+        { slot: 'ismFail', lead: 'فَهُوَ' }
+      ]
+    },
+    {
+      id: 'majhul',
+      ar: 'المَجْهُول',
+      en: 'Passive, and the one it is done to',
+      parts: [
+        { slot: 'madiMajhul', lead: 'وَ' },
+        { slot: 'mudariMajhul' },
+        { slot: 'ismMaful', lead: 'فَذَاكَ' }
+      ]
+    },
+    {
+      id: 'amr',
+      ar: 'الأَمْر وَالنَّهْي',
+      en: 'Command and prohibition',
+      parts: [
+        { slot: 'amr', lead: 'الأَمْرُ مِنْهُ' },
+        { slot: 'nahi', lead: 'وَالنَّهْيُ عَنْهُ' }
+      ]
+    },
+    {
+      id: 'zarf',
+      ar: 'الظَّرْف وَالآلَة',
+      en: 'Place or time, and the tool',
+      parts: [
+        { slot: 'zarf', lead: 'وَالظَّرْفُ مِنْهُ' },
+        { slot: 'aalah', lead: 'وَالآلَةُ مِنْهُ' }
+      ]
+    }
+  ];
+
+  /* The template with this paradigm's words attached, unused cells dropped. */
+  function template(paradigm) {
+    return TEMPLATE.map((line) => ({
+      id: line.id,
+      ar: line.ar,
+      en: line.en,
+      parts: line.parts
+        .filter((part) => used(paradigm, part.slot))
+        .map((part) => ({
+          slot: part.slot,
+          lead: part.lead || '',
+          value: paradigm[part.slot],
+          labelAr: slotInfo(part.slot).ar,
+          labelEn: slotInfo(part.slot).en
+        }))
+    })).filter((line) => line.parts.length);
+  }
+
+  MP.sarf = { LINES, TEMPLATE, template, build, fillableSlots, blanksFor, asText, slotInfo, used };
 })(typeof window !== 'undefined' ? window : globalThis);

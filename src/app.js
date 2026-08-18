@@ -22,7 +22,8 @@
     { id: 'production', name: 'Build the form', desc: 'Given a root and a cell, produce the word yourself.' },
     { id: 'conjugation', name: 'Conjugation', desc: 'Ṣarf kabīr: conjugate a verb for any of the fourteen persons.' },
     { id: 'sentences', name: 'Sentences', desc: 'Fill the missing word into a real sentence, then translate it.' },
-    { id: 'ilal', name: 'Weak letter rules', desc: 'Iʿlāl: build what Arabic really says, then name the rule that did it.' }
+    { id: 'ilal', name: 'Weak letter rules', desc: 'Iʿlāl: build what Arabic really says, then name the rule that did it.' },
+    { id: 'template', name: 'Fill the template', desc: 'The recitation frame with every form loose — drop them into place.' }
   ];
 
   const currentMode = () => settings.mode || 'analysis';
@@ -806,7 +807,7 @@
       mahmuzPosition: 'Hamzah position', root: 'Root & radicals', sarf: 'Ṣarf ṣaghīr',
       translation: 'Translation', baseMadi: 'Back to the māḍī', context: 'In a sentence',
       production: 'Build the form', conjugation: 'Conjugation',
-      ilalForm: 'Applying the rule', ilalRule: 'Naming the rule'
+      ilalForm: 'Applying the rule', ilalRule: 'Naming the rule', template: 'Filling the template'
     };
     return names[id] || id;
   }
@@ -898,6 +899,7 @@
     else if (step.kind === 'translate') wrap.appendChild(renderTranslate(step, word));
     else if (step.kind === 'radicals') wrap.appendChild(renderRadicals(step));
     else if (step.kind === 'cloze') wrap.appendChild(renderCloze(step));
+    else if (step.kind === 'template') wrap.appendChild(renderTemplate(step, word));
 
     wrap.appendChild(el('div', { class: 'feedback', id: 'feedback' }));
     wrap.appendChild(el('div', { class: 'next-row', id: 'next-row' }));
@@ -1430,6 +1432,136 @@
       }));
     }
     return wrap;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* the recitation template, filled by dragging                          */
+  /* ------------------------------------------------------------------ */
+
+  /*
+   * The frame is fixed and the forms are loose. Drag a form into a gap, or —
+   * because dragging on a phone is miserable — tap a form and then tap a gap.
+   * Both routes go through the same place() call, so they cannot drift apart.
+   */
+  function renderTemplate(step, word) {
+    const p = step.paradigm;
+    const lines = MP.sarf.template(p);
+    const placed = {};        // slot id -> the form sitting in it
+    let held = null;          // the tile picked up by tapping
+    const slotNodes = {};
+
+    const box = el('div', { class: 'tpl-wrap' });
+    const frame = el('div', { class: 'tpl-frame' });
+    const bank = el('div', { class: 'tpl-bank' });
+    const result = el('p', { class: 'tpl-result muted small' });
+
+    function paintBank() {
+      bank.innerHTML = '';
+      const loose = E.shuffle(step.slots.map((id) => p[id]))
+        .filter((v) => Object.keys(placed).every((k) => placed[k] !== v) || false);
+      /* a form already placed leaves the bank; identical strings are compared
+         by how many of each are still needed, not by identity */
+      const need = {};
+      step.slots.forEach((id) => { need[p[id]] = (need[p[id]] || 0) + 1; });
+      Object.keys(placed).forEach((k) => { need[placed[k]] = (need[placed[k]] || 0) - 1; });
+      const tiles = [];
+      Object.keys(need).forEach((v) => { for (let i = 0; i < need[v]; i++) tiles.push(v); });
+
+      E.shuffle(tiles).forEach((value) => {
+        const tile = el('button', {
+          class: 'tpl-tile' + (held === value ? ' held' : ''), type: 'button', draggable: 'true',
+          onclick: () => { if (answered) return; held = held === value ? null : value; paintBank(); },
+          ondragstart: (ev) => { held = value; ev.dataTransfer.setData('text/plain', value); }
+        }, [ar(value, 'tpl-tile-ar')]);
+        bank.appendChild(tile);
+      });
+      if (!tiles.length) bank.appendChild(el('span', { class: 'muted small', text: 'All placed — press Check.' }));
+      void loose;
+    }
+
+    function place(slot, value) {
+      if (answered || !value) return;
+      placed[slot] = value;
+      held = null;
+      paintSlot(slot);
+      paintBank();
+    }
+
+    function paintSlot(slot) {
+      const node = slotNodes[slot];
+      if (!node) return;
+      node.innerHTML = '';
+      node.classList.toggle('filled', !!placed[slot]);
+      if (placed[slot]) node.appendChild(ar(placed[slot], 'tpl-slot-ar'));
+      else node.appendChild(el('span', { class: 'tpl-slot-hint', text: '؟' }));
+    }
+
+    lines.forEach((line) => {
+      const row = el('div', { class: 'tpl-line' });
+      row.appendChild(el('span', { class: 'tpl-line-label' }, [
+        ar(line.ar, 'tpl-line-ar'),
+        settings.arabicFirst ? el('span', {}) : el('span', { class: 'tpl-line-en', text: line.en })
+      ]));
+      const run = el('div', { class: 'tpl-run', dir: 'rtl', lang: 'ar' });
+      line.parts.forEach((part) => {
+        const cell = el('span', { class: 'tpl-part' });
+        if (part.lead) cell.appendChild(ar(part.lead, 'tpl-lead'));
+        const slot = el('span', {
+          class: 'tpl-slot', 'data-slot': part.slot, title: part.labelEn,
+          onclick: () => {
+            if (answered) return;
+            if (held) place(part.slot, held);
+            else if (placed[part.slot]) { delete placed[part.slot]; paintSlot(part.slot); paintBank(); }
+          },
+          ondragover: (ev) => { ev.preventDefault(); slot.classList.add('over'); },
+          ondragleave: () => slot.classList.remove('over'),
+          ondrop: (ev) => {
+            ev.preventDefault();
+            slot.classList.remove('over');
+            place(part.slot, ev.dataTransfer.getData('text/plain') || held);
+          }
+        });
+        slotNodes[part.slot] = slot;
+        cell.appendChild(slot);
+        run.appendChild(cell);
+      });
+      row.appendChild(run);
+      frame.appendChild(row);
+    });
+
+    Object.keys(slotNodes).forEach(paintSlot);
+    paintBank();
+
+    function grade(reveal) {
+      if (answered) return;
+      answered = true;
+      let right = 0;
+      step.slots.forEach((slot) => {
+        const ok = placed[slot] === p[slot];
+        if (ok) right++;
+        else if (reveal) placed[slot] = p[slot];
+        const node = slotNodes[slot];
+        if (node) {
+          node.classList.add(ok ? 'correct' : 'wrong');
+          if (reveal && !ok) paintSlot(slot);
+        }
+      });
+      const all = right === step.slots.length;
+      E.recordAnswer(session, all);
+      result.textContent = right + ' of ' + step.slots.length + ' in the right place.';
+      showFeedback(all, MP.sarf.asText(p),
+        all ? '' : 'Recite it in order — the frame never changes, only the words in it do.');
+    }
+
+    box.appendChild(frame);
+    box.appendChild(el('p', { class: 'muted small', text: 'Drag a form into a gap, or tap the form then the gap. Tap a filled gap to take it back.' }));
+    box.appendChild(bank);
+    box.appendChild(result);
+    box.appendChild(el('div', { class: 'input-row' }, [
+      el('button', { class: 'btn primary', type: 'button', text: 'Check', onclick: () => grade(false) }),
+      el('button', { class: 'btn ghost small', type: 'button', text: "I don't know — show me", onclick: () => grade(true) })
+    ]));
+    return box;
   }
 
   /* ---- translation: typed, then self-marked ---- */
