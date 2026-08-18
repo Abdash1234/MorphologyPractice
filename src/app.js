@@ -955,6 +955,20 @@
     ]);
   }
 
+  /*
+   * The same idea for a ṣarf ṣaghīr cell name, which has no transliteration to
+   * promote. Arabic-first simply lets the English recede instead of swapping
+   * anything — without this it inherited the styling meant for the
+   * transliteration and came out bolder than it started.
+   */
+  function slotLabel(slot) {
+    return el('span', { class: 'option-en' }, [
+      settings.arabicFirst
+        ? el('span', { class: 'option-tr', text: slot.en })
+        : el('span', { class: 'option-en-main', text: slot.en })
+    ]);
+  }
+
   function renderChoice(step) {
     const box = el('div', { class: 'options' });
     E.optionsFor(step).forEach((o) => {
@@ -1215,7 +1229,7 @@
             if (answered) return;
             gradeSarf(step, slot.id, btn, opts, reveal, p);
           }
-        }, [ar(slot.ar, 'option-ar'), el('span', { class: 'option-en' }, [el('span', { class: 'option-en-main', text: slot.en })])]);
+        }, [ar(slot.ar, 'option-ar'), slotLabel(slot)]);
         opts.appendChild(btn);
       });
     opts.appendChild(el('button', {
