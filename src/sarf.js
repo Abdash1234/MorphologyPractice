@@ -132,9 +132,9 @@
    * passive run with the one done to, then the command and prohibition, then
    * the place and the tool. This is the frame the drag-and-drop drill fills in.
    *
-   * The printed sheets also carry a fifth line for the ism al-tafḍīl
-   * (أَفْتَحُ / فُتْحَى). No paradigm in the bank has those two cells, so the
-   * line is left out rather than invented — see the note in the drill.
+   * The fifth line is the ism al-tafḍīl (أَفْتَحُ / فُتْحَى). Only a thulāthī
+   * mujarrad verb has one, so for every mazīd form and every rubāʿī the line
+   * drops out of the frame entirely.
    */
   const TEMPLATE = [
     {
@@ -174,6 +174,15 @@
       parts: [
         { slot: 'zarf', lead: 'وَالظَّرْفُ مِنْهُ' },
         { slot: 'aalah', lead: 'وَالآلَةُ مِنْهُ' }
+      ]
+    },
+    {
+      id: 'tafdil',
+      ar: 'أَفْعَل التَّفْضِيل',
+      en: 'The elative, masculine and feminine',
+      parts: [
+        { slot: 'tafdilM', lead: 'وَأَفْعَلُ التَّفْضِيلِ المُذَكَّرُ مِنْهُ' },
+        { slot: 'tafdilF', lead: 'وَالمُؤَنَّثُ مِنْهُ' }
       ]
     }
   ];

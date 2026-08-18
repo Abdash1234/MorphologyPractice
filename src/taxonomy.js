@@ -196,7 +196,10 @@
     { id: 'amr', ar: 'الأَمْر', en: 'Imperative' },
     { id: 'nahi', ar: 'النَّهْي', en: 'Prohibition' },
     { id: 'zarf', ar: 'اِسْم الظَّرْف', en: 'Noun of time/place' },
-    { id: 'aalah', ar: 'اِسْم الآلَة', en: 'Noun of instrument' }
+    { id: 'aalah', ar: 'اِسْم الآلَة', en: 'Noun of instrument' },
+    /* the fifth line of the printed sheets — only a thulāthī mujarrad verb has one */
+    { id: 'tafdilM', ar: 'أَفْعَل التَّفْضِيل المُذَكَّر', en: 'Elative (masculine)' },
+    { id: 'tafdilF', ar: 'أَفْعَل التَّفْضِيل المُؤَنَّث', en: 'Elative (feminine)' }
   ];
 
   /* Deck filters offered on the home screen. */
