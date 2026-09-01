@@ -84,7 +84,18 @@
     const base = apiBase();
     if (!base) { apiReachable = false; return Promise.resolve(false); }
     return fetch(base + '/api/sync', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
-      .then((r) => { apiReachable = r.status !== 404; return apiReachable; })
+      .then((r) => {
+        /*
+         * The status code is not the tell. GitHub Pages answers a POST to a
+         * path it does not have with 405, not 404, which reads as "something
+         * is there". What separates a real API from a static host is that the
+         * API always answers in JSON — every route goes through shared/api.js,
+         * which sets application/json even on a 401 or a 400.
+         */
+        const type = r.headers.get('content-type') || '';
+        apiReachable = type.indexOf('json') !== -1;
+        return apiReachable;
+      })
       .catch(() => { apiReachable = false; return false; });
   }
 
