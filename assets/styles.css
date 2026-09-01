@@ -1653,3 +1653,25 @@ select.input { cursor: pointer; }
   color: var(--muted);
   margin-right: 2px;
 }
+
+/*
+ * Thumbs, not cursors.
+ *
+ * The chips are the main navigation on a phone — the Learn sections, the bāb
+ * pickers, the blanking modes — and at their desktop size they came out around
+ * 29px tall, under both Apple's 44pt and Android's 48dp guidance. They get a
+ * real hit area at phone width. It costs some vertical space and buys not
+ * mis-tapping the section next to the one you wanted.
+ */
+@media (max-width: 560px) {
+  .chip,
+  .nav-account,
+  .nav-icon {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ref-band-row .chip { min-height: 38px; padding-block: 0; }
+  .nav-icon { min-width: 40px; }
+}
