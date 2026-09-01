@@ -1665,6 +1665,7 @@ select.input { cursor: pointer; }
  */
 @media (max-width: 560px) {
   .chip,
+  .nav-link,
   .nav-account,
   .nav-icon {
     min-height: 40px;
