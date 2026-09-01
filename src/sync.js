@@ -54,11 +54,38 @@
     };
   }
 
-  /* The API sits on the same origin as the app, so there is nothing to
-     configure and no CORS. Opened from a file:// path there is no server. */
+  /*
+   * The API sits alongside the app, so there is nothing to configure and no
+   * CORS. Two things it must survive:
+   *
+   * Opened from a file:// path there is no server at all.
+   *
+   * And the app is not always at the root of its origin — GitHub Pages serves
+   * a project repo from /<repo>/ — so the API is resolved relative to the page
+   * rather than to the origin. Anchoring it to the origin sent /api/sync to
+   * the wrong place on any sub-path deploy.
+   */
   function apiBase() {
     if (location.protocol === 'file:') return null;
-    return location.origin;
+    return new URL('.', location.href).href.replace(/\/$/, '');
+  }
+
+  /*
+   * Whether an API is actually there.
+   *
+   * A static host — Pages, or any plain file server — serves the app perfectly
+   * well and has no functions behind it, so the sign-in form would sit there
+   * inviting a passphrase and fail every time. One probe at startup settles it;
+   * until it answers, sync is offered as before.
+   */
+  let apiReachable = null;
+
+  function probeApi() {
+    const base = apiBase();
+    if (!base) { apiReachable = false; return Promise.resolve(false); }
+    return fetch(base + '/api/sync', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      .then((r) => { apiReachable = r.status !== 404; return apiReachable; })
+      .catch(() => { apiReachable = false; return false; });
   }
 
   async function call(path, options) {
@@ -191,8 +218,14 @@
     syncQuietly,
     devices,
     revoke,
-    available: () => apiBase() !== null
+    available: () => apiBase() !== null && apiReachable !== false,
+    probeApi
   };
+
+  /* settle whether there is an API behind this host before anything asks */
+  if (global.addEventListener) {
+    global.addEventListener('DOMContentLoaded', () => { probeApi(); });
+  }
 
   /* catch up as soon as we are back online */
   if (global.addEventListener) {

@@ -745,7 +745,7 @@
     const st = MP.sync.status();
 
     if (!MP.sync.available()) {
-      panel.appendChild(el('p', { class: 'muted small', text: 'Sync needs the app to be served over the web. Opened straight from a file it stays local-only — which is fine, everything still works.' }));
+      panel.appendChild(el('p', { class: 'muted small', text: 'This copy has no server behind it, so it stays local to this device — which is fine, everything works without it. Progress and your own words are kept here in the browser.' }));
       return panel;
     }
 
