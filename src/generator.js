@@ -105,7 +105,11 @@
         amr: 'ا' + amrVowel + f + O + a + v2 + l + O,
         nahi: 'لَا تَ' + f + O + a + v2 + l + O,
         zarf: 'مَ' + f + O + a + zarfVowel + l + UN,
-        aalah: lazim ? X : 'مِ' + f + O + a + A + l + UN
+        aalah: lazim ? X : 'مِ' + f + O + a + A + l + UN,
+        /* the fifth line: أَفْعَلُ / فُعْلَى. Only the bare triliteral has one,
+           and an intransitive bāb has one just as much as a transitive one. */
+        tafdilM: 'أَ' + f + O + a + A + l + U,
+        tafdilF: f + U + a + O + l + A + 'ى'
       };
     }
 
@@ -257,8 +261,8 @@
 
     const cells = P[baabId];
     if (!cells) return null;
-    /* the ẓarf and the ālah only come from the bare triliteral */
-    return normalizeCells(Object.assign({ zarf: X, aalah: X }, cells));
+    /* the ẓarf, the ālah and the elative only come from the bare triliteral */
+    return normalizeCells(Object.assign({ zarf: X, aalah: X, tafdilM: X, tafdilF: X }, cells));
   }
 
   /*

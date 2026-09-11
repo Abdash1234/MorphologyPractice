@@ -450,6 +450,119 @@
     n({ id: 'sifah-shujaa', w: 'شُجَاعٌ', tr: 'shujāʿ', en: 'brave', p: null, root: 'ش ج ع',
         ismType: 'sifah' }),
 
+    /* ============ the harder end ============
+       Weak roots inside the derived forms, plus the negations that change a
+       verb's tense without changing its letters. These are the ones where the
+       root is genuinely hidden and you have to reason your way back to it. */
+
+    /* --- ي ق ن, Form IV: the yāʾ turns into a wāw in the muḍāriʿ --- */
+    v({ id: 'yqn-madi-3ms', w: 'أَيْقَنَ', tr: 'ayqana', en: 'he became certain', p: 'yqn-IV', slot: 'madi',
+        tense: 'madi', person: 'ghaib',
+        note: 'The māḍī keeps the yāʾ visible: أَفْعَلَ → أَيْقَنَ. It is the muḍāriʿ that hides it.' }),
+    v({ id: 'yqn-mud-3mp', w: 'يُوقِنُونَ', tr: 'yūqinūna', en: 'they (m.) have certainty', p: 'yqn-IV', slot: 'mudari',
+        tense: 'mudari', mood: 'marfu', person: 'ghaib', number: 'jam',
+        note: 'يُيْقِنُونَ is unpronounceable, so the sākin yāʾ after a ḍammah becomes wāw: يُوقِنُونَ. The root is still ي ق ن.' }),
+    v({ id: 'yqn-amr', w: 'أَيْقِنْ', tr: 'ayqin', en: 'be certain!', p: 'yqn-IV', slot: 'amr',
+        tense: 'amr', person: 'mukhatab',
+        note: 'The amr of Form IV restores the hamzah and, with it, the yāʾ.' }),
+    n({ id: 'yqn-fail', w: 'مُوقِنٌ', tr: 'mūqin', en: 'one who is certain', p: 'yqn-IV', slot: 'ismFail',
+        ismType: 'ismFail',
+        note: 'مُيْقِن → مُوقِن, the same swap as the muḍāriʿ.' }),
+
+    /* --- ع ي ب, ajwaf yāʾī: the ʿayn disappears under jazm --- */
+    v({ id: 'ayb-madi-3ms', w: 'عَابَ', tr: 'ʿāba', en: 'he found fault with', p: 'ayb-I', slot: 'madi',
+        tense: 'madi', person: 'ghaib' }),
+    v({ id: 'ayb-madi-1s', w: 'عِبْتُ', tr: 'ʿibtu', en: 'I found fault with', p: 'ayb-I', slot: 'madi',
+        tense: 'madi', person: 'mutakallim', gender: 'any',
+        note: 'The alif of عَابَ vanishes before a sākin ending, and a kasrah is left behind to point at the yāʾ.' }),
+    v({ id: 'ayb-majzum-1s', w: 'لَمْ أَعِبْ', tr: 'lam aʿib', en: 'I did not find fault', p: 'ayb-I', slot: 'mudari',
+        tense: 'mudari', mood: 'majzum', pol: 'manfi', person: 'mutakallim', gender: 'any',
+        note: 'أَعِيبُ → لَمْ أَعِبْ: jazm makes the lām sākin, and the long yāʾ cannot stand before it, so it drops.' }),
+    v({ id: 'ayb-majhul', w: 'عِيبَ', tr: 'ʿība', en: 'he was found fault with', p: 'ayb-I', slot: 'madiMajhul',
+        tense: 'madi', voice: 'majhul', person: 'ghaib',
+        note: 'The passive of an ajwaf is marked by a kasrah on the fāʾ, not a ḍammah — عِيبَ, not عُوبَ.' }),
+
+    /* --- غ ي ر, Form II: the shaddah pins the weak ʿayn in place --- */
+    v({ id: 'ghyr-madi-3ms', w: 'غَيَّرَ', tr: 'ghayyara', en: 'he changed (something)', p: 'ghyr-II', slot: 'madi',
+        tense: 'madi', person: 'ghaib',
+        note: 'The root is weak (غ ي ر) but Form II doubles the ʿayn, so the yāʾ never gets the chance to shift.' }),
+    v({ id: 'ghyr-mud-majhul', w: 'يُغَيَّرُ', tr: 'yughayyaru', en: 'it is being changed', p: 'ghyr-II', slot: 'mudariMajhul',
+        tense: 'mudari', mood: 'marfu', voice: 'majhul', person: 'ghaib' }),
+    n({ id: 'ghyr-fail-fp', w: 'مُغَيِّرَاتٌ', tr: 'mughayyirāt', en: 'ones (f.) who change', p: 'ghyr-II', slot: 'ismFail',
+        ismType: 'ismFail', gender: 'muannath', number: 'jam',
+        note: 'مُـ + the muḍāriʿ stem with a kasrah on the ʿayn — the mazīd way of making an ism al-fāʿil.' }),
+    n({ id: 'ghyr-masdar', w: 'تَغْيِيرًا', tr: 'taghyīran', en: 'changing, alteration', p: 'ghyr-II', slot: 'masdar',
+        ismType: 'masdar',
+        note: 'Form II\u2019s maṣdar is تَفْعِيل — the تـ is the giveaway.' }),
+
+    /* --- ص و ب, Form IV ajwaf wāwī --- */
+    v({ id: 'swb-madi-manfi', w: 'مَا أَصَابَنَا', tr: 'mā aṣābanā', en: 'it did not befall us', p: 'swb-IV', slot: 'madi',
+        tense: 'madi', pol: 'manfi', person: 'ghaib',
+        note: 'مَا negates a māḍī and leaves it a māḍī. لَمْ does the same job but takes a muḍāriʿ and makes it majzūm — same meaning, opposite machinery.' }),
+    v({ id: 'swb-mud-3ms', w: 'يُصِيبُ', tr: 'yuṣību', en: 'it strikes, it befalls', p: 'swb-IV', slot: 'mudari',
+        tense: 'mudari', mood: 'marfu', person: 'ghaib',
+        note: 'يُصْوِبُ → يُصِيبُ: the wāw takes the kasrah before it and turns into a yāʾ.' }),
+    v({ id: 'swb-majhul-madi', w: 'أُصِيبَ', tr: 'uṣība', en: 'he was struck / afflicted', p: 'swb-IV', slot: 'madiMajhul',
+        tense: 'madi', voice: 'majhul', person: 'ghaib' }),
+    n({ id: 'swb-maful', w: 'مُصَابٌ', tr: 'muṣāb', en: 'one who is afflicted', p: 'swb-IV', slot: 'ismMaful',
+        ismType: 'ismMaful' }),
+
+    /* --- ح ب ب, Form IV muḍāʿaf --- */
+    v({ id: 'hbb-madi-3ms', w: 'أَحَبَّ', tr: 'aḥabba', en: 'he loved', p: 'hbb-IV', slot: 'madi',
+        tense: 'madi', person: 'ghaib',
+        note: 'Two identical letters run together into one with a shaddah — idghām.' }),
+    v({ id: 'hbb-mud-1s', w: 'أُحِبُّ', tr: 'uḥibbu', en: 'I love', p: 'hbb-IV', slot: 'mudari',
+        tense: 'mudari', mood: 'marfu', person: 'mutakallim', gender: 'any',
+        note: 'The hamzah here is the muḍāriʿ prefix of the first person, not part of the root — the root is ح ب ب.' }),
+    v({ id: 'hbb-madi-1s', w: 'أَحْبَبْتُ', tr: 'aḥbabtu', en: 'I loved', p: 'hbb-IV', slot: 'madi',
+        tense: 'madi', person: 'mutakallim', gender: 'any',
+        note: 'A sākin ending forces the idghām back open, and both bāʾs reappear.' }),
+    v({ id: 'hbb-amr', w: 'أَحْبِبْ', tr: 'aḥbib', en: 'love!', p: 'hbb-IV', slot: 'amr',
+        tense: 'amr', person: 'mukhatab' }),
+    n({ id: 'hbb-fail', w: 'مُحِبٌّ', tr: 'muḥibb', en: 'a lover, one who loves', p: 'hbb-IV', slot: 'ismFail',
+        ismType: 'ismFail' }),
+
+    /* --- ه د ي, Form VIII nāqiṣ --- */
+    v({ id: 'hdy-madi-3ms', w: 'اِهْتَدَى', tr: 'ihtadā', en: 'he was guided, he found the way', p: 'hdy-VIII', slot: 'madi',
+        tense: 'madi', person: 'ghaib',
+        note: 'Form VIII slots a تـ in after the fāʾ; the final yāʾ of the root surfaces as an alif maqṣūrah.' }),
+    v({ id: 'hdy-mud-3mp', w: 'يَهْتَدُونَ', tr: 'yahtadūna', en: 'they (m.) are guided', p: 'hdy-VIII', slot: 'mudari',
+        tense: 'mudari', mood: 'marfu', person: 'ghaib', number: 'jam',
+        note: 'يَهْتَدِي + ونَ: the yāʾ drops altogether and only the ḍammah before the wāw is left of it.' }),
+    v({ id: 'hdy-amr', w: 'اِهْتَدِ', tr: 'ihtadi', en: 'be guided!', p: 'hdy-VIII', slot: 'amr',
+        tense: 'amr', person: 'mukhatab',
+        note: 'The amr of a nāqiṣ ends on nothing at all — the missing letter is the jazm.' }),
+    n({ id: 'hdy-fail', w: 'مُهْتَدٍ', tr: 'muhtadin', en: 'one who is rightly guided', p: 'hdy-VIII', slot: 'ismFail',
+        ismType: 'ismFail',
+        note: 'مُهْتَدِيٌ → مُهْتَدٍ — the manqūṣ noun tucks its yāʾ away and shows tanwīn on the kasrah.' }),
+
+    /* --- ق و م, Form X ajwaf --- */
+    v({ id: 'qwm-madi-3ms', w: 'اِسْتَقَامَ', tr: 'istaqāma', en: 'he stood straight, he was upright', p: 'qwm-X', slot: 'madi',
+        tense: 'madi', person: 'ghaib',
+        note: 'اِسْتَقْوَمَ → اِسْتَقَامَ. Strip اِسْتـ and the alif goes back to being a wāw.' }),
+    v({ id: 'qwm-mud-2mp', w: 'تَسْتَقِيمُونَ', tr: 'tastaqīmūna', en: 'you (m. pl.) stand straight', p: 'qwm-X', slot: 'mudari',
+        tense: 'mudari', mood: 'marfu', person: 'mukhatab', number: 'jam' }),
+    v({ id: 'qwm-amr', w: 'اِسْتَقِمْ', tr: 'istaqim', en: 'stand firm!', p: 'qwm-X', slot: 'amr',
+        tense: 'amr', person: 'mukhatab',
+        note: 'Jazm on an ajwaf drops the long vowel: اِسْتَقِيمُ → اِسْتَقِمْ.' }),
+    n({ id: 'qwm-masdar', w: 'اِسْتِقَامَةً', tr: 'istiqāmatan', en: 'uprightness, steadfastness', p: 'qwm-X', slot: 'masdar',
+        ismType: 'masdar', gender: 'muannath',
+        note: 'Form X\u2019s maṣdar is اِسْتِفْعَال; the weak ʿayn pulls it to اِسْتِقَامَة.' }),
+    n({ id: 'qwm-fail', w: 'مُسْتَقِيمٌ', tr: 'mustaqīm', en: 'straight, upright', p: 'qwm-X', slot: 'ismFail',
+        ismType: 'ismFail', starter: false }),
+
+    /* --- و ف ي, Form IV lafīf mafrūq: weak at both ends --- */
+    v({ id: 'wfy-madi-3ms', w: 'أَوْفَى', tr: 'awfā', en: 'he fulfilled, he paid in full', p: 'wfy-IV', slot: 'madi',
+        tense: 'madi', person: 'ghaib',
+        note: 'Fāʾ و and lām ي in one root — lafīf mafrūq, because the sound fāʾ sits between them.' }),
+    v({ id: 'wfy-mud-3ms', w: 'يُوفِي', tr: 'yūfī', en: 'he fulfils', p: 'wfy-IV', slot: 'mudari',
+        tense: 'mudari', mood: 'marfu', person: 'ghaib',
+        note: 'يُوْفِيُ → يُوفِي. Both weak letters are doing something: the wāw lengthens, the yāʾ holds its ḍammah back.' }),
+    v({ id: 'wfy-amr', w: 'أَوْفِ', tr: 'awfi', en: 'fulfil!', p: 'wfy-IV', slot: 'amr',
+        tense: 'amr', person: 'mukhatab' }),
+    n({ id: 'wfy-fail', w: 'مُوفٍ', tr: 'mūfin', en: 'one who fulfils', p: 'wfy-IV', slot: 'ismFail',
+        ismType: 'ismFail' }),
+
     /* ============ ḥurūf, grouped by what they govern ============
      *
      * A particle is not taken apart the way a verb or a noun is — it has no

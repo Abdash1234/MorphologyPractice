@@ -276,8 +276,9 @@ Object.keys(MP.paradigms).forEach((id) => {
 /* ---- reference content ---- */
 MP.reference.sections.forEach((sec) => {
   if (!sec.id || !sec.name || !sec.intro) fail(`reference section ${sec.id}: missing id/name/intro`);
-  /* two tabs build themselves from data rather than from cards */
-  const selfBuilding = sec.kind === 'conjugator' || sec.kind === 'formtables';
+  /* some tabs build themselves from data rather than from cards */
+  const selfBuilding = sec.kind === 'conjugator' || sec.kind === 'formtables'
+    || sec.kind === 'formsoverview';
   if (!sec.cards.length && !selfBuilding) fail(`reference section ${sec.id}: no cards`);
   if (sec.kind === 'conjugator' && !MP.conjugation.conjugatable().length) {
     fail('the conjugator tab has no verbs to show');

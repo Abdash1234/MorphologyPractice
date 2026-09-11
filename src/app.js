@@ -904,6 +904,10 @@
     const pct = Math.round((doneSteps / session.steps.length) * 100);
     wrap.appendChild(el('div', { class: 'progress' }, [el('div', { class: 'progress-fill', style: 'width:' + pct + '%' })]));
 
+    /* On a phone the options run past the bottom of the screen, so once you
+       have answered there is a Next here as well as the pinned one below. */
+    wrap.appendChild(el('div', { class: 'next-row top', id: 'next-row-top' }));
+
     /* the word — but in the sentence drill the word IS the answer, so the
        sentence itself takes the place of the card */
     const hideWord = session.mode === 'sentences';
@@ -1853,10 +1857,11 @@
   function showNext() {
     const row = $('#next-row');
     if (!row) return;
-    row.innerHTML = '';
     const last = session.stepIndex === session.steps.length - 1;
     const lastWord = session.index === session.words.length - 1;
     const label = last ? (lastWord ? 'Finish' : 'Next word →') : 'Next →';
+
+    row.innerHTML = '';
 
     /* the analysis is done: the whole chain is now available to walk back
        through, with the evidence for each answer shown in the word itself */
@@ -1873,9 +1878,19 @@
       }));
     }
 
+    /* the copy up by the question is only ever the plain Next — the tree is a
+       detour and belongs with the pinned row, not above the word */
+    const top = $('#next-row-top');
+    if (top) {
+      top.innerHTML = '';
+      top.appendChild(el('button', { class: 'btn primary big', type: 'button', text: label, onclick: goNext }));
+    }
+
     const btn = el('button', { class: 'btn primary big', type: 'button', text: label, onclick: goNext });
     row.appendChild(btn);
-    btn.focus();
+    /* preventScroll: the pinned row is already on screen, and yanking the page
+       about after every answer is exactly what we are trying to stop */
+    btn.focus({ preventScroll: true });
   }
 
   function goNext() {
@@ -2186,13 +2201,21 @@
     overlay.innerHTML = '';
     overlay.appendChild(el('div', { class: 'ref-head' }, [
       el('h2', { class: 'ref-title', text: 'Reference' }),
-      el('button', { class: 'btn ghost small', type: 'button', text: 'Close ✕', onclick: closeReference })
+      el('button', {
+        class: 'btn ref-close', type: 'button', text: '✕  Back',
+        'aria-label': 'Close the reference', onclick: closeReference
+      })
     ]));
     overlay.appendChild(buildReference(
       refSection,
       (id) => { refSection = id; renderReference(); },
       renderReference
     ));
+    /* a second way out at the bottom, for when you have read to the end and
+       the top of the page is a long scroll away */
+    overlay.appendChild(el('div', { class: 'ref-foot' }, [
+      el('button', { class: 'btn big', type: 'button', text: '← Back to the question', onclick: closeReference })
+    ]));
     overlay.scrollTop = 0;
   }
 

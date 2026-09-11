@@ -11,7 +11,10 @@
   <meta name="description" content="Take an Arabic word apart through the morphology chart, then recall its meaning." />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <!-- "default" keeps the web view below the status bar, so the nav and the
+       reference Close button never end up under the clock and the wifi icon.
+       The safe-area insets in styles.css cover landscape and the home bar. -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Ṣarf" />
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ص</text></svg>" />

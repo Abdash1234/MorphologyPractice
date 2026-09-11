@@ -404,6 +404,83 @@
       ismFail: 'مُقْشَعِرٌّ', ismMaful: X,
       amr: 'اِقْشَعِرَّ', nahi: 'لَا تَقْشَعِرَّ', zarf: X, aalah: X,
       tafdilM: X, tafdilF: X
+    },
+
+    /* ===================== the harder end =====================
+       Weak roots inside the derived forms, where the ʿillah letter moves,
+       turns into a different letter, or vanishes outright. */
+
+    /* mithāl yāʾī in Form IV: أُيْقِن → أُوقِن, the yāʾ swallowed by the ḍammah */
+    'yqn-IV': {
+      root: 'ي ق ن', baabId: 'IV', meaning: 'to be certain, to know for sure',
+      madi: 'أَيْقَنَ', mudari: 'يُوقِنُ', masdar: 'إِيقَانًا',
+      madiMajhul: X, mudariMajhul: X,
+      ismFail: 'مُوقِنٌ', ismMaful: X,
+      amr: 'أَيْقِنْ', nahi: 'لَا تُوقِنْ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* ajwaf yāʾī, bāb ḍaraba — the ʿayn drops the moment the lām is sākin */
+    'ayb-I': {
+      root: 'ع ي ب', baabId: 'daraba', meaning: 'to find fault with, to fault',
+      madi: 'عَابَ', mudari: 'يَعِيبُ', masdar: 'عَيْبًا',
+      madiMajhul: 'عِيبَ', mudariMajhul: 'يُعَابُ',
+      ismFail: 'عَائِبٌ', ismMaful: 'مَعِيبٌ',
+      amr: 'عِبْ', nahi: 'لَا تَعِبْ', zarf: 'مَعَابٌ', aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* Form II holds a weak ʿayn still: the shaddah protects it */
+    'ghyr-II': {
+      root: 'غ ي ر', baabId: 'II', meaning: 'to change something',
+      madi: 'غَيَّرَ', mudari: 'يُغَيِّرُ', masdar: 'تَغْيِيرًا',
+      madiMajhul: 'غُيِّرَ', mudariMajhul: 'يُغَيَّرُ',
+      ismFail: 'مُغَيِّرٌ', ismMaful: 'مُغَيَّرٌ',
+      amr: 'غَيِّرْ', nahi: 'لَا تُغَيِّرْ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* ajwaf wāwī in Form IV: أَصْوَبَ → أَصَابَ, يُصْوِبُ → يُصِيبُ */
+    'swb-IV': {
+      root: 'ص و ب', baabId: 'IV', meaning: 'to strike, to befall, to hit the mark',
+      madi: 'أَصَابَ', mudari: 'يُصِيبُ', masdar: 'إِصَابَةً',
+      madiMajhul: 'أُصِيبَ', mudariMajhul: 'يُصَابُ',
+      ismFail: 'مُصِيبٌ', ismMaful: 'مُصَابٌ',
+      amr: 'أَصِبْ', nahi: 'لَا تُصِبْ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* muḍāʿaf in Form IV — the amr breaks the idghām open again */
+    'hbb-IV': {
+      root: 'ح ب ب', baabId: 'IV', meaning: 'to love',
+      madi: 'أَحَبَّ', mudari: 'يُحِبُّ', masdar: 'إِحْبَابًا',
+      madiMajhul: 'أُحِبَّ', mudariMajhul: 'يُحَبُّ',
+      ismFail: 'مُحِبٌّ', ismMaful: 'مُحَبٌّ',
+      amr: 'أَحْبِبْ', nahi: 'لَا تُحْبِبْ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* nāqiṣ in Form VIII: the lām is an alif maqṣūrah, then nothing at all */
+    'hdy-VIII': {
+      root: 'ه د ي', baabId: 'VIII', meaning: 'to be guided, to find the way',
+      madi: 'اِهْتَدَى', mudari: 'يَهْتَدِي', masdar: 'اِهْتِدَاءً',
+      madiMajhul: X, mudariMajhul: X,
+      ismFail: 'مُهْتَدٍ', ismMaful: X,
+      amr: 'اِهْتَدِ', nahi: 'لَا تَهْتَدِ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* ajwaf wāwī in Form X */
+    'qwm-X': {
+      root: 'ق و م', baabId: 'X', meaning: 'to stand straight, to be upright',
+      madi: 'اِسْتَقَامَ', mudari: 'يَسْتَقِيمُ', masdar: 'اِسْتِقَامَةً',
+      madiMajhul: X, mudariMajhul: X,
+      ismFail: 'مُسْتَقِيمٌ', ismMaful: X,
+      amr: 'اِسْتَقِمْ', nahi: 'لَا تَسْتَقِمْ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
+    },
+    /* lafīf mafrūq in Form IV: weak on both ends at once */
+    'wfy-IV': {
+      root: 'و ف ي', baabId: 'IV', meaning: 'to fulfil, to pay in full',
+      madi: 'أَوْفَى', mudari: 'يُوفِي', masdar: 'إِيفَاءً',
+      madiMajhul: 'أُوفِيَ', mudariMajhul: 'يُوفَى',
+      ismFail: 'مُوفٍ', ismMaful: 'مُوفًى',
+      amr: 'أَوْفِ', nahi: 'لَا تُوفِ', zarf: X, aalah: X,
+      tafdilM: X, tafdilF: X
     }
   };
 
@@ -462,7 +539,16 @@
     'dhrj-Q': ['rubai', 'mujarrad', 'sahih', 'salim'],
     'trjm-Q': ['rubai', 'mujarrad', 'sahih', 'salim'],
     'dhrj-QII': ['rubai', 'mazeed', 'sahih', 'salim'],
-    'qshr-QIV': ['rubai', 'mazeed', 'sahih', 'salim']
+    'qshr-QIV': ['rubai', 'mazeed', 'sahih', 'salim'],
+
+    'yqn-IV': ['thulathi', 'mazeed', 'mutal', 'mithal'],
+    'ayb-I': ['thulathi', 'mujarrad', 'mutal', 'ajwaf'],
+    'ghyr-II': ['thulathi', 'mazeed', 'mutal', 'ajwaf'],
+    'swb-IV': ['thulathi', 'mazeed', 'mutal', 'ajwaf'],
+    'hbb-IV': ['thulathi', 'mazeed', 'sahih', 'mudaaf'],
+    'hdy-VIII': ['thulathi', 'mazeed', 'mutal', 'naqis'],
+    'qwm-X': ['thulathi', 'mazeed', 'mutal', 'ajwaf'],
+    'wfy-IV': ['thulathi', 'mazeed', 'mutal', 'lafifMafruq']
   };
 
   Object.keys(paradigms).forEach(function (id) {
