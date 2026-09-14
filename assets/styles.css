@@ -1938,3 +1938,37 @@ select.input { cursor: pointer; }
   .vocab-grid { grid-template-columns: repeat(2, 1fr); }
   .vocab-chip { min-height: 44px; }
 }
+
+/* ---- the plural, and editing an entry ---- */
+
+.vocab-pl {
+  font-size: 14px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.vocab-pl .ar { font-size: calc(19px * var(--ar-boost)); line-height: var(--ar-lh-tight); }
+
+.vocab-browse-word { display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.vocab-browse-pl {
+  font-size: calc(16px * var(--ar-boost));
+  line-height: var(--ar-lh-tight);
+  color: var(--muted);
+}
+
+.vocab-edit {
+  padding: 12px;
+  margin: 6px 0;
+  background: var(--bg-raised);
+  border: 1px solid var(--accent-dim);
+  border-radius: 12px;
+}
+.vocab-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0 12px;
+}
+.vocab-edit-grid .field { margin-bottom: 10px; }
+.vocab-edit-ar { font-family: var(--font-ar); font-size: calc(20px * var(--ar-boost)); }
+.vocab-edit-actions { display: flex; flex-wrap: wrap; gap: 8px; }

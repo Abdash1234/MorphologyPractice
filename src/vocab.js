@@ -44,6 +44,8 @@
   /* ------------------------------------------------------------------ */
 
   const normAr = (s) => MP.engine.normalizeArabic(String(s || '')).replace(/\s+/g, ' ').trim();
+  /* the word exactly as written, ḥarakāt and all — for telling entries apart */
+  const exactAr = (s) => String(s || '').normalize('NFC').replace(/\s+/g, ' ').trim();
 
   function normEn(s) {
     return String(s || '')
@@ -56,12 +58,27 @@
       .trim();
   }
 
-  /* a gloss often holds several acceptable answers: "to help, to aid" */
+  /*
+   * Every form of the meaning that should count as knowing the word.
+   *
+   * A gloss often holds alternatives — "to help, to aid" — and once you start
+   * replacing the short glosses with fuller dictionary definitions it also
+   * holds asides: "God (Lane: the proper name of the Creator)". Typing "God"
+   * has to keep counting, or improving your definitions would quietly make
+   * the typing drill impossible to pass.
+   */
   function glosses(en) {
-    return String(en || '')
-      .split(/[,;/]|\bor\b/)
-      .map(normEn)
-      .filter(Boolean);
+    const raw = String(en || '');
+    const out = [];
+    const push = (s) => { const n = normEn(s); if (n && out.indexOf(n) === -1) out.push(n); };
+    const split = (s) => s.split(/[,;/]|\bor\b/).forEach(push);
+    const plain = raw.replace(/\([^)]*\)/g, ' ');
+
+    split(raw);                                                   // as written
+    split(plain);                                                 // without the asides
+    (raw.match(/\(([^)]*)\)/g) || []).forEach((m) => split(m.slice(1, -1)));  // the asides alone
+    split(plain.split(/[:—–]/)[0]);                               // the head of a definition
+    return out;
   }
 
   /* one transposition or typo should not read as not knowing the word */
@@ -132,10 +149,12 @@
       }
 
       /* of the non-Arabic columns the last is the meaning; an earlier one,
-         if there is a spare, is the transliteration */
+         if there is a spare, is the transliteration. A second Arabic column
+         is the plural — glossaries print singular and plural side by side,
+         and folding them into one field would make both unsearchable. */
       const en = enParts[enParts.length - 1];
       const tr = enParts.length > 1 ? enParts[0] : '';
-      rows.push({ ar: arParts.join(' '), tr: tr, en: en });
+      rows.push({ ar: arParts[0], pl: arParts[1] || '', tr: tr, en: en });
     });
     return { rows, errors };
   }
@@ -210,21 +229,27 @@
     list.forEach((e) => { taken[e.id] = true; });
 
     const key = sectionKey(section);
+    /* Compared as written, not on the letters alone: آخِرٌ "last" and آخَرُ
+       "other" are the same skeleton and different words, and stripping the
+       ḥarakāt to compare them would silently swallow the second one. */
     const here = {};
     list.forEach((e) => {
-      if (sectionKey(e.section) === key) here[normAr(e.ar)] = true;
+      if (sectionKey(e.section) === key) here[exactAr(e.ar)] = true;
     });
 
     const seed = key.replace(/[^a-zA-Z0-9]/g, '') || 'x';
     let added = 0;
     let skipped = 0;
     rows.forEach((r) => {
-      const k = normAr(r.ar);
+      const k = exactAr(r.ar);
       if (!k || here[k]) { skipped++; return; }
       here[k] = true;
       const id = nextId(taken, seed);
       taken[id] = true;
-      list.push({ id: id, ar: r.ar, en: r.en, tr: r.tr || '', section: key, added: Date.now() });
+      list.push({
+        id: id, ar: r.ar, pl: r.pl || '', en: r.en, tr: r.tr || '',
+        section: key, added: Date.now(), updatedAt: Date.now()
+      });
       added++;
     });
 
@@ -241,14 +266,24 @@
     writeAll(all().filter((e) => sectionKey(e.section) !== key));
   }
 
+  /*
+   * Edit an entry in place. The stamp matters: mergeContent picks the newer
+   * of two copies by updatedAt, so an edit that did not bump it would lose to
+   * the other device's stale copy on the next sync.
+   */
   function update(id, fields) {
     const list = all();
     const e = list.find((x) => x.id === id);
     if (!e) return false;
     Object.assign(e, fields);
     if (fields.section != null) e.section = sectionKey(fields.section);
+    e.updatedAt = Date.now();
     writeAll(list);
     return true;
+  }
+
+  function get(id) {
+    return all().find((e) => e.id === id) || null;
   }
 
   /* ------------------------------------------------------------------ */
@@ -384,6 +419,7 @@
   MP.vocab = {
     PREFIX,
     all,
+    get,
     count,
     sections,
     bySection,

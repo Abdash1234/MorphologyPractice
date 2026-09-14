@@ -2694,6 +2694,7 @@
   let vocabResults = [];
   let vocabAnswered = false;
   let vocabBrowse = null;
+  let vocabEditing = null;
   let vocabBoardAt = 0;
   let vocabMatchStart = 0;
 
@@ -2912,12 +2913,15 @@
         if (vocabBrowse === s.id) {
           const inner = el('div', { class: 'vocab-browse' });
           MP.vocab.bySection(s.id).forEach((e) => {
-            inner.appendChild(el('div', { class: 'vocab-browse-row' }, [
-              ar(e.ar, 'vocab-browse-ar'),
+            inner.appendChild(vocabEditing === e.id ? vocabEditRow(e) : el('div', { class: 'vocab-browse-row' }, [
+              el('span', { class: 'vocab-browse-word' }, [
+                ar(e.ar, 'vocab-browse-ar'),
+                e.pl ? ar(e.pl, 'vocab-browse-pl') : el('span', {})
+              ]),
               el('span', { class: 'vocab-browse-en', text: e.en }),
               el('button', {
-                class: 'btn ghost small', type: 'button', text: '✕', title: 'Remove this word',
-                onclick: () => { MP.vocab.remove(e.id); renderVocabManage(true); }
+                class: 'btn ghost small', type: 'button', text: 'Edit',
+                onclick: () => { vocabEditing = e.id; renderVocabManage(true); }
               })
             ]));
           });
@@ -2929,6 +2933,74 @@
 
     setScreen(wrap, keepScroll);
     if (keepScroll) repreview();
+  }
+
+  /*
+   * Edit one entry in place. Every field is editable — the point is that a
+   * gloss copied in a hurry can be replaced later with a better one from a
+   * proper dictionary, without retyping the word.
+   */
+  function vocabEditRow(entry) {
+    const input = (cls, value, placeholder, rtl) => el('input', {
+      class: 'input ' + cls, type: 'text', value: value || '', placeholder: placeholder,
+      dir: rtl ? 'rtl' : 'ltr', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false'
+    });
+
+    const arIn = input('vocab-edit-ar ar', entry.ar, 'the word', true);
+    const plIn = input('vocab-edit-ar ar', entry.pl, 'plural (optional)', true);
+    const trIn = input('', entry.tr, 'transliteration (optional)');
+    const enIn = input('', entry.en, 'the meaning');
+    const secIn = input('vocab-secno', MP.vocab.sectionKey(entry.section), 'section');
+
+    const save = () => {
+      if (!arIn.value.trim() || !enIn.value.trim()) {
+        global.alert('A word needs both the Arabic and a meaning.');
+        return;
+      }
+      MP.vocab.update(entry.id, {
+        ar: arIn.value.trim(),
+        pl: plIn.value.trim(),
+        tr: trIn.value.trim(),
+        en: enIn.value.trim(),
+        section: secIn.value.trim() || MP.vocab.sectionKey(entry.section)
+      });
+      vocabEditing = null;
+      renderVocabManage(true);
+    };
+
+    [arIn, plIn, trIn, enIn, secIn].forEach((f) => {
+      f.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); save(); }
+        if (ev.key === 'Escape') { vocabEditing = null; renderVocabManage(true); }
+      });
+    });
+
+    const box = el('div', { class: 'vocab-edit' }, [
+      el('div', { class: 'vocab-edit-grid' }, [
+        field('Word', arIn),
+        field('Plural', plIn),
+        field('Transliteration', trIn),
+        field('Meaning', enIn),
+        field('Section', secIn)
+      ]),
+      el('div', { class: 'vocab-edit-actions' }, [
+        el('button', { class: 'btn primary small', type: 'button', text: 'Save', onclick: save }),
+        el('button', {
+          class: 'btn ghost small', type: 'button', text: 'Cancel',
+          onclick: () => { vocabEditing = null; renderVocabManage(true); }
+        }),
+        el('button', {
+          class: 'btn ghost small danger', type: 'button', text: 'Delete',
+          onclick: () => {
+            if (!global.confirm('Delete this word?')) return;
+            MP.vocab.remove(entry.id);
+            vocabEditing = null;
+            renderVocabManage(true);
+          }
+        })
+      ])
+    ]);
+    return box;
   }
 
   /* ---- running a round ---- */
@@ -3022,6 +3094,7 @@
       const toAr = q.direction === 'toAr';
       back.appendChild(toAr ? ar(q.entry.ar, 'vocab-a-ar') : el('span', { class: 'vocab-a-en', text: q.entry.en }));
       if (q.entry.tr) back.appendChild(el('span', { class: 'vocab-tr', text: q.entry.tr }));
+      if (q.entry.pl) back.appendChild(el('span', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
       actions.innerHTML = '';
       actions.appendChild(el('button', {
         class: 'btn bad big', type: 'button', text: 'Not yet',
@@ -3077,6 +3150,7 @@
         ar(q.entry.ar, 'vocab-fb-ar'),
         el('span', { class: 'vocab-fb-en', text: q.entry.en })
       ]));
+      if (q.entry.pl) feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
       if (q.entry.tr) feedback.appendChild(el('div', { class: 'fb-hint', text: q.entry.tr }));
       showVocabNext(next);
     }
@@ -3129,6 +3203,7 @@
         ar(q.entry.ar, 'vocab-fb-ar'),
         el('span', { class: 'vocab-fb-en', text: q.entry.en })
       ]));
+      if (q.entry.pl) feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
       if (q.entry.tr) feedback.appendChild(el('div', { class: 'fb-hint', text: q.entry.tr }));
       showVocabNext(next);
     }
