@@ -152,9 +152,20 @@
          if there is a spare, is the transliteration. A second Arabic column
          is the plural — glossaries print singular and plural side by side,
          and folding them into one field would make both unsearchable. */
-      const en = enParts[enParts.length - 1];
-      const tr = enParts.length > 1 ? enParts[0] : '';
-      rows.push({ ar: arParts[0], pl: arParts[1] || '', tr: tr, en: en });
+      let en = enParts[enParts.length - 1];
+      let tr = enParts.length > 1 ? enParts[0] : '';
+
+      /* glossaries mark gender in passing — "arḍun (f.)" — and it is worth a
+         field of its own rather than sitting inside the transliteration */
+      let gender = '';
+      const takeMark = (text) => text.replace(/\((?:\s*)(f|fem|m|masc)\.?(?:\s*)\)/gi, (all, g) => {
+        gender = /^f/i.test(g) ? 'muannath' : 'mudhakkar';
+        return ' ';
+      }).replace(/\s+/g, ' ').trim();
+      tr = takeMark(tr);
+      en = takeMark(en);
+
+      rows.push({ ar: arParts[0], pl: arParts[1] || '', tr: tr, en: en, gender: gender });
     });
     return { rows, errors };
   }
@@ -248,6 +259,7 @@
       taken[id] = true;
       list.push({
         id: id, ar: r.ar, pl: r.pl || '', en: r.en, tr: r.tr || '',
+        gender: r.gender || '',
         section: key, added: Date.now(), updatedAt: Date.now()
       });
       added++;
@@ -285,6 +297,36 @@
   function get(id) {
     return all().find((e) => e.id === id) || null;
   }
+
+  /*
+   * Gender, and whether the word wears it on its sleeve.
+   *
+   * Most feminine nouns end in ة, ى or اء and need no marking at all. The
+   * ones worth a note are the two kinds that break that rule: أَرْضٌ, feminine
+   * with nothing to show for it, and خَلِيفَةٌ, a tāʾ marbūṭah on a word that
+   * takes masculine agreement. Those have to be learned with the word, so
+   * this is what the drills surface rather than the gender on its own.
+   */
+  const FEM_ENDING = /(?:ة|ى|ا?ء)ٌ?ً?ٍ?$/;
+
+  function looksFeminine(word) {
+    return FEM_ENDING.test(String(word || '').replace(/[\u064B-\u0652]/g, '').trim());
+  }
+
+  function genderNote(entry) {
+    if (!entry || !entry.gender) return '';
+    const looks = looksFeminine(entry.ar);
+    if (entry.gender === 'muannath') {
+      return looks ? 'feminine' : 'feminine — nothing on the word shows it';
+    }
+    return looks ? 'masculine, despite the tāʾ marbūṭah' : 'masculine';
+  }
+
+  const GENDERS = [
+    { id: '', name: 'unmarked' },
+    { id: 'mudhakkar', name: 'masculine' },
+    { id: 'muannath', name: 'feminine' }
+  ];
 
   /* ------------------------------------------------------------------ */
   /* building a round                                                    */
@@ -433,6 +475,9 @@
     progressOf,
     matches,
     glosses,
+    genderNote,
+    looksFeminine,
+    GENDERS,
     shuffle,
     sectionKey,
     MODES,

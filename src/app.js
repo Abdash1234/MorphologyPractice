@@ -840,6 +840,20 @@
     ]);
   }
 
+  /*
+   * The same thing for a control that is not a single input.
+   *
+   * A <label> forwards every click inside it to the first labelable element
+   * it contains, so wrapping a row of buttons in field() makes all of them
+   * activate the first one. Anything with more than one control goes here.
+   */
+  function fieldGroup(labelText, control) {
+    return el('div', { class: 'field' }, [
+      el('span', { class: 'field-label', text: labelText }),
+      control
+    ]);
+  }
+
   function stepName(id) {
     const names = {
       wordType: 'Word type', tense: 'Tense', mood: 'Iʿrāb / mood', voice: 'Voice',
@@ -2918,7 +2932,10 @@
                 ar(e.ar, 'vocab-browse-ar'),
                 e.pl ? ar(e.pl, 'vocab-browse-pl') : el('span', {})
               ]),
-              el('span', { class: 'vocab-browse-en', text: e.en }),
+              el('span', { class: 'vocab-browse-en' }, [
+                el('span', { text: e.en }),
+                e.gender ? el('span', { class: 'vocab-gender-tag', text: e.gender === 'muannath' ? 'f' : 'm' }) : el('span', {})
+              ]),
               el('button', {
                 class: 'btn ghost small', type: 'button', text: 'Edit',
                 onclick: () => { vocabEditing = e.id; renderVocabManage(true); }
@@ -2952,6 +2969,21 @@
     const enIn = input('', entry.en, 'the meaning');
     const secIn = input('vocab-secno', MP.vocab.sectionKey(entry.section), 'section');
 
+    /* chips rather than a dropdown: three options, and a dropdown on a phone
+       is a modal sheet for something that should be one tap */
+    let gender = entry.gender || '';
+    const genderRow = el('div', { class: 'chip-row vocab-gender-row' });
+    const paintGender = () => {
+      genderRow.innerHTML = '';
+      MP.vocab.GENDERS.forEach((g) => {
+        genderRow.appendChild(el('button', {
+          class: 'chip small-chip' + (gender === g.id ? ' on' : ''), type: 'button', text: g.name,
+          onclick: () => { gender = g.id; paintGender(); }
+        }));
+      });
+    };
+    paintGender();
+
     const save = () => {
       if (!arIn.value.trim() || !enIn.value.trim()) {
         global.alert('A word needs both the Arabic and a meaning.');
@@ -2962,6 +2994,7 @@
         pl: plIn.value.trim(),
         tr: trIn.value.trim(),
         en: enIn.value.trim(),
+        gender: gender,
         section: secIn.value.trim() || MP.vocab.sectionKey(entry.section)
       });
       vocabEditing = null;
@@ -2983,6 +3016,7 @@
         field('Meaning', enIn),
         field('Section', secIn)
       ]),
+      fieldGroup('Gender', genderRow),
       el('div', { class: 'vocab-edit-actions' }, [
         el('button', { class: 'btn primary small', type: 'button', text: 'Save', onclick: save }),
         el('button', {
@@ -3095,6 +3129,11 @@
       back.appendChild(toAr ? ar(q.entry.ar, 'vocab-a-ar') : el('span', { class: 'vocab-a-en', text: q.entry.en }));
       if (q.entry.tr) back.appendChild(el('span', { class: 'vocab-tr', text: q.entry.tr }));
       if (q.entry.pl) back.appendChild(el('span', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
+      if (q.entry.gender) {
+        const note = MP.vocab.genderNote(q.entry);
+        const odd = /—/.test(note) || /despite/.test(note);
+                back.appendChild(el('div', { class: 'vocab-gender' + (odd ? ' odd' : ''), text: note }));
+      }
       actions.innerHTML = '';
       actions.appendChild(el('button', {
         class: 'btn bad big', type: 'button', text: 'Not yet',
@@ -3151,6 +3190,11 @@
         el('span', { class: 'vocab-fb-en', text: q.entry.en })
       ]));
       if (q.entry.pl) feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
+      if (q.entry.gender) {
+        const note = MP.vocab.genderNote(q.entry);
+        const odd = /—/.test(note) || /despite/.test(note);
+                feedback.appendChild(el('div', { class: 'vocab-gender' + (odd ? ' odd' : ''), text: note }));
+      }
       if (q.entry.tr) feedback.appendChild(el('div', { class: 'fb-hint', text: q.entry.tr }));
       showVocabNext(next);
     }
@@ -3204,6 +3248,11 @@
         el('span', { class: 'vocab-fb-en', text: q.entry.en })
       ]));
       if (q.entry.pl) feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
+      if (q.entry.gender) {
+        const note = MP.vocab.genderNote(q.entry);
+        const odd = /—/.test(note) || /despite/.test(note);
+                feedback.appendChild(el('div', { class: 'vocab-gender' + (odd ? ' odd' : ''), text: note }));
+      }
       if (q.entry.tr) feedback.appendChild(el('div', { class: 'fb-hint', text: q.entry.tr }));
       showVocabNext(next);
     }

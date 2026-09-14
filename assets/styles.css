@@ -1972,3 +1972,18 @@ select.input { cursor: pointer; }
 .vocab-edit-grid .field { margin-bottom: 10px; }
 .vocab-edit-ar { font-family: var(--font-ar); font-size: calc(20px * var(--ar-boost)); }
 .vocab-edit-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* gender: worth saying only when the word does not show it */
+.vocab-gender { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+.vocab-gender.odd { color: var(--accent); }
+.vocab-gender-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.chip.small-chip { padding: 5px 11px; font-size: 13px; }
+.vocab-gender-row { margin-bottom: 4px; }
