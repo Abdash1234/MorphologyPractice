@@ -107,6 +107,34 @@ test('an edit made after a delete brings the word back', () => {
   assert.equal(merged.words[0].en, 'rewritten later');
 });
 
+test('vocabulary added on two devices ends up as one list', () => {
+  const phone = { vocab: [{ id: 'v:1-1', ar: 'كِتَابٌ', en: 'a book', section: '1', updatedAt: t0 }] };
+  const laptop = { vocab: [{ id: 'v:2-1', ar: 'قَلَمٌ', en: 'a pen', section: '2', updatedAt: t0 }] };
+  const merged = mergeContent(phone, laptop, t0 + 10_000);
+  assert.equal(merged.vocab.length, 2);
+  assert.deepEqual(merged.vocab.map((v) => v.id).sort(), ['v:1-1', 'v:2-1']);
+});
+
+test('the later edit of a vocabulary item wins', () => {
+  const phone = { vocab: [{ id: 'v:1-1', ar: 'كِتَابٌ', en: 'book', updatedAt: t0 + 500 }] };
+  const laptop = { vocab: [{ id: 'v:1-1', ar: 'كِتَابٌ', en: 'a book, a written thing', updatedAt: t0 }] };
+  const merged = mergeContent(phone, laptop, t0 + 10_000);
+  assert.equal(merged.vocab.length, 1);
+  assert.equal(merged.vocab[0].en, 'book');
+});
+
+test('a deleted vocabulary item stays deleted', () => {
+  const phone = { vocab: [], tombstones: { 'v:1-1': t0 + 5000 } };
+  const laptop = { vocab: [{ id: 'v:1-1', ar: 'كِتَابٌ', en: 'a book', updatedAt: t0 }] };
+  const merged = mergeContent(phone, laptop, t0 + 10_000);
+  assert.equal(merged.vocab.length, 0);
+});
+
+test('a document with no vocabulary at all still merges', () => {
+  const merged = mergeContent({ words: [] }, { words: [] }, t0 + 10_000);
+  assert.deepEqual(merged.vocab, [], 'older devices send no vocab key; that must not throw');
+});
+
 test('tombstones older than the retention window are dropped', () => {
   const merged = mergeContent(
     { tombstones: { old: t0 - TOMBSTONE_TTL - DAY, recent: t0 - DAY } },

@@ -77,7 +77,10 @@
       else if (k === 'html') node.innerHTML = attrs[k];
       else if (k === 'text') node.textContent = attrs[k];
       else if (k.slice(0, 2) === 'on') node.addEventListener(k.slice(2), attrs[k]);
-      else node.setAttribute(k, attrs[k]);
+      /* a null value means "leave this attribute off": setAttribute would
+         write the string "null", and for disabled that silently kills a
+         button that was meant to be live */
+      else if (attrs[k] != null) node.setAttribute(k, attrs[k]);
     });
     (children || []).forEach((c) => node.appendChild(c));
     return node;
@@ -122,6 +125,7 @@
     { id: 'practice', name: 'Practice', title: 'Practice' },
     { id: 'drill', name: 'Drill', title: 'Drill' },
     { id: 'learn', name: 'Learn', title: 'Learn' },
+    { id: 'vocab', name: 'Vocab', title: 'Vocab' },
     { id: 'dictionary', name: 'Dictionary', title: 'Dictionary' },
     { id: 'words', name: 'My words', title: 'My words' }
   ];
@@ -150,6 +154,8 @@
   function render(keepScroll) {
     if (view === 'drill') return renderDrill(keepScroll);
     if (view === 'learn') return renderLearn(keepScroll);
+    if (view === 'vocab') return renderVocab(keepScroll);
+    if (view === 'vocab-manage') return renderVocabManage(keepScroll);
     if (view === 'dictionary') return renderDictionary(keepScroll);
     if (view === 'words') return renderEditor();
     if (view === 'account') return renderAccount(keepScroll);
@@ -2673,6 +2679,624 @@
     const wrap = el('div', { class: 'screen words' });
     setScreen(wrap);
     MP.editor.render(wrap, () => go('practice'));
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* vocabulary — a separate trainer for plain word/meaning revision      */
+  /* ------------------------------------------------------------------ */
+
+  let vocabSection = 'all';
+  let vocabMode = 'choice';
+  let vocabDirection = 'toEn';
+  let vocabLength = 20;
+  let vocabRound = null;
+  let vocabAt = 0;
+  let vocabResults = [];
+  let vocabAnswered = false;
+  let vocabBrowse = null;
+  let vocabBoardAt = 0;
+  let vocabMatchStart = 0;
+
+  const VOCAB_LENGTHS = [10, 20, 40, 0];
+
+  function vocabSectionName(id) {
+    if (id === 'all') return 'Everything';
+    if (id === 'due') return 'Due for review';
+    return 'Section ' + id;
+  }
+
+  function renderVocab(keepScroll) {
+    repaint = () => renderVocab(true);
+    const wrap = el('div', { class: 'screen vocab-home' });
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'Vocab' }));
+    wrap.appendChild(el('p', {
+      class: 'lede',
+      text: 'Plain word-and-meaning revision, kept apart from the morphology drills. Add your list section by section, then test yourself on one section or on the whole lot jumbled together.'
+    }));
+
+    const secs = MP.vocab.sections();
+    const total = MP.vocab.count();
+
+    if (!total) {
+      wrap.appendChild(el('div', { class: 'panel empty-state' }, [
+        el('h2', { text: 'Nothing in here yet' }),
+        el('p', { class: 'muted', text: 'Paste a list in and it becomes a deck: one line per word, the Arabic and its meaning separated by a bar or a tab. Your list stays on your device and travels with your sync — it is never part of the app itself.' }),
+        el('button', {
+          class: 'btn primary big', type: 'button', text: 'Add your vocabulary',
+          onclick: () => { view = 'vocab-manage'; render(); }
+        })
+      ]));
+      setScreen(wrap, keepScroll);
+      return;
+    }
+
+    /* ---- which words ---- */
+    const dueTotal = MP.vocab.bySection('due').length;
+    wrap.appendChild(el('h2', { class: 'panel-title', text: 'Which words' }));
+    const secRow = el('div', { class: 'chip-row vocab-sections' });
+    const sectionChip = (id, label, sub) => el('button', {
+      class: 'chip vocab-chip' + (vocabSection === id ? ' on' : ''), type: 'button',
+      onclick: () => { vocabSection = id; refresh(); }
+    }, [
+      el('span', { class: 'vocab-chip-name', text: label }),
+      el('span', { class: 'vocab-chip-sub', text: sub })
+    ]);
+
+    secRow.appendChild(sectionChip('all', 'Everything', total + ' words'));
+    if (dueTotal) secRow.appendChild(sectionChip('due', 'Due now', dueTotal + ' words'));
+    secs.forEach((s) => {
+      secRow.appendChild(sectionChip(s.id, vocabSectionName(s.id),
+        s.count + ' · ' + s.seen + ' seen'));
+    });
+    wrap.appendChild(secRow);
+
+    const chosenCount = MP.vocab.bySection(vocabSection).length;
+
+    /* ---- how to test ---- */
+    wrap.appendChild(el('h2', { class: 'panel-title', text: 'How to test yourself' }));
+    const modeGrid = el('div', { class: 'deck-grid' });
+    MP.vocab.MODES.forEach((m) => {
+      modeGrid.appendChild(el('button', {
+        class: 'deck' + (vocabMode === m.id ? ' selected' : ''), type: 'button',
+        onclick: () => { vocabMode = m.id; refresh(); }
+      }, [
+        el('span', { class: 'deck-name', text: m.name }),
+        el('span', { class: 'deck-desc', text: m.desc })
+      ]));
+    });
+    wrap.appendChild(modeGrid);
+
+    /* match has no direction — both sides are on the board at once */
+    if (vocabMode !== 'match') {
+      wrap.appendChild(el('h2', { class: 'panel-title', text: 'Which way round' }));
+      const dirRow = el('div', { class: 'chip-row' });
+      MP.vocab.DIRECTIONS.forEach((d) => {
+        dirRow.appendChild(el('button', {
+          class: 'chip' + (vocabDirection === d.id ? ' on' : ''), type: 'button', text: d.name,
+          title: d.desc,
+          onclick: () => { vocabDirection = d.id; refresh(); }
+        }));
+      });
+      wrap.appendChild(dirRow);
+    }
+
+    wrap.appendChild(el('h2', { class: 'panel-title', text: 'How many' }));
+    const lenRow = el('div', { class: 'chip-row' });
+    VOCAB_LENGTHS.forEach((n) => {
+      lenRow.appendChild(el('button', {
+        class: 'chip big-chip' + (vocabLength === n ? ' on' : ''), type: 'button',
+        text: n === 0 ? 'All ' + chosenCount : String(n),
+        onclick: () => { vocabLength = n; refresh(); }
+      }));
+    });
+    wrap.appendChild(lenRow);
+
+    const startable = chosenCount > 0;
+    wrap.appendChild(el('div', { class: 'cta-row' }, [
+      el('button', {
+        class: 'btn primary big', type: 'button',
+        text: startable ? 'Start' : 'Nothing in this section',
+        disabled: startable ? null : 'disabled',
+        onclick: () => startVocabRound()
+      }),
+      el('button', {
+        class: 'btn ghost', type: 'button', text: 'Manage vocabulary',
+        onclick: () => { view = 'vocab-manage'; render(); }
+      })
+    ]));
+
+    if (vocabMode === 'choice' && chosenCount < 4 && chosenCount > 0) {
+      wrap.appendChild(el('p', { class: 'muted small', text: 'Only ' + chosenCount + ' words here, so there are not four tiles to choose between. Pick a bigger section or use another mode.' }));
+    }
+
+    setScreen(wrap, keepScroll);
+  }
+
+  /* ---- adding and managing the list ---- */
+
+  function renderVocabManage(keepScroll) {
+    repaint = () => renderVocabManage(true);
+    const wrap = el('div', { class: 'screen vocab-manage' });
+
+    wrap.appendChild(el('div', { class: 'topbar' }, [
+      el('button', { class: 'btn ghost small', type: 'button', text: '← Vocab', onclick: () => go('vocab') })
+    ]));
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'Manage vocabulary' }));
+
+    /* ---- the paste box ---- */
+    const panel = el('div', { class: 'panel' });
+    panel.appendChild(el('h2', { text: 'Add a section' }));
+    panel.appendChild(el('p', { class: 'muted small', text: 'One word per line. Separate the Arabic from its meaning with a bar, a tab, or a spaced dash. A middle column is taken as the transliteration. Lines starting with # are ignored.' }));
+    panel.appendChild(el('pre', { class: 'vocab-format', text: 'نَصَرَ | naṣara | to help\nكِتَابٌ | a book\nذَهَبَ — to go' }));
+
+    const secInput = el('input', {
+      class: 'input vocab-secno', type: 'text', placeholder: 'e.g. 1',
+      autocomplete: 'off', value: ''
+    });
+    panel.appendChild(field('Section', secInput));
+
+    const box = el('textarea', {
+      class: 'input vocab-paste', rows: '10', placeholder: 'Paste your list here…',
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false'
+    });
+    panel.appendChild(field('The words', box));
+
+    const note = el('p', { class: 'muted small vocab-note' });
+    const preview = el('div', { class: 'vocab-preview' });
+
+    function repreview() {
+      const res = MP.vocab.parse(box.value);
+      preview.innerHTML = '';
+      if (!box.value.trim()) { note.textContent = ''; return; }
+      note.textContent = res.rows.length + ' word' + (res.rows.length === 1 ? '' : 's') + ' read'
+        + (res.errors.length ? ', ' + res.errors.length + ' line(s) not understood' : '') + '.';
+      res.errors.slice(0, 4).forEach((e) => {
+        preview.appendChild(el('p', { class: 'vocab-err small', text: e }));
+      });
+      res.rows.slice(0, 4).forEach((r) => {
+        preview.appendChild(el('div', { class: 'vocab-prev-row' }, [
+          ar(r.ar, 'vocab-prev-ar'),
+          el('span', { class: 'vocab-prev-en', text: r.en })
+        ]));
+      });
+      if (res.rows.length > 4) {
+        preview.appendChild(el('p', { class: 'muted small', text: '…and ' + (res.rows.length - 4) + ' more.' }));
+      }
+    }
+    box.addEventListener('input', repreview);
+
+    panel.appendChild(note);
+    panel.appendChild(preview);
+    panel.appendChild(el('div', { class: 'cta-row' }, [
+      el('button', {
+        class: 'btn primary', type: 'button', text: 'Add to the section',
+        onclick: () => {
+          const sec = secInput.value.trim();
+          if (!sec) { global.alert('Give the section a number or a name first.'); return; }
+          const res = MP.vocab.parse(box.value);
+          if (!res.rows.length) { global.alert('Nothing to add — no words were read from that.'); return; }
+          const out = MP.vocab.addMany(sec, res.rows);
+          box.value = '';
+          global.alert('Added ' + out.added + ' word' + (out.added === 1 ? '' : 's')
+            + ' to section ' + sec
+            + (out.skipped ? '. ' + out.skipped + ' were already there.' : '.'));
+          renderVocabManage();
+        }
+      })
+    ]));
+    wrap.appendChild(panel);
+
+    /* ---- what is already in ---- */
+    const secs = MP.vocab.sections();
+    if (secs.length) {
+      wrap.appendChild(el('h2', { class: 'panel-title', text: 'Sections' }));
+      const list = el('div', { class: 'vocab-sec-list' });
+      secs.forEach((s) => {
+        list.appendChild(el('div', { class: 'vocab-sec-row' }, [
+          el('span', { class: 'vocab-sec-name', text: vocabSectionName(s.id) }),
+          el('span', { class: 'muted small', text: s.count + ' words · ' + s.seen + ' seen' }),
+          el('button', {
+            class: 'btn ghost small', type: 'button', text: 'Show',
+            onclick: () => { vocabBrowse = (vocabBrowse === s.id ? null : s.id); renderVocabManage(true); }
+          }),
+          el('button', {
+            class: 'btn ghost small danger', type: 'button', text: 'Delete',
+            onclick: () => {
+              if (!global.confirm('Delete all ' + s.count + ' words in ' + vocabSectionName(s.id) + '?')) return;
+              MP.vocab.removeSection(s.id);
+              if (vocabSection === s.id) vocabSection = 'all';
+              renderVocabManage();
+            }
+          })
+        ]));
+        if (vocabBrowse === s.id) {
+          const inner = el('div', { class: 'vocab-browse' });
+          MP.vocab.bySection(s.id).forEach((e) => {
+            inner.appendChild(el('div', { class: 'vocab-browse-row' }, [
+              ar(e.ar, 'vocab-browse-ar'),
+              el('span', { class: 'vocab-browse-en', text: e.en }),
+              el('button', {
+                class: 'btn ghost small', type: 'button', text: '✕', title: 'Remove this word',
+                onclick: () => { MP.vocab.remove(e.id); renderVocabManage(true); }
+              })
+            ]));
+          });
+          list.appendChild(inner);
+        }
+      });
+      wrap.appendChild(list);
+    }
+
+    setScreen(wrap, keepScroll);
+    if (keepScroll) repreview();
+  }
+
+  /* ---- running a round ---- */
+
+  function startVocabRound(opts) {
+    const o = opts || {};
+    vocabRound = MP.vocab.buildRound({
+      section: vocabSection,
+      mode: o.mode || vocabMode,
+      direction: vocabDirection,
+      length: o.length != null ? o.length : vocabLength,
+      only: o.only || null
+    });
+    if (!vocabRound.items.length) { global.alert('Nothing to revise there.'); return; }
+    vocabAt = 0;
+    vocabBoardAt = 0;
+    vocabMatchStart = 0;
+    vocabResults = [];
+    vocabAnswered = false;
+    renderVocabCard();
+  }
+
+  function vocabTopbar(done, total, label) {
+    return el('div', { class: 'topbar' }, [
+      el('button', { class: 'btn ghost small', type: 'button', text: '← Vocab', onclick: () => go('vocab') }),
+      el('span', { class: 'counter', text: label }),
+      el('span', { class: 'counter', text: done + ' / ' + total })
+    ]);
+  }
+
+  function vocabProgressBar(done, total) {
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    return el('div', { class: 'progress' }, [
+      el('div', { class: 'progress-fill', style: 'width:' + pct + '%' })
+    ]);
+  }
+
+  function renderVocabCard() {
+    if (vocabRound.mode === 'match') return renderVocabMatch();
+    if (vocabAt >= vocabRound.items.length) return renderVocabSummary();
+    if (vocabRound.mode === 'flash') return renderVocabFlash();
+    if (vocabRound.mode === 'type') return renderVocabType();
+    return renderVocabChoice();
+  }
+
+  function vocabAdvance() {
+    vocabAt++;
+    vocabAnswered = false;
+    renderVocabCard();
+  }
+
+  function vocabScore(entry, correct) {
+    MP.vocab.record(entry.id, correct);
+    vocabResults.push({ entry: entry, correct: correct });
+  }
+
+  /* the side of the card being asked, and the side that answers it */
+  const vocabPrompt = (q) => (q.direction === 'toAr' ? q.entry.en : q.entry.ar);
+  const vocabAnswer = (q) => (q.direction === 'toAr' ? q.entry.ar : q.entry.en);
+
+  function vocabPromptCard(q) {
+    const toAr = q.direction === 'toAr';
+    return el('div', { class: 'vocab-card' }, [
+      el('span', { class: 'vocab-card-tag', text: toAr ? 'English → Arabic' : 'Arabic → English' }),
+      toAr
+        ? el('span', { class: 'vocab-q-en', text: q.entry.en })
+        : ar(q.entry.ar, 'vocab-q-ar'),
+      el('span', { class: 'vocab-card-sec', text: vocabSectionName(MP.vocab.sectionKey(q.entry.section)) })
+    ]);
+  }
+
+  /* ---- flashcards ---- */
+
+  function renderVocabFlash() {
+    const q = vocabRound.items[vocabAt];
+    const wrap = el('div', { class: 'screen vocab-run' });
+    wrap.appendChild(vocabTopbar(vocabAt, vocabRound.items.length, 'Flashcards'));
+    wrap.appendChild(vocabProgressBar(vocabAt, vocabRound.items.length));
+    wrap.appendChild(vocabPromptCard(q));
+
+    const back = el('div', { class: 'vocab-back', id: 'vocab-back' });
+    wrap.appendChild(back);
+    const actions = el('div', { class: 'vocab-actions', id: 'vocab-actions' });
+    wrap.appendChild(actions);
+
+    function flip() {
+      if (vocabAnswered) return;
+      vocabAnswered = true;
+      back.className = 'vocab-back open';
+      back.innerHTML = '';
+      const toAr = q.direction === 'toAr';
+      back.appendChild(toAr ? ar(q.entry.ar, 'vocab-a-ar') : el('span', { class: 'vocab-a-en', text: q.entry.en }));
+      if (q.entry.tr) back.appendChild(el('span', { class: 'vocab-tr', text: q.entry.tr }));
+      actions.innerHTML = '';
+      actions.appendChild(el('button', {
+        class: 'btn bad big', type: 'button', text: 'Not yet',
+        onclick: () => { vocabScore(q.entry, false); vocabAdvance(); }
+      }));
+      actions.appendChild(el('button', {
+        class: 'btn ok big', type: 'button', text: 'Got it',
+        onclick: () => { vocabScore(q.entry, true); vocabAdvance(); }
+      }));
+    }
+
+    actions.appendChild(el('button', { class: 'btn primary big wide-btn', type: 'button', text: 'Turn over', onclick: flip }));
+    setScreen(wrap);
+  }
+
+  /* ---- multiple choice ---- */
+
+  function renderVocabChoice() {
+    const q = vocabRound.items[vocabAt];
+    const wrap = el('div', { class: 'screen vocab-run' });
+    wrap.appendChild(vocabTopbar(vocabAt, vocabRound.items.length, 'Multiple choice'));
+    wrap.appendChild(vocabProgressBar(vocabAt, vocabRound.items.length));
+    wrap.appendChild(vocabPromptCard(q));
+
+    const tiles = el('div', { class: 'vocab-options' });
+    const feedback = el('div', { class: 'feedback', id: 'vocab-fb' });
+    const next = el('div', { class: 'next-row', id: 'vocab-next' });
+
+    q.options.forEach((opt) => {
+      const toAr = q.direction === 'toAr';
+      const tile = el('button', {
+        class: 'vocab-option', type: 'button',
+        onclick: () => pick(opt, tile)
+      }, [toAr ? ar(opt.ar, 'vocab-opt-ar') : el('span', { class: 'vocab-opt-en', text: opt.en })]);
+      tiles.appendChild(tile);
+    });
+
+    function pick(opt, tile) {
+      if (vocabAnswered) return;
+      vocabAnswered = true;
+      const right = opt.id === q.entry.id;
+      [].forEach.call(tiles.children, (t) => { t.disabled = true; });
+      tile.classList.add(right ? 'correct' : 'wrong');
+      if (!right) {
+        const idx = q.options.findIndex((o) => o.id === q.entry.id);
+        if (idx >= 0) tiles.children[idx].classList.add('correct');
+      }
+      vocabScore(q.entry, right);
+      feedback.className = 'feedback ' + (right ? 'good' : 'bad');
+      feedback.innerHTML = '';
+      feedback.appendChild(el('div', { class: 'fb-title', text: right ? 'Correct' : 'Not quite' }));
+      feedback.appendChild(el('div', { class: 'vocab-fb-pair' }, [
+        ar(q.entry.ar, 'vocab-fb-ar'),
+        el('span', { class: 'vocab-fb-en', text: q.entry.en })
+      ]));
+      if (q.entry.tr) feedback.appendChild(el('div', { class: 'fb-hint', text: q.entry.tr }));
+      showVocabNext(next);
+    }
+
+    wrap.appendChild(tiles);
+    wrap.appendChild(feedback);
+    wrap.appendChild(next);
+    setScreen(wrap);
+  }
+
+  /* ---- typing ---- */
+
+  function renderVocabType() {
+    const q = vocabRound.items[vocabAt];
+    const toAr = q.direction === 'toAr';
+    const wrap = el('div', { class: 'screen vocab-run' });
+    wrap.appendChild(vocabTopbar(vocabAt, vocabRound.items.length, 'Type the answer'));
+    wrap.appendChild(vocabProgressBar(vocabAt, vocabRound.items.length));
+    wrap.appendChild(vocabPromptCard(q));
+
+    const input = el('input', {
+      class: 'text-input' + (toAr ? ' ar' : ''), type: 'text',
+      dir: toAr ? 'rtl' : 'ltr',
+      placeholder: toAr ? 'اُكْتُبِ الكَلِمَة' : 'the meaning in English',
+      autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false'
+    });
+    const submit = el('button', { class: 'btn primary', type: 'button', text: 'Check' });
+    wrap.appendChild(el('div', { class: 'input-row' }, [input, submit]));
+
+    const feedback = el('div', { class: 'feedback', id: 'vocab-fb' });
+    const next = el('div', { class: 'next-row', id: 'vocab-next' });
+
+    function grade(gaveUp) {
+      if (vocabAnswered) return;
+      vocabAnswered = true;
+      const right = !gaveUp && MP.vocab.matches(input.value, q.entry, q.direction);
+      input.disabled = true;
+      submit.disabled = true;
+      input.classList.add(right ? 'correct' : 'wrong');
+      vocabScore(q.entry, right);
+      feedback.className = 'feedback ' + (right ? 'good' : 'bad');
+      feedback.innerHTML = '';
+      feedback.appendChild(el('div', {
+        class: 'fb-title',
+        text: right ? 'Correct' : (gaveUp ? 'The answer is' : 'Not quite — the answer is')
+      }));
+      feedback.appendChild(el('div', { class: 'vocab-fb-pair' }, [
+        ar(q.entry.ar, 'vocab-fb-ar'),
+        el('span', { class: 'vocab-fb-en', text: q.entry.en })
+      ]));
+      if (q.entry.tr) feedback.appendChild(el('div', { class: 'fb-hint', text: q.entry.tr }));
+      showVocabNext(next);
+    }
+
+    submit.addEventListener('click', () => grade(false));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); if (vocabAnswered) { vocabAdvance(); } else { grade(false); } }
+    });
+
+    wrap.appendChild(el('div', { class: 'cta-row' }, [
+      el('button', { class: 'btn ghost small', type: 'button', text: "I don't know", onclick: () => grade(true) })
+    ]));
+
+    if (toAr) wrap.appendChild(MP.keyboard.attach(input, { onEnter: () => grade(false) }));
+
+    wrap.appendChild(feedback);
+    wrap.appendChild(next);
+    setScreen(wrap);
+    input.focus({ preventScroll: true });
+  }
+
+  function showVocabNext(row) {
+    row.innerHTML = '';
+    const last = vocabAt === vocabRound.items.length - 1;
+    const btn = el('button', {
+      class: 'btn primary big', type: 'button',
+      text: last ? 'Finish' : 'Next →', onclick: vocabAdvance
+    });
+    row.appendChild(btn);
+    btn.focus({ preventScroll: true });
+  }
+
+  /* ---- match the pairs ---- */
+
+  function renderVocabMatch() {
+    const boards = vocabRound.boards || [];
+    if (vocabBoardAt >= boards.length) return renderVocabSummary();
+
+    const group = boards[vocabBoardAt];
+    const wrap = el('div', { class: 'screen vocab-run vocab-match' });
+    wrap.appendChild(vocabTopbar(vocabBoardAt, boards.length, 'Match the pairs'));
+    wrap.appendChild(vocabProgressBar(vocabBoardAt, boards.length));
+
+    const timer = el('span', { class: 'vocab-timer', text: '0.0s' });
+    wrap.appendChild(el('div', { class: 'vocab-match-head' }, [
+      el('span', { class: 'muted small', text: 'Tap a word, then its meaning.' }),
+      timer
+    ]));
+
+    if (!vocabMatchStart) vocabMatchStart = Date.now();
+    const tick = global.setInterval(() => {
+      if (!document.body.contains(timer)) { global.clearInterval(tick); return; }
+      timer.textContent = ((Date.now() - vocabMatchStart) / 1000).toFixed(1) + 's';
+    }, 100);
+
+    const grid = el('div', { class: 'vocab-grid' });
+    const tiles = [];
+    group.forEach((e) => {
+      tiles.push({ entry: e, side: 'ar' });
+      tiles.push({ entry: e, side: 'en' });
+    });
+
+    let picked = null;
+    let left = group.length;
+    const wrongOnce = {};
+
+    MP.vocab.shuffle(tiles).forEach((t) => {
+      const node = el('button', {
+        class: 'vocab-tile vocab-tile-' + t.side, type: 'button',
+        onclick: () => choose(t, node)
+      }, [t.side === 'ar' ? ar(t.entry.ar, 'vocab-tile-ar') : el('span', { text: t.entry.en })]);
+      grid.appendChild(node);
+    });
+
+    function choose(t, node) {
+      if (node.disabled) return;
+      if (!picked) {
+        picked = { t: t, node: node };
+        node.classList.add('picked');
+        return;
+      }
+      if (picked.node === node) {
+        node.classList.remove('picked');
+        picked = null;
+        return;
+      }
+      const same = picked.t.entry.id === t.entry.id;
+      const bothSides = picked.t.side !== t.side;
+      if (same && bothSides) {
+        [picked.node, node].forEach((n) => {
+          n.classList.remove('picked');
+          n.classList.add('matched');
+          n.disabled = true;
+        });
+        /* a pair found without a wrong guess counts as known */
+        MP.vocab.record(t.entry.id, !wrongOnce[t.entry.id]);
+        vocabResults.push({ entry: t.entry, correct: !wrongOnce[t.entry.id] });
+        picked = null;
+        if (--left === 0) {
+          global.clearInterval(tick);
+          vocabBoardAt++;
+          vocabMatchStart = 0;
+          global.setTimeout(renderVocabMatch, 350);
+        }
+        return;
+      }
+      wrongOnce[picked.t.entry.id] = true;
+      wrongOnce[t.entry.id] = true;
+      const a = picked.node;
+      a.classList.remove('picked');
+      [a, node].forEach((n) => n.classList.add('miss'));
+      global.setTimeout(() => [a, node].forEach((n) => n.classList.remove('miss')), 400);
+      picked = null;
+    }
+
+    wrap.appendChild(grid);
+    setScreen(wrap);
+  }
+
+  /* ---- summary ---- */
+
+  function renderVocabSummary() {
+    const wrap = el('div', { class: 'screen vocab-summary' });
+    const total = vocabResults.length;
+    const right = vocabResults.filter((r) => r.correct).length;
+    const pct = total ? Math.round((right / total) * 100) : 0;
+
+    wrap.appendChild(el('h1', { class: 'view-title', text: 'Round done' }));
+    wrap.appendChild(el('div', { class: 'score', text: right + ' / ' + total + '  ·  ' + pct + '%' }));
+
+    const missed = vocabResults.filter((r) => !r.correct);
+    if (missed.length) {
+      wrap.appendChild(el('h2', { class: 'panel-title', text: 'Worth another look' }));
+      const list = el('div', { class: 'vocab-missed' });
+      const seen = {};
+      missed.forEach((r) => {
+        if (seen[r.entry.id]) return;
+        seen[r.entry.id] = true;
+        list.appendChild(el('div', { class: 'vocab-browse-row' }, [
+          ar(r.entry.ar, 'vocab-browse-ar'),
+          el('span', { class: 'vocab-browse-en', text: r.entry.en })
+        ]));
+      });
+      wrap.appendChild(list);
+    } else if (total) {
+      wrap.appendChild(el('p', { class: 'muted', text: 'Every one right. They will come back round on a longer interval now.' }));
+    }
+
+    wrap.appendChild(el('div', { class: 'cta-row' }, [
+      missed.length ? el('button', {
+        class: 'btn primary big', type: 'button', text: 'Redo the missed ones',
+        onclick: () => {
+          const ids = [];
+          const seenId = {};
+          missed.forEach((r) => {
+            if (seenId[r.entry.id]) return;
+            seenId[r.entry.id] = true;
+            ids.push(r.entry.id);
+          });
+          /* match needs at least a pair on the board; one stray miss cannot
+             make a game, so it replays as flashcards instead */
+          const mode = vocabMode === 'match' && ids.length < 2 ? 'flash' : vocabMode;
+          startVocabRound({ only: ids, mode: mode, length: 0 });
+        }
+      }) : el('span', {}),
+      el('button', { class: 'btn big', type: 'button', text: 'Another round', onclick: () => startVocabRound() }),
+      el('button', { class: 'btn ghost big', type: 'button', text: 'Back to Vocab', onclick: () => go('vocab') })
+    ]));
+
+    setScreen(wrap);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

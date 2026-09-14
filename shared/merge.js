@@ -91,7 +91,7 @@ export function mergeProgress(local, remote) {
 /* ------------------------------------------------------------------ */
 
 export function emptyContent() {
-  return { paradigms: {}, words: [], sentences: {}, tombstones: {}, updatedAt: 0 };
+  return { paradigms: {}, words: [], sentences: {}, vocab: [], tombstones: {}, updatedAt: 0 };
 }
 
 function byId(list) {
@@ -141,6 +141,8 @@ export function mergeContent(local, remote, now) {
   const paradigms = mergeRecordMaps(a.paradigms, b.paradigms, tombstones);
   const wordMap = mergeRecordMaps(byId(a.words), byId(b.words), tombstones);
   const sentences = mergeRecordMaps(a.sentences, b.sentences, tombstones);
+  /* vocabulary items stand alone: no root behind them, so nothing to cascade */
+  const vocabMap = mergeRecordMaps(byId(a.vocab), byId(b.vocab), tombstones);
 
   /* a word whose root has gone cannot survive either */
   Object.keys(wordMap).forEach((id) => {
@@ -158,6 +160,7 @@ export function mergeContent(local, remote, now) {
     paradigms,
     words: Object.keys(wordMap).map((id) => wordMap[id]),
     sentences,
+    vocab: Object.keys(vocabMap).map((id) => vocabMap[id]),
     tombstones,
     updatedAt: maxOf(a.updatedAt, b.updatedAt)
   };

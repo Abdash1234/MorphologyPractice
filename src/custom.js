@@ -18,7 +18,7 @@
   let memory = null; // fallback when localStorage is blocked
 
   function blank() {
-    return { paradigms: {}, words: [], sentences: {}, tombstones: {}, updatedAt: 0 };
+    return { paradigms: {}, words: [], sentences: {}, vocab: [], tombstones: {}, updatedAt: 0 };
   }
 
   function load() {
