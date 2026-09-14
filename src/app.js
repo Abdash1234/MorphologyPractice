@@ -273,7 +273,7 @@
   function startDrill() {
     const cfg = drillSettings();
     if (!E.poolFor('analysis', 'all').length) {
-      global.alert('There are no words to drill.');
+      say('There are no words to drill.');
       return;
     }
     startSession(null, cfg, 'drill');
@@ -705,7 +705,8 @@
         el('button', {
           class: 'btn ghost small', type: 'button', text: 'Reset progress',
           onclick: () => {
-            if (global.confirm('Clear all saved progress?')) { MP.store.reset(); refresh(); }
+            ask('Clear all saved progress? Every word goes back to the first box.',
+              () => { MP.store.reset(); refresh(); say('Progress cleared.'); }, 'Clear');
           }
         })
       ]));
@@ -805,8 +806,10 @@
             el('button', {
               class: 'btn ghost small', type: 'button', text: d.current ? 'Sign out' : 'Revoke',
               onclick: () => {
-                if (!global.confirm(d.current ? 'Sign this device out?' : 'Revoke "' + d.label + '"?')) return;
-                MP.sync.revoke(d.id).then(() => refresh()).catch(() => paint());
+                const q = d.current ? 'Sign this device out?' : 'Revoke "' + d.label + '"?';
+                ask(q, () => {
+                  MP.sync.revoke(d.id).then(() => refresh()).catch(() => paint());
+                }, d.current ? 'Sign out' : 'Revoke');
               }
             })
           ]));
@@ -833,6 +836,54 @@
   }
 
   /* a small labelled control, shared with the editor's look */
+  /*
+   * In-app confirm and notice.
+   *
+   * Native confirm() cannot be relied on. A browser that has been told to
+   * stop showing dialogs — one tick of "prevent this page from creating more
+   * dialogs", which iOS also does of its own accord in standalone mode —
+   * makes it return false for good. Every destructive button then silently
+   * does nothing and reads as broken, which is exactly how it looked.
+   */
+  function say(message) {
+    const old = $('#toast');
+    if (old) old.remove();
+    const node = el('div', { class: 'toast', id: 'toast', role: 'status' }, [
+      el('span', { text: message })
+    ]);
+    document.body.appendChild(node);
+    global.setTimeout(() => { if (node.parentNode) node.remove(); }, 3600);
+  }
+
+  function ask(message, onYes, yesLabel) {
+    const close = () => {
+      const n = $('#ask');
+      if (n) n.remove();
+      document.removeEventListener('keydown', onKey, true);
+    };
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(); }
+    }
+    const yes = el('button', {
+      class: 'btn bad', type: 'button', text: yesLabel || 'Delete',
+      onclick: () => { close(); onYes(); }
+    });
+    const card = el('div', { class: 'ask-card', role: 'alertdialog', 'aria-modal': 'true' }, [
+      el('p', { class: 'ask-message', text: message }),
+      el('div', { class: 'ask-actions' }, [
+        el('button', { class: 'btn ghost', type: 'button', text: 'Cancel', onclick: close }),
+        yes
+      ])
+    ]);
+    const back = el('div', {
+      class: 'ask-back', id: 'ask',
+      onclick: (e) => { if (e.target === back) close(); }
+    }, [card]);
+    document.body.appendChild(back);
+    document.addEventListener('keydown', onKey, true);
+    yes.focus({ preventScroll: true });
+  }
+
   function field(labelText, control) {
     return el('label', { class: 'field' }, [
       el('span', { class: 'field-label', text: labelText }),
@@ -886,7 +937,7 @@
       only: Array.isArray(only) ? only : null
     });
     if (!session.words.length) {
-      global.alert('That deck is empty.');
+      say('That deck is empty.');
       return;
     }
     session.origin = origin || 'practice';
@@ -2907,12 +2958,12 @@
         class: 'btn primary', type: 'button', text: 'Add to the section',
         onclick: () => {
           const sec = secInput.value.trim();
-          if (!sec) { global.alert('Give the section a number or a name first.'); return; }
+          if (!sec) { say('Give the section a number or a name first.'); return; }
           const res = MP.vocab.parse(box.value);
-          if (!res.rows.length) { global.alert('Nothing to add — no words were read from that.'); return; }
+          if (!res.rows.length) { say('Nothing to add — no words were read from that.'); return; }
           const out = MP.vocab.addMany(sec, res.rows);
           box.value = '';
-          global.alert('Added ' + out.added + ' word' + (out.added === 1 ? '' : 's')
+          say('Added ' + out.added + ' word' + (out.added === 1 ? '' : 's')
             + ' to section ' + sec
             + (out.skipped ? '. ' + out.skipped + ' were already there.' : '.'));
           renderVocabManage();
@@ -2937,10 +2988,12 @@
           el('button', {
             class: 'btn ghost small danger', type: 'button', text: 'Delete',
             onclick: () => {
-              if (!global.confirm('Delete all ' + s.count + ' words in ' + vocabSectionName(s.id) + '?')) return;
-              MP.vocab.removeSection(s.id);
-              if (vocabSection === s.id) vocabSection = 'all';
-              renderVocabManage();
+              ask('Delete all ' + s.count + ' words in ' + vocabSectionName(s.id) + '?', () => {
+                MP.vocab.removeSection(s.id);
+                if (vocabSection === s.id) vocabSection = 'all';
+                renderVocabManage();
+                say('Deleted ' + vocabSectionName(s.id) + '.');
+              });
             }
           })
         ]));
@@ -2964,9 +3017,11 @@
                 class: 'btn ghost small danger', type: 'button', text: '✕',
                 title: 'Delete this word', 'aria-label': 'Delete this word',
                 onclick: () => {
-                  if (!global.confirm('Delete ' + e.ar + '?')) return;
-                  MP.vocab.remove(e.id);
-                  renderVocabManage(true);
+                  ask('Delete ' + e.ar + '?', () => {
+                    MP.vocab.remove(e.id);
+                    renderVocabManage(true);
+                    say('Deleted.');
+                  });
                 }
               })
             ]));
@@ -3015,7 +3070,7 @@
 
     const save = () => {
       if (!arIn.value.trim() || !enIn.value.trim()) {
-        global.alert('A word needs both the Arabic and a meaning.');
+        say('A word needs both the Arabic and a meaning.');
         return;
       }
       MP.vocab.update(entry.id, {
@@ -3055,10 +3110,12 @@
         el('button', {
           class: 'btn ghost small danger', type: 'button', text: 'Delete',
           onclick: () => {
-            if (!global.confirm('Delete this word?')) return;
-            MP.vocab.remove(entry.id);
-            vocabEditing = null;
-            renderVocabManage(true);
+            ask('Delete ' + entry.ar + '?', () => {
+              MP.vocab.remove(entry.id);
+              vocabEditing = null;
+              renderVocabManage(true);
+              say('Deleted.');
+            });
           }
         })
       ])
@@ -3078,7 +3135,7 @@
       length: o.length != null ? o.length : vocabLength,
       only: o.only || null
     });
-    if (!vocabRound.items.length) { global.alert('Nothing to revise there.'); return; }
+    if (!vocabRound.items.length) { say('Nothing to revise there.'); return; }
     vocabAt = 0;
     vocabBoardAt = 0;
     vocabMatchStart = 0;

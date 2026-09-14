@@ -1988,3 +1988,52 @@ select.input { cursor: pointer; }
 .chip.small-chip { padding: 5px 11px; font-size: 13px; }
 .vocab-gender-row { margin-bottom: 4px; }
 .vocab-card-gloss { font-size: 15px; color: var(--muted); }
+
+/* ---------- in-app confirm and notice ---------- */
+
+/* Native confirm()/alert() cannot be depended on: once a browser has been
+   told to stop showing dialogs it returns false for good, and a destructive
+   button then silently does nothing. These replace them. */
+.ask-back {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(3px);
+}
+.ask-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 20px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 48px var(--shadow);
+}
+.ask-message { margin: 0 0 16px; font-size: 16px; line-height: 1.5; text-wrap: balance; }
+.ask-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.ask-actions .btn { min-height: 44px; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 90;
+  max-width: min(90vw, 420px);
+  padding: 11px 18px;
+  background: var(--bg-raised-2);
+  border: 1px solid var(--accent-dim);
+  border-radius: 999px;
+  box-shadow: 0 10px 28px var(--shadow);
+  font-size: 14.5px;
+  text-align: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toast { animation: toast-in 0.18s ease-out; }
+  @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+}
