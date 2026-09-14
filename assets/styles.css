@@ -1987,3 +1987,4 @@ select.input { cursor: pointer; }
 }
 .chip.small-chip { padding: 5px 11px; font-size: 13px; }
 .vocab-gender-row { margin-bottom: 4px; }
+.vocab-card-gloss { font-size: 15px; color: var(--muted); }

@@ -2702,6 +2702,7 @@
   let vocabSection = 'all';
   let vocabMode = 'choice';
   let vocabDirection = 'toEn';
+  let vocabPlurals = 'with';
   let vocabLength = 20;
   let vocabRound = null;
   let vocabAt = 0;
@@ -2781,8 +2782,27 @@
     });
     wrap.appendChild(modeGrid);
 
-    /* match has no direction — both sides are on the board at once */
-    if (vocabMode !== 'match') {
+    const anyPlurals = MP.vocab.bySection(vocabSection).some((e) => e.pl);
+    if (anyPlurals) {
+      wrap.appendChild(el('h2', { class: 'panel-title', text: 'Plurals' }));
+      const plRow = el('div', { class: 'chip-row' });
+      MP.vocab.PLURAL_MODES.forEach((m) => {
+        plRow.appendChild(el('button', {
+          class: 'chip' + (vocabPlurals === m.id ? ' on' : ''), type: 'button', text: m.name,
+          title: m.desc,
+          onclick: () => { vocabPlurals = m.id; refresh(); }
+        }));
+      });
+      wrap.appendChild(plRow);
+      const chosen = MP.vocab.PLURAL_MODES.find((m) => m.id === vocabPlurals);
+      if (chosen) wrap.appendChild(el('p', { class: 'muted small', text: chosen.desc }));
+    } else if (vocabPlurals !== 'with') {
+      vocabPlurals = 'with';   // nothing here has one
+    }
+
+    /* match puts both sides on the board, and asking for the plural fixes
+       the direction, so neither offers a choice of way round */
+    if (vocabMode !== 'match' && vocabPlurals !== 'produce') {
       wrap.appendChild(el('h2', { class: 'panel-title', text: 'Which way round' }));
       const dirRow = el('div', { class: 'chip-row' });
       MP.vocab.DIRECTIONS.forEach((d) => {
@@ -2939,6 +2959,15 @@
               el('button', {
                 class: 'btn ghost small', type: 'button', text: 'Edit',
                 onclick: () => { vocabEditing = e.id; renderVocabManage(true); }
+              }),
+              el('button', {
+                class: 'btn ghost small danger', type: 'button', text: '✕',
+                title: 'Delete this word', 'aria-label': 'Delete this word',
+                onclick: () => {
+                  if (!global.confirm('Delete ' + e.ar + '?')) return;
+                  MP.vocab.remove(e.id);
+                  renderVocabManage(true);
+                }
               })
             ]));
           });
@@ -3045,6 +3074,7 @@
       section: vocabSection,
       mode: o.mode || vocabMode,
       direction: vocabDirection,
+      plurals: o.plurals || vocabPlurals,
       length: o.length != null ? o.length : vocabLength,
       only: o.only || null
     });
@@ -3093,15 +3123,28 @@
 
   /* the side of the card being asked, and the side that answers it */
   const vocabPrompt = (q) => (q.direction === 'toAr' ? q.entry.en : q.entry.ar);
-  const vocabAnswer = (q) => (q.direction === 'toAr' ? q.entry.ar : q.entry.en);
+  const vocabAnswer = (q) => {
+    if (q.direction === 'toPl') return q.entry.pl;
+    return q.direction === 'toAr' ? q.entry.ar : q.entry.en;
+  };
+
+  const VOCAB_TAGS = {
+    toAr: 'English → Arabic',
+    toEn: 'Arabic → English',
+    toPl: 'Singular → plural'
+  };
 
   function vocabPromptCard(q) {
     const toAr = q.direction === 'toAr';
     return el('div', { class: 'vocab-card' }, [
-      el('span', { class: 'vocab-card-tag', text: toAr ? 'English → Arabic' : 'Arabic → English' }),
+      el('span', { class: 'vocab-card-tag', text: VOCAB_TAGS[q.direction] || VOCAB_TAGS.toEn }),
       toAr
         ? el('span', { class: 'vocab-q-en', text: q.entry.en })
         : ar(q.entry.ar, 'vocab-q-ar'),
+      /* asking for the plural, the gloss is a help rather than the answer */
+      q.direction === 'toPl'
+        ? el('span', { class: 'vocab-card-gloss', text: q.entry.en })
+        : el('span', {}),
       el('span', { class: 'vocab-card-sec', text: vocabSectionName(MP.vocab.sectionKey(q.entry.section)) })
     ]);
   }
@@ -3125,10 +3168,12 @@
       vocabAnswered = true;
       back.className = 'vocab-back open';
       back.innerHTML = '';
-      const toAr = q.direction === 'toAr';
-      back.appendChild(toAr ? ar(q.entry.ar, 'vocab-a-ar') : el('span', { class: 'vocab-a-en', text: q.entry.en }));
-      if (q.entry.tr) back.appendChild(el('span', { class: 'vocab-tr', text: q.entry.tr }));
-      if (q.entry.pl) back.appendChild(el('span', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
+      const showAr = q.direction === 'toAr' || q.direction === 'toPl';
+      back.appendChild(showAr
+        ? ar(vocabAnswer(q), 'vocab-a-ar')
+        : el('span', { class: 'vocab-a-en', text: q.entry.en }));
+      if (q.entry.tr && q.direction !== 'toPl') back.appendChild(el('span', { class: 'vocab-tr', text: q.entry.tr }));
+      if (q.entry.pl && q.direction !== 'toPl') back.appendChild(el('span', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
       if (q.entry.gender) {
         const note = MP.vocab.genderNote(q.entry);
         const odd = /—/.test(note) || /despite/.test(note);
@@ -3163,11 +3208,12 @@
     const next = el('div', { class: 'next-row', id: 'vocab-next' });
 
     q.options.forEach((opt) => {
-      const toAr = q.direction === 'toAr';
+      const showAr = q.direction === 'toAr' || q.direction === 'toPl';
+      const text = q.direction === 'toPl' ? opt.pl : (q.direction === 'toAr' ? opt.ar : opt.en);
       const tile = el('button', {
         class: 'vocab-option', type: 'button',
         onclick: () => pick(opt, tile)
-      }, [toAr ? ar(opt.ar, 'vocab-opt-ar') : el('span', { class: 'vocab-opt-en', text: opt.en })]);
+      }, [showAr ? ar(text, 'vocab-opt-ar') : el('span', { class: 'vocab-opt-en', text: text })]);
       tiles.appendChild(tile);
     });
 
@@ -3186,10 +3232,10 @@
       feedback.innerHTML = '';
       feedback.appendChild(el('div', { class: 'fb-title', text: right ? 'Correct' : 'Not quite' }));
       feedback.appendChild(el('div', { class: 'vocab-fb-pair' }, [
-        ar(q.entry.ar, 'vocab-fb-ar'),
+        ar(q.direction === 'toPl' ? q.entry.pl : q.entry.ar, 'vocab-fb-ar'),
         el('span', { class: 'vocab-fb-en', text: q.entry.en })
       ]));
-      if (q.entry.pl) feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
+      if (q.entry.pl && q.direction !== 'toPl') feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
       if (q.entry.gender) {
         const note = MP.vocab.genderNote(q.entry);
         const odd = /—/.test(note) || /despite/.test(note);
@@ -3209,7 +3255,7 @@
 
   function renderVocabType() {
     const q = vocabRound.items[vocabAt];
-    const toAr = q.direction === 'toAr';
+    const toAr = q.direction === 'toAr' || q.direction === 'toPl';
     const wrap = el('div', { class: 'screen vocab-run' });
     wrap.appendChild(vocabTopbar(vocabAt, vocabRound.items.length, 'Type the answer'));
     wrap.appendChild(vocabProgressBar(vocabAt, vocabRound.items.length));
@@ -3244,10 +3290,10 @@
         text: right ? 'Correct' : (gaveUp ? 'The answer is' : 'Not quite — the answer is')
       }));
       feedback.appendChild(el('div', { class: 'vocab-fb-pair' }, [
-        ar(q.entry.ar, 'vocab-fb-ar'),
+        ar(q.direction === 'toPl' ? q.entry.pl : q.entry.ar, 'vocab-fb-ar'),
         el('span', { class: 'vocab-fb-en', text: q.entry.en })
       ]));
-      if (q.entry.pl) feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
+      if (q.entry.pl && q.direction !== 'toPl') feedback.appendChild(el('div', { class: 'vocab-pl' }, [el('span', { text: 'pl. ' }), ar(q.entry.pl)]));
       if (q.entry.gender) {
         const note = MP.vocab.genderNote(q.entry);
         const odd = /—/.test(note) || /despite/.test(note);
@@ -3306,11 +3352,12 @@
       timer.textContent = ((Date.now() - vocabMatchStart) / 1000).toFixed(1) + 's';
     }, 100);
 
+    const pairPlural = vocabRound.plurals === 'produce';
     const grid = el('div', { class: 'vocab-grid' });
     const tiles = [];
     group.forEach((e) => {
       tiles.push({ entry: e, side: 'ar' });
-      tiles.push({ entry: e, side: 'en' });
+      tiles.push({ entry: e, side: pairPlural ? 'pl' : 'en' });
     });
 
     let picked = null;
@@ -3321,7 +3368,9 @@
       const node = el('button', {
         class: 'vocab-tile vocab-tile-' + t.side, type: 'button',
         onclick: () => choose(t, node)
-      }, [t.side === 'ar' ? ar(t.entry.ar, 'vocab-tile-ar') : el('span', { text: t.entry.en })]);
+      }, [t.side === 'en'
+        ? el('span', { text: t.entry.en })
+        : ar(t.side === 'pl' ? t.entry.pl : t.entry.ar, 'vocab-tile-ar')]);
       grid.appendChild(node);
     });
 

@@ -106,6 +106,7 @@
   function matches(typed, entry, direction) {
     const given = String(typed || '').trim();
     if (!given) return false;
+    if (direction === 'toPl') return normAr(given) === normAr(entry.pl);
     if (direction === 'toAr') return normAr(given) === normAr(entry.ar);
     const got = normEn(given);
     if (!got) return false;
@@ -269,13 +270,30 @@
     return { added, skipped };
   }
 
+  /*
+   * Deleting leaves a tombstone. Without one, mergeContent has no way to tell
+   * a word you deleted here from a word the other device simply has and this
+   * one has not seen yet, so the next sync would hand it straight back.
+   */
+  function removeMany(ids) {
+    if (!ids.length) return;
+    const data = MP.custom.load();
+    const gone = {};
+    ids.forEach((id) => { gone[id] = true; });
+    data.vocab = (data.vocab || []).filter((e) => !gone[e.id]);
+    data.tombstones = data.tombstones || {};
+    const now = Date.now();
+    ids.forEach((id) => { data.tombstones[id] = now; });
+    MP.custom.save(data);
+  }
+
   function remove(id) {
-    writeAll(all().filter((e) => e.id !== id));
+    removeMany([id]);
   }
 
   function removeSection(id) {
     const key = sectionKey(id);
-    writeAll(all().filter((e) => sectionKey(e.section) !== key));
+    removeMany(all().filter((e) => sectionKey(e.section) === key).map((e) => e.id));
   }
 
   /*
@@ -350,6 +368,20 @@
     { id: 'match', name: 'Match the pairs', desc: 'Six pairs on a grid, against the clock.' }
   ];
 
+  /*
+   * What to do with the plurals.
+   *
+   * Held with the word they are a footnote on the answer. But a plural like
+   * كُتُبٌ is its own shape to recognise and its own thing to recall, so it can
+   * also be drilled on its own schedule, or asked for directly from the
+   * singular — which is the one that actually tests whether you know it.
+   */
+  const PLURAL_MODES = [
+    { id: 'with', name: 'Shown with the word', desc: 'The plural appears on the answer.' },
+    { id: 'separate', name: 'Tested separately', desc: 'Each plural becomes its own card, with its own schedule.' },
+    { id: 'produce', name: 'Asked from the singular', desc: 'You are shown the singular and have to give the plural.' }
+  ];
+
   const DIRECTIONS = [
     { id: 'toEn', name: 'Arabic → English', desc: 'You are shown the Arabic.' },
     { id: 'toAr', name: 'English → Arabic', desc: 'You are shown the English.' },
@@ -360,7 +392,7 @@
 
   /* three wrong answers, taken from the same section so they are plausible */
   function distractors(entry, pool, direction, n) {
-    const field = direction === 'toAr' ? 'ar' : 'en';
+    const field = direction === 'toPl' ? 'pl' : (direction === 'toAr' ? 'ar' : 'en');
     const want = String(entry[field] || '');
     const seen = { [want]: true };
     const out = [];
@@ -382,7 +414,28 @@
   function buildRound(opts) {
     const o = opts || {};
     const mode = o.mode || 'choice';
+    const plurals = o.plurals || 'with';
     let pool = bySection(o.section);
+
+    if (plurals === 'produce') {
+      /* only the words that have one */
+      pool = pool.filter((e) => e.pl);
+    } else if (plurals === 'separate') {
+      /* a plural becomes a card of its own, with an id of its own so it gets
+         its own Leitner box rather than riding on the singular's */
+      const expanded = [];
+      pool.forEach((e) => {
+        expanded.push(e);
+        if (e.pl) {
+          expanded.push({
+            id: e.id + ':pl', ar: e.pl, pl: '', tr: '',
+            en: e.en + ' (pl.)', gender: e.gender || '',
+            section: e.section, ofId: e.id, isPlural: true
+          });
+        }
+      });
+      pool = expanded;
+    }
     /* replaying the ones that were missed: narrow to those, but keep the rest
        of the section around so multiple choice still has distractors */
     const only = o.only && o.only.length ? o.only : null;
@@ -424,13 +477,15 @@
         if (group.length < 2) break;
         boards.push(group);
       }
-      return { mode: mode, boards: boards, items: chosen, pool: pool };
+      return { mode: mode, boards: boards, items: chosen, pool: pool, plurals: plurals };
     }
 
     const chosen = pool.slice(0, len);
-    const dir = o.direction || 'toEn';
+    const dir = plurals === 'produce' ? 'toPl' : (o.direction || 'toEn');
     const items = chosen.map((entry) => {
       const direction = dir === 'mixed' ? (Math.random() < 0.5 ? 'toEn' : 'toAr') : dir;
+      /* an expanded plural has no plural of its own to be asked for */
+      if (direction === 'toPl' && !entry.pl) return null;
       const q = { entry: entry, direction: direction };
       if (mode === 'choice') {
         const wrong = distractors(entry, context, direction, 3);
@@ -439,9 +494,9 @@
         q.enough = q.options.length > 1;
       }
       return q;
-    });
+    }).filter(Boolean);
 
-    return { mode: mode, items: items, pool: pool };
+    return { mode: mode, items: items, pool: pool, plurals: plurals };
   }
 
   function record(entryId, correct) {
@@ -482,6 +537,7 @@
     sectionKey,
     MODES,
     DIRECTIONS,
+    PLURAL_MODES,
     MATCH_PAIRS
   };
 })(typeof window !== 'undefined' ? window : globalThis);

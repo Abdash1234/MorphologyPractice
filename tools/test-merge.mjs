@@ -135,6 +135,13 @@ test('a document with no vocabulary at all still merges', () => {
   assert.deepEqual(merged.vocab, [], 'older devices send no vocab key; that must not throw');
 });
 
+test('a vocabulary word deleted on one device is not handed back by the other', () => {
+  const phone = { vocab: [], tombstones: { 'v:1-1': t0 + 5000 } };
+  const laptop = { vocab: [{ id: 'v:1-1', ar: 'كِتَابٌ', en: 'a book', updatedAt: t0 }] };
+  const merged = mergeContent(phone, laptop, t0 + 10_000);
+  assert.equal(merged.vocab.length, 0, 'the delete is newer than the copy, so it stands');
+});
+
 test('tombstones older than the retention window are dropped', () => {
   const merged = mergeContent(
     { tombstones: { old: t0 - TOMBSTONE_TTL - DAY, recent: t0 - DAY } },
