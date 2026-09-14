@@ -3539,6 +3539,9 @@
     setScreen(wrap);
   }
 
+  /* the editor needs these too — nothing should reach for a native dialog */
+  MP.ui = { ask: ask, say: say };
+
   document.addEventListener('DOMContentLoaded', () => {
     MP.custom.apply();   // fold in anything the user has added
     render();

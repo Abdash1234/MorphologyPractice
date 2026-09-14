@@ -255,13 +255,29 @@
       if (s && s.ar && s.en && s.ar.indexOf('{}') !== -1) data.sentences[id] = s;
     });
 
+    /* vocabulary travels in the same document, and used not to be read back
+       out of it — an export carried it and an import dropped it, so moving a
+       list to another device quietly lost the lot */
+    data.vocab = data.vocab || [];
+    (incoming.vocab || []).forEach((v) => {
+      if (!v || !v.id || !v.ar || !v.en) { errors.push('a vocabulary entry was incomplete'); return; }
+      const at = data.vocab.findIndex((x) => x.id === v.id);
+      if (at === -1) data.vocab.push(v);
+      else if ((v.updatedAt || 0) >= (data.vocab[at].updatedAt || 0)) data.vocab[at] = v;
+      added++;
+    });
+
     save(data);
     return { ok: true, added: added, errors: errors };
   }
 
   function count() {
     const data = load();
-    return { words: data.words.length, roots: Object.keys(data.paradigms).length };
+    return {
+      words: data.words.length,
+      roots: Object.keys(data.paradigms).length,
+      vocab: (data.vocab || []).length
+    };
   }
 
   MP.custom = {

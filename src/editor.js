@@ -431,7 +431,7 @@
   function renderBackup(host, onBack) {
     const panel = el('section', { class: 'panel' }, [
       el('h2', { class: 'panel-title', text: 'Backup & transfer' }),
-      el('p', { class: 'muted small', text: 'Your words live in this browser only. Export the JSON to keep a copy, move it to your phone, or send it on to be merged into the app itself.' })
+      el('p', { class: 'muted small', text: 'Everything you have added — your words, your roots and your vocabulary lists — lives in this browser only. Save a file to keep a copy or to carry it to another device; loading a file merges it in, so nothing you already have is lost.' })
     ]);
 
     const box = el('textarea', { class: 'input json-box', rows: '8', spellcheck: 'false' });
@@ -439,8 +439,63 @@
 
     const status = el('div', { class: 'form-errors' });
 
-    panel.appendChild(box);
+    const stamp = () => new Date().toISOString().slice(0, 10);
+
+    /* A file rather than a blob of text in a box: on a phone the textarea
+       route means selecting a few hundred lines by hand, and a file can be
+       AirDropped or dropped in iCloud and picked up on the other device. */
+    const fileIn = el('input', {
+      class: 'file-in', type: 'file', accept: '.json,application/json', id: 'backup-file'
+    });
+    fileIn.addEventListener('change', () => {
+      const file = fileIn.files && fileIn.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        box.value = String(reader.result || '');
+        doImport();
+      };
+      reader.onerror = () => { status.textContent = 'That file could not be read.'; };
+      reader.readAsText(file);
+      fileIn.value = '';
+    });
+
+    function doImport() {
+      const result = MP.custom.importJSON(box.value, 'merge');
+      status.innerHTML = '';
+      if (!result.ok) {
+        result.errors.forEach((e) => status.appendChild(el('p', { class: 'form-error', text: e })));
+        return;
+      }
+      say(result.errors.length ? 'warn' : 'good',
+        'Imported ' + result.added + ' entries' + (result.errors.length ? ', ' + result.errors.length + ' skipped.' : '.'));
+      refresh(host, onBack);
+    }
+
     panel.appendChild(el('div', { class: 'cta-row' }, [
+      el('button', {
+        class: 'btn primary', type: 'button', text: 'Save a file',
+        onclick: () => {
+          const blob = new Blob([MP.custom.exportJSON()], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = el('a', { href: url, download: 'sarf-backup-' + stamp() + '.json' });
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          global.setTimeout(() => URL.revokeObjectURL(url), 2000);
+          status.textContent = 'Saved. Send it to your other device and load it there.';
+        }
+      }),
+      el('label', { class: 'btn', for: 'backup-file' }, [
+        el('span', { text: 'Load a file' })
+      ]),
+      fileIn
+    ]));
+
+    panel.appendChild(el('details', { class: 'backup-raw' }, [
+      el('summary', { class: 'muted small', text: 'Or copy and paste the JSON by hand' }),
+      box,
+      el('div', { class: 'cta-row' }, [
       el('button', {
         class: 'btn', type: 'button', text: 'Copy',
         onclick: () => {
@@ -453,27 +508,23 @@
           }
         }
       }),
+      el('button', { class: 'btn', type: 'button', text: 'Import (merge)', onclick: doImport })
+      ])
+    ]));
+
+    panel.appendChild(el('div', { class: 'cta-row' }, [
       el('button', {
-        class: 'btn', type: 'button', text: 'Import (merge)',
+        class: 'btn ghost danger', type: 'button', text: 'Clear everything',
         onclick: () => {
-          const result = MP.custom.importJSON(box.value, 'merge');
-          status.innerHTML = '';
-          if (!result.ok) {
-            result.errors.forEach((e) => status.appendChild(el('p', { class: 'form-error', text: e })));
-            return;
-          }
-          say(result.errors.length ? 'warn' : 'good',
-            'Imported ' + result.added + ' entries' + (result.errors.length ? ', ' + result.errors.length + ' skipped.' : '.'));
-          refresh(host, onBack);
-        }
-      }),
-      el('button', {
-        class: 'btn ghost', type: 'button', text: 'Clear everything',
-        onclick: () => {
-          if (!global.confirm('Delete all of your own words and roots?')) return;
-          MP.custom.save({ paradigms: {}, words: [], sentences: {} });
-          say('warn', 'Your additions have been cleared.');
-          refresh(host, onBack);
+          const n = MP.custom.count();
+          const what = n.words + ' words, ' + n.roots + ' roots and ' + n.vocab + ' vocabulary entries';
+          /* native confirm() returns false for good once a browser has been
+             told to stop showing dialogs, which made this button inert */
+          MP.ui.ask('Delete everything you have added — ' + what + '? This cannot be undone.', () => {
+            MP.custom.save({ paradigms: {}, words: [], sentences: {}, vocab: [] });
+            say('warn', 'Your additions have been cleared.');
+            refresh(host, onBack);
+          }, 'Delete everything');
         }
       })
     ]));

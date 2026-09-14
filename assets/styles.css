@@ -2038,3 +2038,8 @@ select.input { cursor: pointer; }
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
 }
 .vocab-secno-note { margin: -6px 0 12px; }
+.file-in { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+label.btn { display: inline-flex; align-items: center; cursor: pointer; }
+.backup-raw { margin: 12px 0; }
+.backup-raw summary { cursor: pointer; padding: 6px 0; }
+.backup-raw .json-box { margin-top: 8px; }
