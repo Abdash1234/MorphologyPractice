@@ -206,7 +206,9 @@ html, body {
   font-weight: 600;
 }
 .panel-title + .chip-row + .chip-row + .panel-title,
-.chip-row + .panel-title { margin-top: 20px; }
+.chip-row + .panel-title,
+.lede + .panel-title,
+.deck-grid + .panel-title { margin-top: 22px; }
 
 .muted { color: var(--muted); }
 .small { font-size: 13px; }

@@ -3104,7 +3104,9 @@
       autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false'
     });
     const submit = el('button', { class: 'btn primary', type: 'button', text: 'Check' });
-    wrap.appendChild(el('div', { class: 'input-row' }, [input, submit]));
+    const giveUp = el('button', { class: 'btn ghost', type: 'button', text: "I don't know" });
+    wrap.appendChild(el('div', { class: 'input-row' }, [input]));
+    wrap.appendChild(el('div', { class: 'input-row' }, [submit, giveUp]));
 
     const feedback = el('div', { class: 'feedback', id: 'vocab-fb' });
     const next = el('div', { class: 'next-row', id: 'vocab-next' });
@@ -3136,9 +3138,7 @@
       if (e.key === 'Enter') { e.preventDefault(); if (vocabAnswered) { vocabAdvance(); } else { grade(false); } }
     });
 
-    wrap.appendChild(el('div', { class: 'cta-row' }, [
-      el('button', { class: 'btn ghost small', type: 'button', text: "I don't know", onclick: () => grade(true) })
-    ]));
+    giveUp.addEventListener('click', () => grade(true));
 
     if (toAr) wrap.appendChild(MP.keyboard.attach(input, { onEnter: () => grade(false) }));
 
