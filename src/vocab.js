@@ -28,15 +28,59 @@
   /* storage — a thin layer over the custom-content document             */
   /* ------------------------------------------------------------------ */
 
-  function all() {
+  /* what you have added or changed, exactly as stored */
+  function mine() {
     const data = MP.custom.load();
     return Array.isArray(data.vocab) ? data.vocab : [];
   }
 
-  function writeAll(list) {
+  function writeMine(list) {
     const data = MP.custom.load();
     data.vocab = list;
     MP.custom.save(data);
+  }
+
+  /* the decks that ship with the app, flattened into entries */
+  function builtIn() {
+    const out = [];
+    const decks = (MP.vocabDecks && MP.vocabDecks.decks) || [];
+    decks.forEach((d) => {
+      d.words.forEach((word, i) => {
+        out.push(Object.assign({}, word, {
+          id: 'd:' + d.id + ':' + (i + 1),
+          section: d.id,
+          builtIn: true
+        }));
+      });
+    });
+    return out;
+  }
+
+  /*
+   * Everything in the app: the shipped decks, then your own on top.
+   *
+   * An entry you have edited is stored under the same id as the deck word it
+   * came from, so it simply replaces it here — which is what keeps your gloss
+   * safe when the deck is updated. A deleted deck word leaves a tombstone and
+   * drops out. Your own words have ids of their own and just append.
+   */
+  function all() {
+    const data = MP.custom.load();
+    const tomb = data.tombstones || {};
+    const stored = Array.isArray(data.vocab) ? data.vocab : [];
+    const overrides = {};
+    stored.forEach((e) => { overrides[e.id] = e; });
+
+    const out = [];
+    builtIn().forEach((e) => {
+      if (tomb[e.id]) return;
+      const mineCopy = overrides[e.id];
+      out.push(mineCopy ? Object.assign({}, mineCopy, { builtIn: true, edited: true }) : e);
+    });
+    stored.forEach((e) => {
+      if (e.id.indexOf('d:') !== 0) out.push(e);
+    });
+    return out;
   }
 
   /* ------------------------------------------------------------------ */
@@ -192,6 +236,9 @@
 
   /* numeric sections sort as numbers, anything else falls in after them */
   function compareSections(a, b) {
+    const da = !!deckOf(a);
+    const db = !!deckOf(b);
+    if (da !== db) return da ? -1 : 1;   // what ships first, then what you added
     const na = parseFloat(a);
     const nb = parseFloat(b);
     if (!isNaN(na) && !isNaN(nb)) return na - nb;
@@ -200,13 +247,24 @@
     return a.localeCompare(b);
   }
 
+  const deckOf = (id) => ((MP.vocabDecks && MP.vocabDecks.decks) || []).find((d) => d.id === id) || null;
+
+  function sectionLabel(id) {
+    const d = deckOf(sectionKey(id));
+    return d ? d.name : 'Section ' + id;
+  }
+
   function sections() {
     const stats = MP.store.load().words;
     const now = Date.now();
     const map = {};
     all().forEach((e) => {
       const k = sectionKey(e.section);
-      const s = (map[k] = map[k] || { id: k, count: 0, due: 0, seen: 0 });
+      const d = deckOf(k);
+      const s = (map[k] = map[k] || {
+        id: k, count: 0, due: 0, seen: 0,
+        builtIn: !!d, name: d ? d.name : null, desc: d ? d.desc : null
+      });
       s.count++;
       const st = stats[e.id];
       if (st && st.seen) s.seen++;
@@ -246,9 +304,9 @@
    * have extended only adds what is new.
    */
   function addMany(section, rows) {
-    const list = all();
+    const list = mine();
     const taken = {};
-    list.forEach((e) => { taken[e.id] = true; });
+    all().forEach((e) => { taken[e.id] = true; });
 
     const fallback = sectionKey(section);
 
@@ -257,7 +315,7 @@
        ḥarakāt to compare them would silently swallow the second one. The
        key carries the section, so the same word may sit in two of them. */
     const here = {};
-    list.forEach((e) => { here[sectionKey(e.section) + '\u0000' + exactAr(e.ar)] = true; });
+    all().forEach((e) => { here[sectionKey(e.section) + '\u0000' + exactAr(e.ar)] = true; });
 
     let added = 0;
     let skipped = 0;
@@ -279,7 +337,7 @@
       added++;
     });
 
-    if (added) writeAll(list);
+    if (added) writeMine(list);
     return { added, skipped, sections: Object.keys(touched).sort(compareSections) };
   }
 
@@ -315,13 +373,21 @@
    * the other device's stale copy on the next sync.
    */
   function update(id, fields) {
-    const list = all();
-    const e = list.find((x) => x.id === id);
-    if (!e) return false;
+    const list = mine();
+    let e = list.find((x) => x.id === id);
+    if (!e) {
+      /* first edit of a shipped word: take a copy under the same id, which
+         then wins over the deck for good */
+      const source = builtIn().find((x) => x.id === id);
+      if (!source) return false;
+      e = Object.assign({}, source);
+      delete e.builtIn;
+      list.push(e);
+    }
     Object.assign(e, fields);
     if (fields.section != null) e.section = sectionKey(fields.section);
     e.updatedAt = Date.now();
-    writeAll(list);
+    writeMine(list);
     return true;
   }
 
@@ -338,7 +404,12 @@
    * takes masculine agreement. Those have to be learned with the word, so
    * this is what the drills surface rather than the gender on its own.
    */
-  const FEM_ENDING = /(?:ة|ى|ا?ء)ٌ?ً?ٍ?$/;
+  /*
+   * Only ة and ى announce themselves. An اء ending does not: سَمَاءٌ is
+   * feminine and مَاءٌ is masculine, and both end the same way, so a word
+   * ending in it still has to be learned either way.
+   */
+  const FEM_ENDING = /(?:ة|ى)[\u064B-\u0652]?$/;
 
   function looksFeminine(word) {
     return FEM_ENDING.test(String(word || '').replace(/[\u064B-\u0652]/g, '').trim());
@@ -529,6 +600,9 @@
   MP.vocab = {
     PREFIX,
     all,
+    mine,
+    builtIn,
+    sectionLabel,
     get,
     count,
     sections,

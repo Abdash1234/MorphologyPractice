@@ -22,6 +22,8 @@ require('../src/tables.js');
 require('../src/store.js');
 require('../src/engine.js');
 require('../src/custom.js');
+require('../src/vocab-decks.js');
+require('../src/vocab.js');
 
 const MP = globalThis.MP;
 const T = MP.taxonomy;
@@ -271,6 +273,41 @@ Object.keys(MP.paradigms).forEach((id) => {
     fail(`editor: export/import lost data (${before.words}w/${before.roots}r → ${after.words}w/${after.roots}r)`);
   }
   MP.custom.save({ paradigms: {}, words: [], sentences: {} });  // leave no trace
+})();
+
+/* ---- the vocabulary decks that ship with the app ---- */
+(function () {
+  const seenAr = {};
+  const HARAKA_RE = /[\u064B-\u0652]/;
+  (MP.vocabDecks.decks || []).forEach((d) => {
+    if (!d.id || !d.name || !d.desc) fail(`vocab deck ${d.id}: missing id/name/desc`);
+    if (!d.words.length) fail(`vocab deck ${d.id}: no words`);
+    d.words.forEach((w, i) => {
+      const where = `${d.id}[${i + 1}] ${w.ar || '(no Arabic)'}`;
+      if (!w.ar || !/[\u0600-\u06FF]/.test(w.ar)) fail(`${where}: not Arabic`);
+      if (!w.en) fail(`${where}: no meaning`);
+      if (!w.tr) warn(`${where}: no transliteration`);
+      if (w.ar && !HARAKA_RE.test(w.ar)) warn(`${where}: no ḥarakāt`);
+      if (w.pl && !/[\u0600-\u06FF]/.test(w.pl)) fail(`${where}: plural is not Arabic`);
+      if (w.gender && ['mudhakkar', 'muannath'].indexOf(w.gender) === -1) {
+        fail(`${where}: bad gender "${w.gender}"`);
+      }
+      /* a gender that merely repeats what the ending says is noise */
+      if (w.gender === 'muannath' && MP.vocab.looksFeminine(w.ar)) {
+        warn(`${where}: marked feminine, but the ending already says so`);
+      }
+      const key = d.id + '|' + w.ar;
+      if (seenAr[key]) fail(`${where}: appears twice in the deck`);
+      seenAr[key] = true;
+    });
+  });
+  const ids = {};
+  MP.vocab.builtIn().forEach((e) => {
+    if (ids[e.id]) fail(`vocab deck entry id "${e.id}" is not unique`);
+    ids[e.id] = true;
+  });
+  console.log('vocab decks: ' + MP.vocabDecks.decks.length + ' · '
+    + MP.vocab.builtIn().length + ' words');
 })();
 
 /* ---- reference content ---- */

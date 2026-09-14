@@ -10,7 +10,7 @@
  */
 'use strict';
 
-const VERSION = '20260914-d531089';
+const VERSION = '20260914-c0b6cb6';
 const CACHE = 'sarf-' + VERSION;
 
 const PRECACHE = [
@@ -33,6 +33,7 @@ const PRECACHE = [
   './src/ilal.js',
   './src/keyboard.js',
   './src/custom.js',
+  './src/vocab-decks.js',
   './src/vocab.js',
   './src/store.js',
   './src/engine.js',

@@ -2769,7 +2769,7 @@
   function vocabSectionName(id) {
     if (id === 'all') return 'Everything';
     if (id === 'due') return 'Due for review';
-    return 'Section ' + id;
+    return MP.vocab.sectionLabel(id);
   }
 
   function renderVocab(keepScroll) {
@@ -2813,11 +2813,15 @@
     if (dueTotal) secRow.appendChild(sectionChip('due', 'Due now', dueTotal + ' words'));
     secs.forEach((s) => {
       secRow.appendChild(sectionChip(s.id, vocabSectionName(s.id),
-        s.count + ' · ' + s.seen + ' seen'));
+        s.count + ' · ' + s.seen + ' seen' + (s.builtIn ? ' · built in' : '')));
     });
     wrap.appendChild(secRow);
 
     const chosenCount = MP.vocab.bySection(vocabSection).length;
+    const chosenSec = secs.find((x) => x.id === vocabSection);
+    if (chosenSec && chosenSec.desc) {
+      wrap.appendChild(el('p', { class: 'muted small', text: chosenSec.desc }));
+    }
 
     /* ---- how to test ---- */
     wrap.appendChild(el('h2', { class: 'panel-title', text: 'How to test yourself' }));
@@ -2989,7 +2993,10 @@
       const list = el('div', { class: 'vocab-sec-list' });
       secs.forEach((s) => {
         list.appendChild(el('div', { class: 'vocab-sec-row' }, [
-          el('span', { class: 'vocab-sec-name', text: vocabSectionName(s.id) }),
+          el('span', { class: 'vocab-sec-name' }, [
+            el('span', { text: vocabSectionName(s.id) }),
+            s.builtIn ? el('span', { class: 'vocab-gender-tag', text: 'built in' }) : el('span', {})
+          ]),
           el('span', { class: 'muted small', text: s.count + ' words · ' + s.seen + ' seen' }),
           el('button', {
             class: 'btn ghost small', type: 'button', text: 'Show',
@@ -2998,7 +3005,9 @@
           el('button', {
             class: 'btn ghost small danger', type: 'button', text: 'Delete',
             onclick: () => {
-              ask('Delete all ' + s.count + ' words in ' + vocabSectionName(s.id) + '?', () => {
+              ask(s.builtIn
+                ? 'Hide all ' + s.count + ' words in ' + vocabSectionName(s.id) + '? They ship with the app, so this only removes them for you.'
+                : 'Delete all ' + s.count + ' words in ' + vocabSectionName(s.id) + '?', () => {
                 MP.vocab.removeSection(s.id);
                 if (vocabSection === s.id) vocabSection = 'all';
                 renderVocabManage();
