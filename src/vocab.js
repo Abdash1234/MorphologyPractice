@@ -125,9 +125,16 @@
   function parse(text) {
     const rows = [];
     const errors = [];
+    let current = null;   // set by a "## 2" header, applies until the next one
     String(text || '').split(/\r?\n/).forEach((raw, i) => {
       const line = raw.trim();
-      if (!line || line[0] === '#') return;
+      if (!line) return;
+
+      /* "## 2", "## Section 2", "## nouns" — everything after it belongs to
+         that section, so a whole book's worth goes in as one paste */
+      const header = line.match(/^##\s*(?:section\s*)?(.+?)\s*$/i);
+      if (header) { current = sectionKey(header[1]); return; }
+      if (line[0] === '#') return;   // an ordinary comment
 
       const parts = line.split(/\t|\s*[|=]\s*|\s+[–—]\s+|\s+-\s+/)
         .map((s) => s.trim())
@@ -166,7 +173,10 @@
       tr = takeMark(tr);
       en = takeMark(en);
 
-      rows.push({ ar: arParts[0], pl: arParts[1] || '', tr: tr, en: en, gender: gender });
+      rows.push({
+        ar: arParts[0], pl: arParts[1] || '', tr: tr, en: en,
+        gender: gender, section: current
+      });
     });
     return { rows, errors };
   }
@@ -240,34 +250,37 @@
     const taken = {};
     list.forEach((e) => { taken[e.id] = true; });
 
-    const key = sectionKey(section);
+    const fallback = sectionKey(section);
+
     /* Compared as written, not on the letters alone: آخِرٌ "last" and آخَرُ
        "other" are the same skeleton and different words, and stripping the
-       ḥarakāt to compare them would silently swallow the second one. */
+       ḥarakāt to compare them would silently swallow the second one. The
+       key carries the section, so the same word may sit in two of them. */
     const here = {};
-    list.forEach((e) => {
-      if (sectionKey(e.section) === key) here[exactAr(e.ar)] = true;
-    });
+    list.forEach((e) => { here[sectionKey(e.section) + '\u0000' + exactAr(e.ar)] = true; });
 
-    const seed = key.replace(/[^a-zA-Z0-9]/g, '') || 'x';
     let added = 0;
     let skipped = 0;
+    const touched = {};
     rows.forEach((r) => {
-      const k = exactAr(r.ar);
-      if (!k || here[k]) { skipped++; return; }
+      const key = r.section ? sectionKey(r.section) : fallback;
+      const word = exactAr(r.ar);
+      const k = key + '\u0000' + word;
+      if (!word || here[k]) { skipped++; return; }
       here[k] = true;
-      const id = nextId(taken, seed);
+      const id = nextId(taken, key.replace(/[^a-zA-Z0-9]/g, '') || 'x');
       taken[id] = true;
       list.push({
         id: id, ar: r.ar, pl: r.pl || '', en: r.en, tr: r.tr || '',
         gender: r.gender || '',
         section: key, added: Date.now(), updatedAt: Date.now()
       });
+      touched[key] = true;
       added++;
     });
 
     if (added) writeAll(list);
-    return { added, skipped };
+    return { added, skipped, sections: Object.keys(touched).sort(compareSections) };
   }
 
   /*

@@ -2911,15 +2911,16 @@
 
     /* ---- the paste box ---- */
     const panel = el('div', { class: 'panel' });
-    panel.appendChild(el('h2', { text: 'Add a section' }));
-    panel.appendChild(el('p', { class: 'muted small', text: 'One word per line. Separate the Arabic from its meaning with a bar, a tab, or a spaced dash. A middle column is taken as the transliteration. Lines starting with # are ignored.' }));
-    panel.appendChild(el('pre', { class: 'vocab-format', text: 'نَصَرَ | naṣara | to help\nكِتَابٌ | a book\nذَهَبَ — to go' }));
+    panel.appendChild(el('h2', { text: 'Add words' }));
+    panel.appendChild(el('p', { class: 'muted small', text: 'One word per line, columns separated by a bar, a tab or a spaced dash. A second Arabic column is the plural; a spare Latin column is the transliteration; (f.) or (m.) anywhere sets the gender. Lines beginning ## start a new section, so you can paste a whole book at once. Lines beginning # are ignored.' }));
+    panel.appendChild(el('pre', { class: 'vocab-format', text: '## 1\nكِتَابٌ | كُتُبٌ | kitābun | a book\nأَرْضٌ | arḍun (f.) | earth\n\n## 2\nنَهْرٌ | a river' }));
 
     const secInput = el('input', {
       class: 'input vocab-secno', type: 'text', placeholder: 'e.g. 1',
       autocomplete: 'off', value: ''
     });
     panel.appendChild(field('Section', secInput));
+    panel.appendChild(el('p', { class: 'muted small vocab-secno-note', text: 'Used for any line not under a ## header.' }));
 
     const box = el('textarea', {
       class: 'input vocab-paste', rows: '10', placeholder: 'Paste your list here…',
@@ -2934,7 +2935,10 @@
       const res = MP.vocab.parse(box.value);
       preview.innerHTML = '';
       if (!box.value.trim()) { note.textContent = ''; return; }
+      const named = res.rows.filter((r) => r.section).map((r) => r.section);
+      const uniq = named.filter((v, i, a) => a.indexOf(v) === i);
       note.textContent = res.rows.length + ' word' + (res.rows.length === 1 ? '' : 's') + ' read'
+        + (uniq.length ? ' across ' + uniq.length + ' section' + (uniq.length === 1 ? '' : 's') + ' (' + uniq.join(', ') + ')' : '')
         + (res.errors.length ? ', ' + res.errors.length + ' line(s) not understood' : '') + '.';
       res.errors.slice(0, 4).forEach((e) => {
         preview.appendChild(el('p', { class: 'vocab-err small', text: e }));
@@ -2957,15 +2961,21 @@
       el('button', {
         class: 'btn primary', type: 'button', text: 'Add to the section',
         onclick: () => {
-          const sec = secInput.value.trim();
-          if (!sec) { say('Give the section a number or a name first.'); return; }
           const res = MP.vocab.parse(box.value);
           if (!res.rows.length) { say('Nothing to add — no words were read from that.'); return; }
+          const sec = secInput.value.trim();
+          /* a line with no ## above it has to land somewhere */
+          if (!sec && res.rows.some((r) => !r.section)) {
+            say('Give a section for the lines that are not under a ## header.');
+            return;
+          }
           const out = MP.vocab.addMany(sec, res.rows);
           box.value = '';
-          say('Added ' + out.added + ' word' + (out.added === 1 ? '' : 's')
-            + ' to section ' + sec
-            + (out.skipped ? '. ' + out.skipped + ' were already there.' : '.'));
+          const where = out.sections.length === 1
+            ? 'section ' + out.sections[0]
+            : out.sections.length + ' sections (' + out.sections.join(', ') + ')';
+          say('Added ' + out.added + ' word' + (out.added === 1 ? '' : 's') + ' to ' + where
+            + (out.skipped ? '. ' + out.skipped + ' already there.' : '.'));
           renderVocabManage();
         }
       })

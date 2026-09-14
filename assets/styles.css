@@ -2037,3 +2037,4 @@ select.input { cursor: pointer; }
   .toast { animation: toast-in 0.18s ease-out; }
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
 }
+.vocab-secno-note { margin: -6px 0 12px; }
